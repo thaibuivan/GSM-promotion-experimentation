@@ -1,0 +1,12 @@
+# Data files
+data/
+*.parquet
+*.csv
+*.xlsx
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
