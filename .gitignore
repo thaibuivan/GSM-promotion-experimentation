@@ -10,3 +10,11 @@ data/
 # Python
 __pycache__/
 *.pyc
+
+# Ignore data files
+data/*.csv
+data/*.parquet
+
+# Temporary files and extracted images
+~$*.pptx
+docs/images/
