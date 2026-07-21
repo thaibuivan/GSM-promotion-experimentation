@@ -14,12 +14,17 @@ Tuy nhiên, nếu phát voucher ngẫu nhiên, ta có nguy cơ rơi vào bẫy "
 - Mục tiêu là đo lường **Uplift/Incrementality** (Tác động nhân quả thực sự của Voucher), chứ không phải đo lường Conversion Rate.
 
 ## 4. Population (Tập khách hàng mục tiêu)
-- **Tiêu chí lọc:** Tất cả các User có tương tác (mở App) trong vòng 30 ngày qua, sinh sống/hoạt động chủ yếu tại khu vực Manhattan (dựa theo hành vi lịch sử).
-- **Loại trừ:** Các khách hàng VIP (vì họ có độ co giãn của cầu theo giá - Price Elasticity rất thấp, phát voucher chỉ gây tốn tiền).
+- **Tiêu chí lọc:** Tất cả các chuyến đi (Trip) được đặt trong khung giờ 10AM - 4PM, tại khu vực Manhattan.
+- **Loại trừ:** Các chuyến đi có điểm đón ở khu vực sân bay (JFK, LaGuardia) — vì đây là nhu cầu cứng (Inelastic), không phản ứng với Voucher giá.
+- ⚠️ **Lưu ý giới hạn:** Bộ dữ liệu Yellow Taxi không có `User_ID` (khách hàng ẩn danh), do đó không thể lọc theo lịch sử cá nhân. Mọi phân tích đều ở cấp độ **Chuyến đi (Trip-level)**, không phải cấp độ Khách hàng (User-level) — đây là điểm khác biệt cốt lõi so với Experiment Design v2.
 
 ## 5. Unit Randomization (Đơn vị phân bổ ngẫu nhiên)
-- **Mức độ (Unit):** `User_ID` (Khách hàng). 
-- **Lý do:** Randomize theo User đảm bảo trải nghiệm nhất quán. Nếu randomize theo Session (Phiên mở app), một khách hàng có thể mở app lúc 11h thấy có voucher, nhưng 12h mở lại thì không thấy, gây ra sự khó chịu và hiệu ứng lan truyền (Interference).
+- **Mức độ (Unit):** `Zone_ID` (Khu vực địa lý — Geographic Holdout).
+- **Lý do:** Vì dữ liệu Yellow Taxi **không có User_ID** (khách hàng hoàn toàn ẩn danh), ta không thể randomize theo từng cá nhân. Thay vào đó, chia Manhattan thành các **khu vực (Zone)** và randomize ngẫu nhiên mỗi Zone vào nhóm Treatment hoặc Control.
+  - **Treatment Zones:** Hiển thị Banner Happy Hour cho tất cả chuyến đi khởi hành từ khu vực này.
+  - **Control Zones:** Không hiển thị Banner, trải nghiệm mặc định.
+- **Ưu điểm:** Đảm bảo một khu vực chỉ thuộc một nhóm, tránh Spillover Effect (Khách ở Zone Treatment nói với người ở Zone Control).
+- **Hạn chế (so với User-level Randomization ở v2):** Không kiểm soát được việc cùng một người đặt xe từ 2 Zone khác nhau trong cùng ngày — đây là nguồn gây nhiễu (Noise) không thể tránh khi không có User_ID.
 
 ## 6. Treatment & Control (Thiết kế Can thiệp)
 - **Treatment Group (Nhóm can thiệp):** Khi mở app trong khung giờ 10AM - 4PM, User sẽ thấy một Banner thông báo "Happy Hour: Giảm 20%". Mã tự động áp dụng khi đặt xe.
