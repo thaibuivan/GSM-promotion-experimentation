@@ -1,8 +1,5 @@
 # Experiment Design v1: Kích cầu Giờ thấp điểm (Off-peak Demand Generation)
 
-*Dự án: GSM Promotion Experimentation*
-*Tác giả: [Tên của bạn]*
-
 ## 1. Context & Rationale (Bối cảnh)
 Dựa trên phân tích EDA (Notebook 2), hệ thống ghi nhận một khoảng thời gian rảnh rỗi lớn của đội xe (idle time) vào khung giờ trưa (10AM - 4PM). Việc xe chạy rỗng gây lãng phí chi phí vận hành (fuel/driver cost).
 Tuy nhiên, nếu phát voucher ngẫu nhiên, ta có nguy cơ rơi vào bẫy "Cannibalization" (khách hàng vốn dĩ sẽ đặt xe vào giờ đó vẫn nhận được mã, làm giảm doanh thu). Do đó, thiết kế Mechanism này nhắm vào việc thay đổi hành vi: **Thúc đẩy nhu cầu mới (Incremental rides)**.
