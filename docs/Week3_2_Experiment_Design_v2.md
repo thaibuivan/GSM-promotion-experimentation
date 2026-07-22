@@ -41,19 +41,23 @@ Từ phân tích EDA (Notebook 6), chúng ta biết rằng phần lớn người
 
 ## 4. Population (Tập khách hàng mục tiêu)
 
+> **Cập nhật từ Kết quả K-Means Segmentation (Notebook 3.1):**  
+> Dựa trên thuật toán K-Means Clustering trên 20,000 người dùng, tập khách hàng được chọn chính thức cho chiến dịch này là **Persona 0: `Suburban Commuters`** (chiếm 17.5% tổng tệp khách hàng).
+
 ### Tiêu chí chọn vào (Inclusion):
-| Tiêu chí | Điều kiện |
-|---|---|
-| Lịch sử sử dụng | Đã đặt **4-8 chuyến** trong 30 ngày trước thí nghiệm |
-| Trạng thái hiện tại | **Không mở app trong 5-14 ngày** liên tiếp |
-| Khu vực | Sinh hoạt chủ yếu tại **vùng đô thị** (Urban) |
-| Tình trạng tài khoản | Tài khoản Active, chưa bị khóa |
+| Tiêu chí | Điều kiện | Nguồn gốc K-Means Cluster |
+|---|---|---|
+| **Persona K-Means** | **Persona 0 (`Suburban Commuters`)** | Cluster ID = 0 (100% Khách hàng cụm 0) |
+| Trạng thái Ngủ đông | **`recency_days` ~ 9.98 ngày** (Nằm trong dải 5-14 ngày) | Điểm trung bình cụm 0 |
+| Hành vi Gọi xe | **`is_rush_hour` = 1.0** (Gọi xe giờ cao điểm) | 100% Khách hàng cụm 0 |
+| Vị trí Địa lý | **`is_urban` = 0.0** (Khu vực ngoại ô) | 100% Khách hàng cụm 0 |
+| Tình trạng tài khoản | Tài khoản Active, chưa bị khóa | Mặc định hệ thống |
 
 ### Tiêu chí loại trừ (Exclusion):
-- ❌ **Heavy Users (>8 chuyến/tháng):** Họ sẽ tự quay lại, tặng voucher là lãng phí ngân sách.
-- ❌ **New Users (< 30 ngày tuổi):** Hành vi chưa ổn định, không đủ lịch sử để phân tích.
+- ❌ **Persona 1 (`Urban Commuters`):** Khách ruột nội thành, mở app thường xuyên (Recency ~4 ngày), tặng voucher gây lãng phí.
+- ❌ **Persona 2 (`Urban Leisure`):** Khách nội thành đi chơi, mở app thường xuyên (Recency ~4 ngày).
+- ❌ **Persona 3 (`Suburban Occasionals`):** Khách ngoại ô đi giờ linh tinh, nhu cầu không rõ ràng.
 - ❌ **Khách hàng đã nhận Voucher trong 14 ngày qua:** Tránh hiệu ứng "Voucher Fatigue".
-- ❌ **Khách hàng đã unsubscribe thông báo:** Không thể tiếp cận qua Push Notification.
 
 ---
 
