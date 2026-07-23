@@ -1,25 +1,25 @@
-# Statistical Foundations for A/B Testing (Week 4)
+# Nền tảng Thống kê cho A/B Testing (Tuần 4)
 
-## 1. Hypothesis Testing Framework
-A/B testing relies on the frequentist hypothesis testing framework to determine the statistical significance of observed differences between two groups. 
+## 1. Phương pháp Kiểm định Giả thuyết (Hypothesis Testing)
+Quá trình phân tích A/B Testing trong dự án áp dụng phương pháp thống kê tần suất (Frequentist Hypothesis Testing) nhằm xác định mức độ ý nghĩa thống kê của sự khác biệt giữa hai nhóm.
 
-- **Null Hypothesis ($H_0$):** Assumes no difference between the Treatment and Control groups (i.e., the treatment effect is zero).
-- **Alternative Hypothesis ($H_1$):** Assumes a statistically significant difference exists.
+- **Giả thuyết Không ($H_0$):** Giả định rằng không có sự khác biệt giữa nhóm Treatment và nhóm Control (nghĩa là tác động của Voucher bằng 0).
+- **Giả thuyết Đối ($H_1$):** Giả định rằng có tồn tại một sự khác biệt mang ý nghĩa thống kê giữa hai nhóm.
 
-The decision to reject $H_0$ is based on the **P-value**, which represents the probability of observing a difference as extreme as the one measured, assuming $H_0$ is true. A pre-defined significance level ($\alpha = 0.05$) is used as the threshold. If the P-value < $\alpha$, $H_0$ is rejected.
+Việc bác bỏ Giả thuyết $H_0$ phụ thuộc vào chỉ số **P-value**. Chỉ số này đại diện cho xác suất thu được một chênh lệch bằng hoặc lớn hơn mức đang quan sát thấy, với điều kiện $H_0$ là đúng. Dự án sử dụng mức ý nghĩa thống kê (Significance Level) $\alpha = 0.05$ làm ngưỡng tiêu chuẩn. Nếu P-value < $\alpha$, $H_0$ sẽ bị bác bỏ.
 
-## 2. Evaluation Criteria in A/B Testing
-The analytical pipeline evaluates two distinct statistical requirements depending on the objective:
+## 2. Tiêu chí Đánh giá trong A/B Testing
+Hệ thống phân tích thực hiện hai phép đo lường thống kê độc lập tùy thuộc vào mục tiêu đánh giá:
 
-### 2.1. Sanity Checks (System Validation)
-- **Objective:** To verify that the randomization algorithm evenly distributed users across groups, ensuring comparability.
-- **Null Hypothesis ($H_0$):** Groups are perfectly balanced (Difference = 0).
-- **Desired Outcome:** We expect to fail to reject $H_0$. Therefore, a **P-value > 0.05** is required to confirm the absence of bias or Sample Ratio Mismatch (SRM).
+### 2.1. Sanity Checks (Kiểm tra Cân bằng Hệ thống)
+- **Mục tiêu:** Kiểm chứng thuật toán phân bổ ngẫu nhiên đã chia đều khách hàng vào các nhóm, đảm bảo tính đồng nhất (Comparability) trước khi phân tích kết quả.
+- **Giả thuyết Không ($H_0$):** Hai nhóm hoàn toàn cân bằng về các đặc tính (Độ chênh lệch = 0).
+- **Kết quả Kỳ vọng:** Mục tiêu ở bước này là **không thể bác bỏ $H_0$**. Do đó, yêu cầu **P-value > 0.05** để xác nhận hệ thống không gặp lỗi Mất cân bằng mẫu (Sample Ratio Mismatch - SRM) hoặc mất cân bằng biến hiệp phương sai (Covariate Imbalance).
 
-### 2.2. Overall Evaluation Criterion (OEC)
-- **Objective:** To measure the true causal impact of the treatment (e.g., voucher promotion) on the primary metric (e.g., incremental rides).
-- **Null Hypothesis ($H_0$):** The treatment has no effect (Difference = 0).
-- **Desired Outcome:** We aim to reject $H_0$ to prove the treatment's efficacy. Therefore, a **P-value < 0.05** is required to conclude that the observed uplift is statistically significant and not due to random variance.
+### 2.2. Chỉ số Đánh giá Cốt lõi (Overall Evaluation Criterion - OEC)
+- **Mục tiêu:** Đo lường tác động nhân quả thực sự của sự can thiệp (Voucher) lên chỉ số mục tiêu (Số chuyến đi tăng thêm).
+- **Giả thuyết Không ($H_0$):** Sự can thiệp không mang lại tác động nào (Độ chênh lệch = 0).
+- **Kết quả Kỳ vọng:** Mục tiêu ở bước này là **bác bỏ $H_0$** nhằm chứng minh hiệu quả của Voucher. Do đó, yêu cầu **P-value < 0.05** để kết luận mức độ tăng trưởng quan sát được có ý nghĩa thống kê và không xuất phát từ phương sai ngẫu nhiên.
 
-## 3. Financial Guardrails
-In addition to statistical significance, practical significance is evaluated using financial guardrails. The **Return on Investment (ROI)** metric is calculated by netting the incremental gross revenue against the cost of the promotion (e.g., voucher issuance cost). A statistically significant OEC is only actionable if the corresponding ROI is positive, satisfying business profitability constraints.
+## 3. Chỉ số An toàn Tài chính (Financial Guardrails)
+Bên cạnh ý nghĩa thống kê, ý nghĩa thực tiễn (Practical Significance) của chiến dịch được đánh giá thông qua các chỉ số an toàn tài chính. Chỉ số **Tỷ suất Hoàn vốn (Return on Investment - ROI)** được tính toán bằng cách lấy doanh thu gộp tăng thêm trừ đi chi phí triển khai (ví dụ: chi phí phát hành Voucher). Một chỉ số OEC dù có ý nghĩa thống kê cũng chỉ được đề xuất triển khai khi và chỉ khi chỉ số ROI tương ứng là một số dương, đáp ứng bài toán sinh lời của doanh nghiệp.
