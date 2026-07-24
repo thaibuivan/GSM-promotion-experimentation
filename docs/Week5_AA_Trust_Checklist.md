@@ -6,14 +6,14 @@ Trước khi đưa vào triển khai bất kỳ thí nghiệm A/B Testing nào, 
 Mục tiêu cốt lõi là xác minh Tỷ lệ Dương tính giả (False Positive Rate - Type I Error) của hệ thống hội tụ chính xác về mức lý thuyết ($\alpha = 0.05$), đồng thời đảm bảo không có sự thiên vị trong việc phân bổ mẫu.
 
 ## 2. Phương pháp Thực hiện (Methodology)
-Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng mục tiêu (`Suburban Commuters`) được phân bổ ngẫu nhiên thành hai nhóm (A và A') qua 1.000 vòng lặp độc lập. Các chỉ số thống kê được ghi nhận ở mỗi vòng lặp để phân tích hành vi của hệ thống.
+Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng mục tiêu (`Suburban Commuters`) được phân bổ ngẫu nhiên thành hai nhóm (A và A') qua 5.000 vòng lặp độc lập. Các chỉ số thống kê được ghi nhận ở mỗi vòng lặp để phân tích hành vi của hệ thống.
 
 ## 3. Các Chỉ số Đánh giá & Kết quả
 
 ### 3.1. Kiểm tra Lỗi Cân bằng Mẫu (Sample Ratio Mismatch - SRM)
 - **Phương pháp:** Sử dụng Kiểm định Chi-Square ($X^2$) Goodness-of-Fit để đối chiếu quy mô mẫu thực tế với quy mô mẫu kỳ vọng (tỷ lệ 50/50).
 - **Ngưỡng tiêu chuẩn:** Tỷ lệ số vòng lặp trả về P-value < 0.05 không được vượt quá xa mốc 5.0%.
-- **Kết quả đo lường:** Tỷ lệ cảnh báo SRM trong 1.000 vòng lặp là 4.90%.
+- **Kết quả đo lường:** Tỷ lệ cảnh báo SRM trong 5.000 vòng lặp là 4.82%.
 - **Kết luận:** ĐẠT (PASS). Thuật toán Hashing/Randomization hoạt động ổn định, không ghi nhận xu hướng phân bổ lệch trọng số.
 
 ### 3.2. Kiểm tra Độ Cân bằng Đặc trưng (Covariate Balance)
@@ -22,11 +22,11 @@ Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng m
 - **Kết quả đo lường:** Hệ thống duy trì sự cân bằng đặc trưng ổn định, phân phối nền của các biến số tương đồng giữa hai nhóm.
 - **Kết luận:** ĐẠT (PASS). Hệ thống loại trừ thành công các rủi ro liên quan đến Thiên kiến chọn mẫu (Selection Bias).
 
-### 3.3. Kiểm định Phân phối P-Value (P-Value Uniformity Test)
-- **Phương pháp:** Sử dụng Kiểm định Kolmogorov-Smirnov (KS-Test) để đối chiếu hình dáng phân phối thực tế của tập hợp P-value (từ 1.000 vòng lặp) với một Đường phân phối đều chuẩn (Uniform Distribution).
-- **Ngưỡng tiêu chuẩn:** KS-Test P-value > 0.05 chỉ ra rằng tập P-value tuân theo phân phối đều. Tỷ lệ Dương tính giả (FPR) kỳ vọng là 5.0%.
-- **Kết quả đo lường:** Biểu đồ Histogram của P-value phẳng và đồng đều. KS-Test P-value lớn hơn 0.05. Tỷ lệ FPR thực tế đạt 5.60% (nằm trong biên độ sai số thống kê cho phép của 1.000 mẫu).
-- **Kết luận:** ĐẠT (PASS). Động cơ tính toán thống kê (Statistical Engine) hoạt động chính xác, đảm bảo kiểm soát chặt chẽ tỷ lệ kết luận sai lầm ở mức $\alpha$ cho trước.
+### 3.3. Kiểm tra Tỷ lệ Dương tính giả (False Positive Rate - FPR)
+- **Phương pháp:** Đo lường tỷ lệ các vòng lặp A/A Test trả về P-value < 0.05. Đối với dữ liệu đếm rời rạc (Count Data), kiểm định KS-Test bị loại bỏ do vi phạm giả định phân phối liên tục, dẫn đến phân phối P-value bậc thang (Stepped Distribution).
+- **Ngưỡng tiêu chuẩn:** Tỷ lệ FPR kỳ vọng dao động an toàn quanh mốc 5.0% (dung sai 3.5% - 6.5% với 5.000 vòng lặp).
+- **Kết quả đo lường:** Tỷ lệ FPR thực tế đạt 4.74%.
+- **Kết luận:** ĐẠT (PASS). Động cơ tính toán thống kê (Statistical Engine) hoạt động chính xác, kiểm soát tuyệt đối nhiễu hệ thống.
 
 ## 4. Kết luận Tổng thể
 Hệ thống Thử nghiệm (Experimentation Platform) đã vượt qua toàn bộ các tiêu chí kiểm định ngặt nghèo trong danh sách Trust Checklist. Pipeline dữ liệu minh bạch, vô tư và chuẩn xác về mặt toán học. Mọi kết quả phân tích A/B Testing được chạy trên nền tảng này hoàn toàn đủ độ tin cậy để phục vụ cho các quyết định vận hành thực tế.
