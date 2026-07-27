@@ -41,22 +41,20 @@ Từ phân tích EDA (Notebook 6), chúng ta biết rằng phần lớn người
 
 ## 4. Population (Tập khách hàng mục tiêu)
 
-> **Cập nhật từ Kết quả K-Means Segmentation (Notebook 3.1):**  
-> Dựa trên thuật toán K-Means Clustering trên 20,000 người dùng, tập khách hàng được chọn chính thức cho chiến dịch này là **Persona 0: `Suburban Commuters`** (chiếm 17.5% tổng tệp khách hàng).
+> **Cập nhật từ Kết quả K-Means Segmentation (Notebook 3):**  
+> Dựa trên thuật toán K-Means Clustering trên 20,000 người dùng và đo lường ROI qua A/B Test, tập khách hàng được chọn chính thức cho chiến dịch này là **Nhóm Nhạy cảm với giá (Persuadables)** bao gồm 2 Personas: **`Urban Leisure`** và **`Suburban Occasionals`**.
 
 ### Tiêu chí chọn vào (Inclusion):
 | Tiêu chí | Điều kiện | Nguồn gốc K-Means Cluster |
 |---|---|---|
-| **Persona K-Means** | **Persona 0 (`Suburban Commuters`)** | Cluster ID = 0 (100% Khách hàng cụm 0) |
-| Trạng thái Ngủ đông | **`recency_days` ~ 9.98 ngày** (Nằm trong dải 5-14 ngày) | Điểm trung bình cụm 0 |
-| Hành vi Gọi xe | **`is_rush_hour` = 1.0** (Gọi xe giờ cao điểm) | 100% Khách hàng cụm 0 |
-| Vị trí Địa lý | **`is_urban` = 0.0** (Khu vực ngoại ô) | 100% Khách hàng cụm 0 |
+| **Persona K-Means** | **`Urban Leisure`** hoặc **`Suburban Occasionals`** | Nhóm có ROI > 0 trong A/B Test |
+| Trạng thái Ngủ đông | **`recency_days` ~ 5-14 ngày** | Lọc user đang có nguy cơ rời bỏ |
 | Tình trạng tài khoản | Tài khoản Active, chưa bị khóa | Mặc định hệ thống |
 
 ### Tiêu chí loại trừ (Exclusion):
-- ❌ **Persona 1 (`Urban Commuters`):** Khách ruột nội thành, mở app thường xuyên (Recency ~4 ngày), tặng voucher gây lãng phí.
-- ❌ **Persona 2 (`Urban Leisure`):** Khách nội thành đi chơi, mở app thường xuyên (Recency ~4 ngày).
-- ❌ **Persona 3 (`Suburban Occasionals`):** Khách ngoại ô đi giờ linh tinh, nhu cầu không rõ ràng.
+- ❌ **`Airport Business`:** Khách đi sân bay (Kháng sale, ROI -98.6%). Tặng voucher là lãng phí.
+- ❌ **`Urban Regulars`:** Khách đi làm giờ cao điểm (ROI -28.7%). Họ buộc phải đi xe dù không có mã.
+- ❌ **`Rain Riders`:** Khách phụ thuộc thời tiết mưa (ROI -44.4%). Nhu cầu phụ thuộc ngoại cảnh.
 - ❌ **Khách hàng đã nhận Voucher trong 14 ngày qua:** Tránh hiệu ứng "Voucher Fatigue".
 
 ---
