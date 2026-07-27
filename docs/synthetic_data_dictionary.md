@@ -16,7 +16,7 @@ Tài liệu này định nghĩa chi tiết các biến số (features) được 
 | `income` | Float | Log-normal (mean=10.5, sigma=0.5) | Mức thu nhập hàng tháng (Proxy thông qua các phân phối thu nhập lệch phải). |
 | `is_urban` | Binary (0/1) | Bernoulli (p=0.7) | `1` = Khách hàng sinh sống/hay đặt xe ở khu vực nội thành. `0` = Ngoại thành. |
 | `fare_obs` | Float | Lognormal | Giá cước trung bình mỗi chuyến xe. Khách hàng `is_urban=1` thường có cước thấp hơn khách đi ngoại tỉnh. Biến này dùng làm Proxy cho sức mua (Purchasing Power). |
-| `preferred_hour`| Integer | Uniform (0-23) | Khung giờ khách hàng thường xuyên đặt xe nhất trong ngày. |
+| `preferred_hour`| Integer | Weighted Probability (Dựa trên EDA Tuần 1) | Khung giờ khách hàng thường xuyên đặt xe nhất trong ngày. Đỉnh chóp rơi vào 7h-9h và 17h-19h. |
 | `is_rush_hour` | Binary (0/1) | Phái sinh từ `preferred_hour` | `1` = Khách hay đi vào 7h-9h và 17h-19h. Đại diện cho nhóm đi làm (Commuters). |
 | `is_airport_trip`| Binary (0/1) | Bernoulli (p=0.05) | `1` = Khách hàng có thói quen đi các cuốc xe ra sân bay. Nếu =1, `fare_obs` sẽ tự động nhân 4x. |
 | `is_rain_rider` | Binary (0/1) | Bernoulli (p=0.2) | `1` = Khách hàng có xu hướng gọi xe cao bất thường khi thời tiết xấu (trời mưa). |

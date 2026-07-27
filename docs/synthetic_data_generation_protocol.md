@@ -13,7 +13,7 @@ Thay vì sinh ngẫu nhiên toàn bộ các cột dữ liệu (Random Generation
 - **Quy tắc Ngoại lệ (Airport Multiplier):** Nếu `is_airport_trip = 1` (khoảng 5% khách hàng), mức cước `fare_obs` lập tức được nhân 4 (x4). 
 
 ### 2.2. Cụm Biến Thời gian (Temporal)
-- `preferred_hour`: Phân phối đều (Uniform) từ 0-23.
+- `preferred_hour`: Phân phối **Có trọng số (Weighted Probability)** dựa trên `HOUR_DEMAND_MULTIPLIER`. Lấy cảm hứng từ EDA Tuần 1, xác suất rơi vào các khung giờ 7h-9h sáng và 17h-19h tối được ép đẩy lên rất cao (Rush Hours), trong khi các giờ rạng sáng bị ép xuống thấp.
 - `is_rush_hour`: Một hàm băm (mapping) từ `preferred_hour`. Nếu giờ nằm trong [7, 8, 9, 17, 18, 19] thì giá trị = 1, ngược lại = 0.
 
 ## 3. Cấu trúc Biến Nhiễu (Confounder Injection)
