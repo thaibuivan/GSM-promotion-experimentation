@@ -1,0 +1,12 @@
+FILE: AB Test (Tuan 4)
+============================================================
+if 'Persona A' in df['persona'].values:
+# Không cần map nữa vì data Phase 2 đã có sẵn tên persona chuẩn!
+df['persona'] = df['cluster_id'].map(persona_names)
+target_persona = 'Airport Business' # THỬ NGHIỆM TRÊN NHÓM KHÁNG SALE
+df_target = df[df['persona'] == target_persona].copy()
+print(f"Tổng số khách hàng trong nhóm {target_persona}: {len(df_target)}")
+personas_to_test = ['Airport Business', 'Cash Traditional', 'Urban Weekend Party', 'Urban Regulars', 'Suburban Occasionals']
+for target in personas_to_test:
+df_t = df[df['persona'] == target].copy()
+sns.barplot(x=personas_to_test, y=rois, palette=['#e74c3c', '#2ecc71'])
