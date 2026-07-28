@@ -42,18 +42,18 @@ Từ phân tích EDA (Notebook 6), chúng ta biết rằng phần lớn người
 ## 4. Population (Tập khách hàng mục tiêu)
 
 > **Cập nhật từ Kết quả K-Means Segmentation (Notebook 3):**  
-> Dựa trên thuật toán K-Means Clustering trên 20,000 người dùng và đo lường ROI qua A/B Test, tập khách hàng được chọn chính thức cho chiến dịch này là **Nhóm Nhạy cảm với giá (Persuadables)** bao gồm 2 Personas: **`Urban Leisure`** và **`Suburban Occasionals`**.
+> Dựa trên thuật toán K-Means Clustering trên 20,000 người dùng và đo lường ROI qua A/B Test, tập khách hàng được chọn chính thức cho chiến dịch này là **Nhóm Nhạy cảm với giá (Persuadables)** bao gồm 2 Personas: **`Urban Credit Card`** và **`Suburban Occasionals`**.
 
 ### Tiêu chí chọn vào (Inclusion):
 | Tiêu chí | Điều kiện | Nguồn gốc K-Means Cluster |
 |---|---|---|
-| **Persona K-Means** | **`Urban Leisure`** hoặc **`Suburban Occasionals`** | Nhóm có ROI > 0 trong A/B Test |
+| **Persona K-Means** | **`Urban Credit Card`** hoặc **`Suburban Occasionals`** | Nhóm có ROI > 0 trong A/B Test |
 | Trạng thái Ngủ đông | **`recency_days` ~ 5-14 ngày** | Lọc user đang có nguy cơ rời bỏ |
 | Tình trạng tài khoản | Tài khoản Active, chưa bị khóa | Mặc định hệ thống |
 
 ### Tiêu chí loại trừ (Exclusion):
 - ❌ **`Airport Business`:** Khách đi sân bay (Kháng sale, ROI -98.6%). Tặng voucher là lãng phí.
-- ❌ **`Urban Regulars`:** Khách đi làm giờ cao điểm (ROI -28.7%). Họ buộc phải đi xe dù không có mã.
+- ❌ **`Urban Cash`:** Khách đi làm giờ cao điểm (ROI -28.7%). Họ buộc phải đi xe dù không có mã.
 - ❌ **`Rain Riders`:** Khách phụ thuộc thời tiết mưa (ROI -44.4%). Nhu cầu phụ thuộc ngoại cảnh.
 - ❌ **Khách hàng đã nhận Voucher trong 14 ngày qua:** Tránh hiệu ứng "Voucher Fatigue".
 
@@ -113,6 +113,20 @@ Vào ngày thứ 5 kể từ khi user không mở app:
 - **Voucher Redemption Rate:** Nếu < 5% → Push Notification không hiệu quả, cần xem lại nội dung.
 - **User Complaint Rate:** Đảm bảo Push Notification không bị đánh dấu là Spam.
 
+
+---
+
+## 8.5. Power Analysis & Sample Size (Tính toán Kích thước mẫu)
+
+Để kết quả A/B Test có ý nghĩa thống kê (không bị nhiễu ngẫu nhiên), hệ thống yêu cầu các thiết lập sau:
+- **Baseline (Mean Control):** Giả định trung bình là 4 chuyến/user trong 14 ngày.
+- **Minimum Detectable Effect (MDE):** +0.05 chuyến/user (Tăng trưởng tối thiểu cần phát hiện để chiến dịch có lãi).
+- **Statistical Power (1 - $\beta$):** 80% (Xác suất phát hiện ra sự khác biệt nếu có).
+- **Significance Level ($\alpha$):** 5% (Mức độ chấp nhận False Positive).
+
+Dựa trên công thức T-test độc lập hai mẫu, kích thước mẫu tối thiểu yêu cầu là **~2,500 users mỗi nhóm** (Total: 5,000 users). 
+Trong thí nghiệm này, dữ liệu mô phỏng có hơn **6,600 users** cho nhóm `Urban Credit Card`, hoàn toàn vượt qua bài kiểm tra Power Analysis.
+
 ---
 
 ## 9. Confounders cần kiểm soát (Biến nhiễu)
@@ -136,6 +150,18 @@ Thí nghiệm được tuyên bố **thành công** và tiến hành Roll-out n�
 2. ✅ **Practical Significance:** Incremental Rides tăng ít nhất **+1.5 chuyến/user** (MDE = Minimum Detectable Effect)
 3. ✅ **Guardrail an toàn:** Profit Margin per Ride vẫn dương; User Complaint Rate < 2%
 4. ✅ **Retention bền vững:** Day-14 Retention Rate của nhóm Treatment cao hơn Control ít nhất +5%
+
+
+---
+
+## 10.5. Trustworthiness Checks (Kiểm định sự Đáng tin cậy)
+
+Một A/B Test thất bại thường không phải do kết quả, mà do dữ liệu đầu vào bị lỗi. Các kiểm định bắt buộc trước khi tính ATE:
+1. **A/A Test:** Đảm bảo hệ thống tracking không có sự chênh lệch tự nhiên nào (Tỷ lệ False Positive ở mức ~5%).
+2. **Sample Ratio Mismatch (SRM):** Kiểm định Chi-square đảm bảo tỷ lệ phân bổ thực tế khớp với tỷ lệ thiết kế (50/50).
+3. **Covariate Balance Check:** Đảm bảo tuổi, thu nhập, lịch sử chuyến đi của nhóm Control và Treatment tương đồng nhau trước thí nghiệm (P-value > 0.05).
+4. **Missing Assignment:** Theo dõi tỷ lệ người dùng được gán vào nhóm nhưng không nhận được Treatment (ví dụ: tắt thông báo Push).
+5. **Network / Contamination Effect:** Tránh lây nhiễm chéo bằng cách đảm bảo mã Voucher gắn cứng (hard-coded) vào User_ID, khách hàng không thể share mã cho bạn bè (nhóm Control).
 
 ---
 

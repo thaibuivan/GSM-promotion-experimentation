@@ -32,10 +32,10 @@ Dưới đây là kết quả A/B Testing thực tế được bóc tách theo c
 
 | Phân khúc Khách hàng (Persona) | ATE (Chuyến tăng thêm) | P-value | Khoảng tin cậy 95% (CI) | ROI | Kết luận Hành động |
 |---|---|---|---|---|---|
-| **Urban Regulars (Đi làm)** | +0.84 | 0.042 | [0.03, 1.65] | **-28.7%** | ❌ **Dừng Voucher**. Hiệu ứng Cannibalization (Ăn mòn lợi nhuận). Họ vốn dĩ sẽ đi xe mà không cần mã. |
+| **Urban Cash (Đi làm)** | +0.84 | 0.042 | [0.03, 1.65] | **-28.7%** | ❌ **Dừng Voucher**. Hiệu ứng Cannibalization (Ăn mòn lợi nhuận). Họ vốn dĩ sẽ đi xe mà không cần mã. |
 | **Airport Business (Đi sân bay)** | +0.41 | 0.210 | [-0.22, 1.04] | **-98.6%** | ❌ **Dừng Voucher**. (P-value > 0.05) Không có ý nghĩa thống kê. Lãng phí ngân sách. |
-| **Urban Leisure (Đi chơi nội thành)** | **+2.52** | **< 0.001** | **[1.85, 3.19]** | **+115%** | ✅ **Tăng ngân sách**. Cầu co giãn cực mạnh, Voucher thực sự kích cầu đi lại. |
+| **Urban Credit Card (Đi chơi nội thành)** | **+2.52** | **< 0.001** | **[1.85, 3.19]** | **+115%** | ✅ **Tăng ngân sách**. Cầu co giãn cực mạnh, Voucher thực sự kích cầu đi lại. |
 | **Suburban Occasionals (Vãng lai)** | **+3.05** | **< 0.001** | **[2.41, 3.69]** | **+140%** | ✅ **Tăng ngân sách**. Nhạy cảm giá nhất, mang lại biên lợi nhuận cao nhất. |
 
 > **💡 Nhận xét cốt lõi cho Mentor:**
-> Nếu ta chỉ chạy A/B Test trên toàn bộ 20,000 user mà không phân cụm, **ATE trung bình chỉ ở mức +1.2 chuyến và ROI tổng có thể ÂM**. Nhờ việc kết hợp K-Means (Tuần 3) và bóc tách A/B Test theo nhóm (Tuần 4), ta mới phát hiện ra "Mỏ vàng" Urban Leisure để tối ưu hóa chiến dịch.
+> Nếu ta chỉ chạy A/B Test trên toàn bộ 20,000 user mà không phân cụm, **ATE trung bình chỉ ở mức +1.2 chuyến và ROI tổng có thể ÂM**. Nhờ việc kết hợp K-Means (Tuần 3) và bóc tách A/B Test theo nhóm (Tuần 4), ta mới phát hiện ra "Mỏ vàng" Urban Credit Card để tối ưu hóa chiến dịch.

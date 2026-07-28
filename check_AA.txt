@@ -1,4 +1,0 @@
-FILE: AA Test (Tuan 5)
-============================================================
-target_persona = 'Urban Regulars'
-df_target = df[df['persona'] == target_persona].copy()

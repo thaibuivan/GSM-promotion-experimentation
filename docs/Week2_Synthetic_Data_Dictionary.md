@@ -20,6 +20,12 @@ Tài liệu này định nghĩa chi tiết các biến số (features) được 
 | `is_rush_hour` | Binary (0/1) | Phái sinh từ `preferred_hour` | `1` = Khách hay đi vào 7h-9h và 17h-19h. Đại diện cho nhóm đi làm (Commuters). |
 | `is_airport_trip`| Binary (0/1) | Bernoulli (p=0.05) | `1` = Khách hàng có thói quen đi các cuốc xe ra sân bay. Nếu =1, `fare_obs` sẽ tự động nhân 4x. |
 | `is_rain_rider` | Binary (0/1) | Bernoulli (p=0.2) | `1` = Khách hàng có xu hướng gọi xe cao bất thường khi thời tiết xấu (trời mưa). |
+| `is_weekend_rider` | Binary (0/1) | Bernoulli (p=0.3) | `1` = Khách hàng hay gọi xe vào dịp cuối tuần để đi chơi. |
+| `preferred_payment` | String | Categorical | Hình thức thanh toán: `Cash` (Tiền mặt), `Credit Card` (Thẻ tín dụng), hoặc `E-Wallet`. |
+| `is_credit_card` | Binary (0/1) | Phái sinh từ `preferred_payment` | `1` = Khách dùng Thẻ tín dụng. (Nhóm này có tỷ lệ Tip cao hơn). |
+| `is_frequent_tipper` | Binary (0/1) | Bernoulli | `1` = Khách hay tip tài xế. Tỷ lệ tip là 40% đối với khách xài Thẻ, và 5% đối với khách xài Tiền mặt. |
+| `avg_trip_distance` | Float | Lognormal | Khoảng cách chuyến đi trung bình (km). Khách sân bay có khoảng cách rất xa (~15km). |
+| `typical_passenger_count` | Integer | Poisson | Số lượng hành khách trung bình trong 1 chuyến (Thường là 1-4 người). |
 | `monthly_rides_history` | Integer | Phụ thuộc thu nhập & tuổi | Tần suất đi xe trong tháng trước đó. |
 | `recency_days` | Integer | Phân phối Poisson nghịch đảo | Số ngày kể từ lần cuối cùng khách hàng mở app đặt xe (0-30 ngày). |
 
