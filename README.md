@@ -1,33 +1,55 @@
-# GSM Promotion Experimentation: A/B Testing & Causal Inference
+# GSM Promotion Experimentation: Từ A/B Testing đến Causal Inference & Uplift Modeling
 
-## 📌 Project Overview
-Dự án này tập trung vào việc phân tích dữ liệu, thiết kế thí nghiệm (A/B Testing) và ứng dụng Causal Inference để tối ưu hóa chiến lược khuyến mãi cho nền tảng gọi xe (Ride-hailing). Mục tiêu là thiết kế cơ chế phát hành Voucher tối ưu ROI, giảm thiểu rủi ro "Cannibalization" (ăn thịt doanh thu) và đo lường chính xác giá trị gia tăng (Incremental Rides).
+## 📌 Tổng quan Dự án
+Dự án này là một chuỗi quy trình toàn diện từ việc thiết kế thí nghiệm, phân tích dữ liệu, đến việc xây dựng hệ thống Trí tuệ Nhân tạo (Machine Learning) để tối ưu hóa chiến lược khuyến mãi (Voucher) cho nền tảng gọi xe Xanh SM (Ride-hailing).
 
-## 🗂️ Datasets
-Dự án sử dụng phương pháp luận lai ghép (Hybrid Approach) từ 2 bộ dữ liệu để chuẩn bị cho bước Mô phỏng (Simulation) ở Tuần 3:
-1. **TLC NYC Yellow Taxi (Thực tế):** Cung cấp các tham số vật lý của chuyến đi (Giá cước, Quãng đường, Khung giờ cao điểm, Mùa vụ).
-2. **Kaggle Ride-Sharing (Mô phỏng):** Cung cấp cấu trúc cơ sở dữ liệu (Schema) ở cấp độ Khách hàng (User-level) với các định danh `User_ID`, `Driver_ID` và phân phối số lượng chuyến đi/người.
+Mục tiêu tối thượng: Thiết kế cơ chế phát hành Voucher để **Tối ưu ROI**, giảm thiểu rủi ro **Cannibalization (Ăn thịt doanh thu)** và đo lường chính xác **Incremental Rides (Giá trị gia tăng thực sự)** bằng Uplift Modeling.
 
-## 🚀 Lộ trình & Thành quả đạt được
+---
 
-### Tuần 1: Khám phá Dữ liệu (Exploratory Data Analysis - EDA)
-- **`notebooks/week1_eda/`**: Phân tích làm sạch dữ liệu, xử lý Outliers và phân tích hành vi khách hàng.
-  - Phân tích chuỗi thời gian (Time-pattern) để xác định giờ cao/thấp điểm.
-  - Phân tích tương quan Giá cước - Quãng đường.
-  - **Notebook 6:** Kiểm định chéo (Sanity Check) tính logic thực tế của dữ liệu Kaggle, bóc tách các trường dữ liệu ngẫu nhiên (Randomized) và các trường có logic kinh tế để chuẩn bị tham số cho mô phỏng Tuần 3.
+## 🗂️ Nguồn Dữ liệu (Data Sources)
+Dự án sử dụng phương pháp luận lai ghép (Hybrid Approach) kết hợp dữ liệu thực tế và mô phỏng:
+1. **TLC NYC Yellow Taxi (Thực tế):** Cung cấp các tham số vật lý của chuyến đi (Giá cước, Quãng đường, Khung giờ).
+2. **Kaggle Ride-Sharing (Thực tế):** Cung cấp cấu trúc người dùng (User-level) và phân phối chuyến đi.
+3. **Synthetic Data (Mô phỏng):** Gắn các thuộc tính Persona (Urban Cash, Suburban Occasionals) và nhúng **True Uplift Effect** để phục vụ việc kiểm chứng Machine Learning.
 
-### Tuần 2: Thiết kế Thí nghiệm (Experiment Design)
-- **`docs/Week2_Experiment_Design_v1.md`**: Kịch bản **Macro (Time-based)**. Kích cầu giờ thấp điểm (Happy Hour 10AM-4PM). Đơn vị phân bổ (Randomization Unit) là các khu vực địa lý (Zone_ID).
-- **`docs/Week2_Experiment_Design_v2.md`**: Kịch bản **Micro (User-targeted)**. Chiến dịch Re-engagement nhắm vào tệp khách hàng Regular (4-8 chuyến/tháng) đang có dấu hiệu "Ngủ đông". Đơn vị phân bổ là `User_ID`. Đây là kịch bản chính sẽ được dùng để chạy Causal Inference.
+---
 
-## 📁 Repository Structure
+## 🚀 Lộ trình Thực thi & Thành quả (8 Tuần)
+
+### Giai đoạn 1: Khám phá Dữ liệu & Thiết kế Thí nghiệm (Tuần 1 & 2)
+- Khai phá dữ liệu thô, phân tích Time-series và hành vi khách hàng.
+- Xác định biến Can thiệp (Treatment Unit) và biến Mục tiêu (Outcome).
+- Thiết kế Kịch bản A/B Testing cấp độ người dùng (User-level Re-engagement).
+
+### Giai đoạn 2: Mô phỏng Dữ liệu & Đánh giá A/B Test (Tuần 3 & 4)
+- Xây dựng luồng tạo dữ liệu giả lập (Synthetic Data Generation) nhúng sẵn các hiệu ứng Causal.
+- Đánh giá A/B Test cơ bản (Chi-Square Test, T-Test).
+- Khám phá hiện tượng **Mâu thuẫn Simpson (Simpson's Paradox)** và phân tích **Covariate Balance** bằng biểu đồ Violin.
+- **Thành quả kinh doanh:** Chứng minh được phương pháp "Mass Voucher" gây lỗ nặng, trong khi "Segment Targeting" mang lại lãi ròng.
+
+### Giai đoạn 3: Phân khúc Khách hàng & Phân tích Nhân quả (Tuần 5 & 6)
+- Sử dụng K-Means Clustering để gán nhãn Persona cho khách hàng (Urban Cash, Suburban...).
+- Áp dụng Causal Inference cơ bản (Linear Regression có biến tương tác) để khám phá HTE (Heterogeneous Treatment Effect).
+
+### Giai đoạn 4: Uplift Modeling & Stress Test (Tuần 7 & 8)
+- Triển khai thuật toán **T-Learner (XGBoost)** kết hợp Early Stopping & Validation Set.
+- Đánh giá sức mạnh phân loại của mô hình bằng **Qini Curve** và **AUUC**.
+- Tối ưu hóa **Profit Curve** (Tìm kiếm ngưỡng cắt CATE hòa vốn) để chuyển đổi từ Machine Learning sang Decision Making.
+- Đóng gói bằng **Stress Test**: Kiểm định khả năng chống chịu của mô hình trước Tỷ lệ chia mẫu lệch (90/10) và Nhiễu dữ liệu (Gaussian Noise).
+
+---
+
+## 📁 Cấu trúc Kho lưu trữ (Repository Structure)
 ```
 ├── data/               # Chứa dữ liệu Raw & Processed (Đã ignore trên Git)
-├── docs/               # Báo cáo chất lượng dữ liệu, Data Dictionary & Kịch bản A/B Test
-├── notebooks/          # Notebooks phân tích (Jupyter) chia theo từng tuần
-├── reports/            # Slide thuyết trình & Feature Catalogs
-└── README.md           # Tài liệu tổng quan dự án
+├── docs/               # Báo cáo, Data Dictionary, Decision Memo & Dàn ý Thuyết trình
+├── notebooks/          # Notebooks phân tích (Jupyter) chia theo lộ trình 8 tuần
+└── README.md           # Tài liệu tổng quan toàn bộ dự án
 ```
 
-## 👥 Collaborators
+## 🎯 Kết luận Kinh doanh
+Bằng việc ứng dụng Uplift Modeling để thiết lập **Ngưỡng CATE Hòa vốn**, hệ thống có khả năng tự động chặn phát mã cho những nhóm "Sure Things" hoặc "Lost Causes", giúp công ty tránh thất thoát hàng chục phần trăm ngân sách vô ích, mang lại lợi thế cạnh tranh tuyệt đối trên thị trường gọi xe công nghệ.
+
+## 👥 Người thực hiện (Collaborators)
 - **Thai Bui Van** (Data Science Intern)
