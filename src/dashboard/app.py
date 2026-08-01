@@ -24,7 +24,7 @@ st.markdown("""
         font-weight: bold;
         color: #00E5FF;
     }
-    .block-container { padding-top: 2rem; }
+    .block-container { padding-top: 4.5rem; }
     
     /* Style Tabs */
     .stTabs [data-baseweb="tab-list"] {
