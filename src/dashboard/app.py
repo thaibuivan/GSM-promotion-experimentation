@@ -82,7 +82,7 @@ df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]
 
 # ----------------- CHIA TABS -----------------
-tab1, tab2, tab3 = st.tabs(["💰 Hiệu quả Tài chính & Lợi nhuận", "🎯 Phân tích Hành vi & Vận hành", "🧠 Động cơ Ra quyết định (Causal Engine)"])
+tab1, tab2, tab3, tab4 = st.tabs(["💰 Hiệu quả Tài chính & Lợi nhuận", "🎯 Phân tích Hành vi & Vận hành", "🧠 Động cơ Ra quyết định (Causal Engine)", "🛠️ Admin / Data Simulator"])
 
 # ================= TAB 1: TÀI CHÍNH =================
 with tab1:
@@ -284,3 +284,27 @@ with tab3:
         fig_qini.update_xaxes(title="% Tập khách hàng được nhắm mục tiêu")
         fig_qini.update_yaxes(title="Lợi nhuận Ròng Tích lũy ($)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
         st.plotly_chart(fig_qini, use_container_width=True)
+
+# ================= TAB 4: KỸ THUẬT (PIPELINE ADMIN) =================
+with tab4:
+    st.subheader("Trình quản lý Data Pipeline (Backend Developer Only)")
+    st.markdown("Giả lập hệ thống kết nối Data Warehouse và chạy luồng Machine Learning (K-Means & T-Learner) end-to-end.")
+    
+    if st.button("▶️ Chạy toàn bộ Data Pipeline", type="primary"):
+        import sys
+        pipeline_path = os.path.join(base_path, 'src', 'pipeline')
+        if pipeline_path not in sys.path:
+            sys.path.append(pipeline_path)
+            
+        try:
+            from main_pipeline import run_pipeline
+            progress_bar = st.progress(0, text="Khởi tạo Pipeline...")
+            
+            def st_progress_callback(pct, msg):
+                progress_bar.progress(pct, text=f"[{pct}%] {msg}")
+                
+            run_pipeline(n_users=20000, progress_callback=st_progress_callback)
+            
+            st.success("✅ Đã hoàn tất Pipeline! Tải lại trang (F5) để Dashboard cập nhật dữ liệu mới nhất.")
+        except Exception as e:
+            st.error(f"Lỗi khi chạy Pipeline: {e}")
