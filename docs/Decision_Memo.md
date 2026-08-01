@@ -1,8 +1,4 @@
 # BÁO CÁO PHÂN TÍCH & ĐỀ XUẤT: CHIẾN LƯỢC TỐI ƯU HÓA KHUYẾN MÃI
-
-**To:** Product Manager, Marketing Team  
-**From:** Data Analyst / Data Science Intern  
-**Date:** [Ngày hiện tại]  
 **Subject:** Đánh giá hiệu quả chiến dịch khuyến mãi bằng Causal Inference & Uplift Modeling  
 
 ---
