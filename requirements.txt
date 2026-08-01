@@ -4,3 +4,5 @@ numpy
 scikit-learn
 xgboost==2.0.3
 plotly
+matplotlib
+jinja2
