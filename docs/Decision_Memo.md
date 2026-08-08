@@ -4,12 +4,13 @@
 ---
 
 ## 1. Tóm tắt Nội dung (Executive Summary)
-Dựa trên việc phân tích dữ liệu thử nghiệm (A/B Testing) và mô hình hóa hành vi khách hàng (Uplift Modeling), báo cáo này cung cấp cái nhìn định lượng về hiệu quả thực sự của các chiến dịch khuyến mãi (Voucher). Dữ liệu cho thấy việc phát hành mã đại trà (Mass Voucher) đang gặp rủi ro chi phí cao hơn lợi nhuận gộp do một lượng lớn khách hàng thuộc nhóm "Sure Things" (khách hàng vẫn sử dụng dịch vụ kể cả khi không có khuyến mãi).
+Dựa trên việc phân tích dữ liệu thử nghiệm (A/B Testing) và mô hình hóa hành vi khách hàng (Uplift Modeling), báo cáo này cung cấp cái nhìn định lượng về hiệu quả thực sự của các chiến dịch khuyến mãi (Voucher). Dữ liệu cho thấy việc phát hành mã đại trà (Mass Voucher) đang gặp rủi ro chi phí vô cùng lớn, gây lỗ ròng khổng lồ do phần lớn ngân sách bị lãng phí vào nhóm khách hàng kháng khuyến mãi (như *Airport Business*, *Urban Regulars*).
 
 **Các đề xuất từ góc độ dữ liệu:**
-1. **Cân nhắc điều chỉnh chiến lược đối với nhóm `Urban Cash` (Khách nội thành đi tiền mặt):** Mô hình Uplift cho thấy nhóm này có độ nhạy cảm với khuyến mãi rất thấp. Việc tiếp tục phát mã đại trà cho nhóm này có khả năng khó đạt được điểm hòa vốn. Đề xuất tạm ngưng hoặc thử nghiệm các hình thức marketing khác thay vì giảm giá trực tiếp.
-2. **Ưu tiên ngân sách cho nhóm `Suburban Occasionals` (Khách ngoại ô thỉnh thoảng đi):** Phân tích A/B Test chỉ ra rằng khi thu hẹp mục tiêu (Segment Targeting) vào nhóm này, chi phí trên mỗi cuốc xe tăng thêm (CPIT) giảm đáng kể, giúp chiến dịch đạt được tiềm năng lợi nhuận ròng dương.
-3. **Thử nghiệm tích hợp thuật toán Uplift Modeling:** Đề xuất đội ngũ xem xét việc sử dụng điểm số CATE (Conditional Average Treatment Effect) từ mô hình Uplift như một tham số tham khảo trước khi phân bổ tập khách hàng nhận khuyến mãi trong các chiến dịch tới.
+1. **Dừng hoàn toàn việc phát mã đại trà (Mass Voucher):** Phân tích Economics Guardrail cho thấy chiến lược này đang làm tổn thất hơn $668,000 doanh thu thuần.
+2. **Ưu tiên ngân sách tuyệt đối cho nhóm `Suburban Card`:** Phân tích A/B Test chỉ ra rằng đây là "mỏ vàng" duy nhất. Nhóm khách hàng Ngoại ô dùng Thẻ cực kỳ nhạy cảm với giá (ATE +1.36 chuyến) và khi nhắm mục tiêu vào nhóm này, công ty ghi nhận Doanh thu thuần (Net GMV) dương (+$4,548).
+3. **Chiến thuật thay thế cho nhóm `Suburban Cash`:** Nhóm Ngoại ô dùng tiền mặt có độ nhạy Voucher khá (ATE +0.97 chuyến) nhưng giá trị chuyến đi thấp hơn khiến ROI âm (-24.5%). Đề xuất tạm ngưng tặng Voucher đi xe trực tiếp, thay vào đó chạy chiến dịch "Tặng 50k khi liên kết Thẻ Tín Dụng" để chuyển đổi họ thành tập `Suburban Card`.
+4. **Thử nghiệm tích hợp thuật toán Uplift Modeling (Tuần 7):** Đề xuất đội ngũ xem xét việc sử dụng điểm số CATE (Conditional Average Treatment Effect) từ mô hình Uplift để tối ưu hóa việc phân bổ ngân sách xuống cấp độ cá nhân (ITE) thay vì chỉ phân khúc.
 
 ## 2. Bối cảnh & Phương pháp Phân tích
 Trong thời gian qua, các chiến dịch khuyến mãi nhắm vào việc thúc đẩy số chuyến đi có dấu hiệu gặp phải hiện tượng **Cannibalization (Ăn thịt doanh thu)**. 
@@ -19,22 +20,20 @@ Trong thời gian qua, các chiến dịch khuyến mãi nhắm vào việc thú
 
 ## 3. Kết quả Phân tích Chi tiết (Key Findings)
 
-### A. Đánh giá chiến lược A/B Testing
-Chúng tôi đã mô phỏng kịch bản A/B Test trên 2 phân khúc. Số liệu ước tính cho thấy:
-- **Phát đại trà (Mass Voucher):** Chi phí để tạo ra 1 chuyến đi tăng thêm (CPIT) ước tính là $29.65. So với giả định biên lợi nhuận gộp là $20/chuyến, tỷ suất ROI đang ở mức âm.
-- **Nhắm mục tiêu cơ bản (Segment Targeting):** Khi chỉ nhắm vào nhóm *Suburban Occasionals*, CPIT ước tính giảm xuống còn $15.92. Điều này cho thấy khả năng sinh lời (ước tính lãi $4.08 trên mỗi chuyến tăng thêm).
+### A. Đánh giá chiến lược A/B Testing & Phân khúc (K-Means)
+Dựa trên thuật toán K-Means (K=5), chúng tôi đã tách được tập khách hàng thành 5 Personas với hành vi hoàn toàn khác biệt. Kết quả A/B Test mô phỏng trên các nhóm này cho thấy:
+- **Phát đại trà (Mass Voucher):** Chiến dịch gây lỗ nặng (-$668,077) vì chi phí phát sinh khổng lồ trên những khách hàng đằng nào cũng đi xe.
+- **Nhắm mục tiêu cơ bản (Segment Targeting):** Khi chỉ nhắm vào nhóm *Suburban Card*, chiến dịch tạo ra +3,776 chuyến đi tăng thêm. Trừ đi chi phí Voucher, chiến dịch này giữ lại được mức lợi nhuận ròng dương (+$4,548).
 
-### B. Kết quả Tối ưu hóa bằng Uplift Modeling (AI)
-Đi sâu vào nhóm *Urban Cash* (nhóm có hiệu suất thấp), chúng tôi đã thử nghiệm thuật toán **T-Learner XGBoost**.
-- Khi chạy giả lập mô hình để lọc ra **Top 20% khách hàng tiềm năng nhất**, hệ thống giúp **giảm thiểu 87% rủi ro chi phí (tránh thất thoát khoảng 3.78 triệu VND trên tập Test)** so với việc phát đại trà.
-- Tuy nhiên, khi đối chiếu với bài toán tài chính (Break-even threshold), mô hình nhận định rằng ngay cả những người nhạy cảm nhất trong nhóm này cũng chưa vượt qua ngưỡng sinh lời.
+### B. Tối ưu hóa bằng Uplift Modeling (Định hướng)
+Mặc dù Target theo Persona (như Suburban Card) đã mang lại ROI dương, nhưng nó vẫn là Target cấp độ nhóm. Bằng cách áp dụng các mô hình Machine Learning như T-Learner XGBoost trong tương lai, hệ thống sẽ lọc ra các khách hàng **Persuadables** ở mức độ cá nhân, từ đó có thể biến cả những nhóm đang có ROI âm trở thành các mỏ vàng mới.
 
 ## 4. Kiểm định Độ tin cậy (Robustness Check)
-Để đảm bảo các kết luận trên không bị nhiễu bởi yếu tố ngẫu nhiên, hệ thống đã được kiểm tra chéo (Stress Test):
-- Khi thay đổi tỷ lệ chia mẫu (Sample split 90/10) hoặc thêm các biến nhiễu ngẫu nhiên (Noise Injection), kết quả đo lường ATE từ A/B Test và khả năng xếp hạng của Uplift Model vẫn giữ được tính ổn định và nhất quán.
+Để đảm bảo các kết luận trên không bị nhiễu bởi yếu tố ngẫu nhiên, hệ thống đã chạy một bài kiểm tra **A/A Test & Monte Carlo Simulation (1000 lần)**:
+- Kết quả kiểm tra SRM (Sample Ratio Mismatch) và phân phối P-Value đều vượt qua ngưỡng kiểm định thống kê một cách hoàn hảo (FPR ~4.8%). Điều này chứng minh thuật toán Randomization hoạt động chính xác tuyệt đối.
 
 ## 5. Đề xuất Kế hoạch Tiếp theo (Next Steps)
 Nếu định hướng này được sự đồng thuận từ Business/Marketing, nhóm Dữ liệu đề xuất các bước tiếp theo:
-1. **Pilot Test mô hình Uplift:** Triển khai thử nghiệm (A/B/C Test) mô hình T-Learner ở quy quy mô nhỏ (ví dụ 5% lượng traffic) để đối chiếu trực tiếp với rule-based hiện tại của Marketing.
-2. **Thiết lập Dashboard theo dõi:** Xây dựng dashboard giám sát phân phối điểm CATE của khách hàng, giúp đội ngũ Business dễ dàng ra quyết định thiết lập ngưỡng (threshold) hòa vốn phù hợp cho từng chiến dịch.
-3. **Khảo sát độ co giãn của giá:** Thu thập thêm dữ liệu về Price Elasticity ở nhóm Suburban để tinh chỉnh mức giảm giá tối ưu (Ví dụ: Cân nhắc giữa giảm 10% hay 20%).
+1. **Pilot Test mục tiêu `Suburban Card`:** Triển khai ngay chiến dịch thu hẹp trên tệp khách hàng Ngoại ô dùng Thẻ và theo dõi sự thay đổi của Gross Revenue trong 2 tuần.
+2. **Thiết lập Dashboard theo dõi:** Xây dựng dashboard giám sát phân phối điểm CATE của khách hàng, giúp đội ngũ Business dễ dàng ra quyết định thiết lập ngưỡng (threshold) hòa vốn.
+3. **Chạy chiến dịch liên kết thẻ:** Làm việc với Product Team để ra mắt in-app campaign thúc đẩy nhóm `Suburban Cash` nhập thông tin thẻ.

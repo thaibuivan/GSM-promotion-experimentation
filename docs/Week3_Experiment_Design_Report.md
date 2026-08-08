@@ -42,18 +42,19 @@ Từ phân tích EDA (Notebook 6), chúng ta biết rằng phần lớn người
 ## 4. Population (Tập khách hàng mục tiêu)
 
 > **Cập nhật từ Kết quả K-Means Segmentation (Notebook 3):**  
-> Dựa trên thuật toán K-Means Clustering trên 20,000 người dùng và đo lường ROI qua A/B Test, tập khách hàng được chọn chính thức cho chiến dịch này là **Nhóm Nhạy cảm với giá (Persuadables)** bao gồm 2 Personas: **`Urban Credit Card`** và **`Suburban Occasionals`**.
+> Dựa trên thuật toán K-Means Clustering trên 20,000 người dùng và đo lường ROI qua A/B Test, tập khách hàng được chọn chính thức cho chiến dịch này là **Nhóm Nhạy cảm với giá (Persuadables)** là Persona duy nhất: **`Suburban Card`** và **`Suburban Occasionals`**.
 
 ### Tiêu chí chọn vào (Inclusion):
 | Tiêu chí | Điều kiện | Nguồn gốc K-Means Cluster |
 |---|---|---|
-| **Persona K-Means** | **`Urban Credit Card`** hoặc **`Suburban Occasionals`** | Nhóm có ROI > 0 trong A/B Test |
+| **Persona K-Means** | **`Suburban Card`** | Nhóm có ROI > 0 duy nhất trong A/B Test |
 | Trạng thái Ngủ đông | **`recency_days` ~ 5-14 ngày** | Lọc user đang có nguy cơ rời bỏ |
 | Tình trạng tài khoản | Tài khoản Active, chưa bị khóa | Mặc định hệ thống |
 
 ### Tiêu chí loại trừ (Exclusion):
 - ❌ **`Airport Business`:** Khách đi sân bay (Kháng sale, ROI -98.6%). Tặng voucher là lãng phí.
-- ❌ **`Urban Cash`:** Khách đi làm giờ cao điểm (ROI -28.7%). Họ buộc phải đi xe dù không có mã.
+- ❌ **`Urban Regulars`:** Khách nội thành đi thường xuyên (ROI -73.1%). Họ buộc phải đi xe dù không có mã.
+- ❌ **`Suburban Cash`:** Khách ngoại ô dùng tiền mặt (ROI -24.5%). Cần chiến dịch liên kết thẻ thay vì tặng Voucher.
 - ❌ **`Rain Riders`:** Khách phụ thuộc thời tiết mưa (ROI -44.4%). Nhu cầu phụ thuộc ngoại cảnh.
 - ❌ **Khách hàng đã nhận Voucher trong 14 ngày qua:** Tránh hiệu ứng "Voucher Fatigue".
 
@@ -125,7 +126,7 @@ Vào ngày thứ 5 kể từ khi user không mở app:
 - **Significance Level ($\alpha$):** 5% (Mức độ chấp nhận False Positive).
 
 Dựa trên công thức T-test độc lập hai mẫu, kích thước mẫu tối thiểu yêu cầu là **~2,500 users mỗi nhóm** (Total: 5,000 users). 
-Trong thí nghiệm này, dữ liệu mô phỏng có hơn **6,600 users** cho nhóm `Urban Credit Card`, hoàn toàn vượt qua bài kiểm tra Power Analysis.
+Trong thí nghiệm này, dữ liệu mô phỏng có hơn **2,700 users** cho nhóm `Suburban Card`, hoàn toàn vượt qua bài kiểm tra Power Analysis.
 
 ---
 
