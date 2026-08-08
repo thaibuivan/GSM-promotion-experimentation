@@ -23,8 +23,8 @@ Mô hình tích hợp các biến nhiễu sau để thử thách các thuật to
 Mô hình SCM định nghĩa hai biến kết quả chính để cô lập tác động nhân quả:
 1. **Kết quả Quan sát (`y_obs`):** Số chuyến đi tự nhiên không có Voucher.
 2. **Kết quả Thực nghiệm (`y_rand`):** Số chuyến đi trong môi trường Thử nghiệm RCT. Tác động của Voucher tuân theo **Hiệu ứng Dị thể (Heterogeneous Treatment Effect - HTE)**:
-   - **Nhóm Cầu không co giãn (Suburban Commuters):** Tác động thấp (ATE = 0.8 chuyến).
-   - **Nhóm Cầu co giãn cao (Urban Leisure):** Tác động cực kỳ mạnh mẽ (ATE = 2.5 chuyến).
+   - **Nhóm Cầu co giãn mạnh (Suburban Card - Ngoại ô dùng Thẻ):** Được thiết lập là nhóm phản ứng mạnh mẽ nhất với Voucher (Tác động kỳ vọng ATE > 1.2 chuyến).
+   - **Nhóm Cầu không co giãn (Urban Regulars - Đi lại thường xuyên Nội thành):** Bị ràng buộc bởi nhu cầu cứng, họ sẽ đi xe kể cả khi không có Voucher (Tác động kỳ vọng ATE < 1.0 chuyến).
 
 Đặc biệt, hệ thống đã thực hiện bước **Kiểm tra Covariate Balance**, xác nhận rằng các biến số (Covariates) phân bổ hoàn toàn đồng đều giữa nhóm Treatment và Control, tạo tiền đề vững chắc cho việc thực thi A/A Test ở Tuần 5.
 
