@@ -26,7 +26,7 @@ Tài liệu này định nghĩa chi tiết các biến số (features) được 
 | `is_frequent_tipper` | Binary (0/1) | Bernoulli | `1` = Khách hay tip tài xế. Tỷ lệ tip là 40% đối với khách xài Thẻ, và 5% đối với khách xài Tiền mặt. |
 | `avg_trip_distance` | Float | Lognormal | Khoảng cách chuyến đi trung bình (km). Khách sân bay có khoảng cách rất xa (~15km). |
 | `typical_passenger_count` | Integer | Poisson | Số lượng hành khách trung bình trong 1 chuyến (Thường là 1-4 người). |
-| `monthly_rides_history` | Integer | Phụ thuộc thu nhập & tuổi | Tần suất đi xe trong tháng trước đó. |
+| `monthly_rides_history` | Integer | Phụ thuộc Khu vực (is_urban) & Thanh toán (payment_type) | Tần suất đi xe trong tháng trước đó. Khách nội thành và dùng Thẻ tín dụng đi nhiều hơn. |
 | `recency_days` | Integer | Phân phối Poisson nghịch đảo | Số ngày kể từ lần cuối cùng khách hàng mở app đặt xe (0-30 ngày). |
 
 ## 3. Biến Can thiệp (Treatment Variables)
