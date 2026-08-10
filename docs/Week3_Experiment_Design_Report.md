@@ -42,7 +42,7 @@ Từ phân tích EDA (Notebook 6), chúng ta biết rằng phần lớn người
 ## 4. Population (Tập khách hàng mục tiêu)
 
 > **Cập nhật từ Kết quả K-Means Segmentation (Notebook 3):**  
-> Dựa trên thuật toán K-Means Clustering trên 20,000 người dùng và đo lường ROI qua A/B Test, tập khách hàng được chọn chính thức cho chiến dịch này là **Nhóm Nhạy cảm với giá (Persuadables)** là Persona duy nhất: **`Suburban Card`** và **`Suburban Occasionals`**.
+> Dựa trên thuật toán K-Means Clustering trên 20,000 người dùng và đo lường ROI qua A/B Test, tập khách hàng được chọn chính thức cho chiến dịch này là **Nhóm Nhạy cảm với giá (Persuadables)** là Persona: **`Suburban Card`**.
 
 ### Tiêu chí chọn vào (Inclusion):
 | Tiêu chí | Điều kiện | Nguồn gốc K-Means Cluster |
