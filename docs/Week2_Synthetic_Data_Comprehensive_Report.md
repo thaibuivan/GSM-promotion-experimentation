@@ -85,16 +85,17 @@ Thay vì dùng phân phối Poisson thông thường, `Y0` được sinh bằng 
 
 Phương trình toán học cốt lõi (Causal Equation):
 ```math
-ITE = 2.0 (Base) + 2.0 * SuburbanLeisure + 0.5 * RainAgeInteraction - 1.5 * is_airport - 1.0 * is_rush_hour - 0.5 * is_cash + RecencyBoost
+ITE = 1.5 (Base) + 1.2 * UrbanLeisure + 0.8 * SuburbanLeisure + 0.4 * RainAgeInteraction - 1.5 * is_airport - 0.8 * is_rush_hour - 0.9 * is_cash + RecencyBoost
 ```
 
 **Diễn giải logic kinh doanh chi tiết:**
-- Tác động cơ bản của Voucher là tăng **2.0 chuyến/tháng**.
-- **Ngoại ô & Cuối tuần (Suburban Leisure):** Khách đi chơi ngoại ô cuối tuần cực kỳ nhạy cảm giá -> Tăng thêm **+2.0 chuyến**. Đây chính là hạt nhân toán học tạo ra nhóm *Suburban Card*.
-- **Tương tác Mưa & Tuổi (Rain Age Interaction):** Khách hàng trẻ tuổi nhạy cảm hơn với khuyến mãi khi trời mưa -> Tăng thêm **+0.5 chuyến**.
+- Tác động cơ bản của Voucher là tăng **1.5 chuyến/tháng**.
+- **Nội thành & Cuối tuần (Urban Leisure):** Khách đi chơi nội thành cuối tuần (có thời gian rảnh) cực kỳ dễ bị kích cầu -> Tăng thêm **+1.2 chuyến**.
+- **Ngoại ô & Cuối tuần (Suburban Leisure):** Khách ngoại ô đi chơi cuối tuần cực kỳ nhạy cảm giá -> Tăng thêm **+0.8 chuyến**.
+- **Tương tác Mưa & Tuổi (Rain Age Interaction):** Khách hàng trẻ tuổi nhạy cảm hơn với khuyến mãi khi trời mưa -> Tăng thêm **+0.4 chuyến**.
 - **Sân bay (Airport):** Khách ra sân bay bắt buộc phải đi -> Giảm **1.5 chuyến**. Voucher là vô nghĩa.
-- **Giờ cao điểm (Rush Hour):** Khách đi làm -> Giảm **1.0 chuyến**.
-- **Tiền mặt (Cash Penalty):** Khách dùng tiền mặt có sức mua/độ trung thành thấp hơn -> Giảm **0.5 chuyến**.
+- **Giờ cao điểm (Rush Hour):** Khách đi làm -> Giảm **0.8 chuyến**.
+- **Tiền mặt (Cash Penalty):** Khách dùng tiền mặt có sức mua/độ trung thành thấp hơn -> Giảm **0.9 chuyến**.
 - **Hiệu ứng Win-back (Recency Boost):** Bỏ app càng lâu, Voucher càng có tác dụng đánh thức mạnh.
 
 Ngoài ra, ITE còn bị suy giảm bởi **Quy luật Hiệu suất giảm dần (Diminishing Returns)**: Những người vốn dĩ đã đi quá nhiều chuyến trong tháng (Heavy Users) sẽ rất khó bị kích thích thêm bởi Voucher.
