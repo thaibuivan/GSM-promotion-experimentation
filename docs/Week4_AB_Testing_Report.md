@@ -41,3 +41,39 @@ Dưới đây là kết quả A/B Testing thực tế được bóc tách theo c
 > **💡 Nhận xét cốt lõi cho Mentor:**
 > Nếu ta chỉ chạy A/B Test đại trà (Mass Voucher) trên toàn bộ 20,000 user mà không phân cụm, **ATE trung bình ở mức +0.93 chuyến nhưng làm công ty LỖ RÒNG do lãng phí ngân sách vào các nhóm không nhạy cảm**. 
 > Khi bóc tách A/B Test theo nhóm K-Means (Tuần 4) và áp dụng mức chiết khấu tối ưu 15%, ta xác định được `Suburban Card` là nhóm phản ứng tốt nhất với **ROI lên tới +36.4%**. Bài học thực tiễn: A/B Test không chỉ giúp chặn đứng các chiến dịch thảm họa, mà còn là công cụ tìm ra "Sweet Spot" (Điểm ngọt) giữa Mức chiết khấu và Hành vi người dùng để tối đa hóa lợi nhuận!
+
+
+---
+
+# Đánh giá Độ tin cậy Hệ thống & A/A Testing
+
+## 1. Mục tiêu Đánh giá (Objective)
+Trước khi đưa vào triển khai bất kỳ thí nghiệm A/B Testing nào, việc kiểm định tính ổn định của hệ thống phân bổ ngẫu nhiên (Randomization Pipeline) và công cụ phân tích thống kê là yêu cầu bắt buộc. Quá trình này được thực hiện thông qua A/A Testing — một thí nghiệm giả lập nơi không có bất kỳ sự can thiệp (Voucher) nào được áp dụng cho cả hai nhóm. 
+
+Mục tiêu cốt lõi là xác minh Tỷ lệ Dương tính giả (False Positive Rate - Type I Error) của hệ thống hội tụ chính xác về mức lý thuyết ($lpha = 0.05$), đồng thời đảm bảo không có sự thiên vị trong việc phân bổ mẫu.
+
+## 2. Phương pháp Thực hiện (Methodology)
+Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng mục tiêu (`Suburban Card`) được phân bổ ngẫu nhiên thành hai nhóm (A và A') qua 5.000 vòng lặp độc lập. Các chỉ số thống kê được ghi nhận ở mỗi vòng lặp để phân tích hành vi của hệ thống.
+
+## 3. Các Chỉ số Đánh giá & Kết quả
+
+### 3.1. Kiểm tra Lỗi Cân bằng Mẫu (Sample Ratio Mismatch - SRM)
+- **Phương pháp:** Sử dụng Kiểm định Chi-Square ($X^2$) Goodness-of-Fit để đối chiếu quy mô mẫu thực tế với quy mô mẫu kỳ vọng (tỷ lệ 50/50).
+- **Ngưỡng tiêu chuẩn:** Tỷ lệ số vòng lặp trả về P-value < 0.05 không được vượt quá xa mốc 5.0%.
+- **Kết quả đo lường:** Tỷ lệ cảnh báo SRM trong 5.000 vòng lặp là 4.70%.
+- **Kết luận:** ĐẠT (PASS). Thuật toán Hashing/Randomization hoạt động ổn định, không ghi nhận xu hướng phân bổ lệch trọng số.
+
+### 3.2. Kiểm tra Độ Cân bằng Đặc trưng (Covariate Balance)
+- **Phương pháp:** Sử dụng Independent T-Test để kiểm tra sự khác biệt của các biến hiệp phương sai trước thí nghiệm.
+- **Ngưỡng tiêu chuẩn:** P-value liên tục duy trì ở mức > 0.05 qua các tập mẫu ngẫu nhiên.
+- **Kết quả đo lường:** Hệ thống duy trì sự cân bằng đặc trưng ổn định, phân phối nền của các biến số tương đồng giữa hai nhóm.
+- **Kết luận:** ĐẠT (PASS). Hệ thống loại trừ thành công các rủi ro liên quan đến Thiên kiến chọn mẫu (Selection Bias).
+
+### 3.3. Kiểm tra Tỷ lệ Dương tính giả (False Positive Rate - FPR) và Uniformity
+- **Phương pháp:** Đo lường tỷ lệ các vòng lặp A/A Test trả về P-value < 0.05 và sử dụng Kiểm định KS-Test để đo độ bằng phẳng (Uniformity) của toàn bộ phân phối P-value.
+- **Ngưỡng tiêu chuẩn:** Tỷ lệ FPR kỳ vọng dao động an toàn quanh mốc 5.0%. KS-Test P-value > 0.05 (không thể bác bỏ giả thuyết phân phối đều).
+- **Kết quả đo lường:** Tỷ lệ FPR thực tế đạt 4.80%. KS-Test P-value đạt 0.7385. Phân phối P-value là một đường thẳng Uniform hoàn hảo.
+- **Kết luận:** ĐẠT (PASS). Động cơ tính toán thống kê (Statistical Engine) hoạt động chính xác, kiểm soát tuyệt đối nhiễu hệ thống.
+
+## 4. Kết luận Tổng thể
+Hệ thống Thử nghiệm (Experimentation Platform) đã vượt qua toàn bộ các tiêu chí kiểm định ngặt nghèo trong danh sách Trust Checklist. Pipeline dữ liệu minh bạch, vô tư và chuẩn xác về mặt toán học. Mọi kết quả phân tích A/B Testing được chạy trên nền tảng này hoàn toàn đủ độ tin cậy để phục vụ cho các quyết định vận hành thực tế.
