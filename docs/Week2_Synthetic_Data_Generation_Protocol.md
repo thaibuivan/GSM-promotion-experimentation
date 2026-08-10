@@ -33,17 +33,21 @@ Trong thực tế, Việc phát Voucher không bao giờ diễn ra ngẫu nhiên
 
 Đây là giá trị lớn nhất của bộ dữ liệu. Chúng tôi quy định trước (Ground Truth) ai là người nhạy cảm với khuyến mãi (Persuadables) và ai kháng khuyến mãi (Sure-things).
 
-Phương trình toán học cốt lõi:
+Phương trình toán học cốt lõi (Causal Equation):
 ```math
-ITE (Tác động của Voucher) = 2.0 (Base) - 1.5 * is_airport - 1.0 * is_rush_hour + 1.0 * (1 - is_urban) + 0.5 * is_rain_rider
+ITE = 2.0 (Base) + 2.0 * SuburbanLeisure + 0.5 * RainAgeInteraction - 1.5 * is_airport - 1.0 * is_rush_hour - 0.5 * is_cash + RecencyBoost
 ```
 
-**Diễn giải logic kinh doanh:**
+**Diễn giải logic kinh doanh chi tiết:**
 - Tác động cơ bản của Voucher là tăng **2.0 chuyến/tháng**.
-- Nếu là chuyến ra sân bay (`is_airport = 1`) -> Giảm 1.5 chuyến. Tức là Voucher gần như vô dụng với người ra sân bay.
-- Nếu đi giờ cao điểm (`is_rush_hour = 1`) -> Giảm 1.0 chuyến. Khách kiểu gì cũng phải đi làm.
-- Nếu ở ngoại ô (`is_urban = 0`) -> Tăng thêm 1.0 chuyến. Khách hàng nhạy cảm giá, dễ kích cầu.
-- Nếu trời mưa (`is_rain_rider = 1`) -> Tăng thêm 0.5 chuyến.
+- **Ngoại ô & Cuối tuần (Suburban Leisure):** Khách đi chơi ngoại ô cuối tuần cực kỳ nhạy cảm giá -> Tăng thêm **+2.0 chuyến**. Đây chính là hạt nhân toán học tạo ra nhóm *Suburban Card* thành công ở Tuần 3 và 4.
+- **Tương tác Mưa & Tuổi (Rain Age Interaction):** Khách hàng trẻ tuổi nhạy cảm hơn với khuyến mãi khi trời mưa -> Tăng thêm **+0.5 chuyến**.
+- **Sân bay (Airport):** Khách ra sân bay bắt buộc phải đi -> Giảm **1.5 chuyến**. Voucher là vô nghĩa.
+- **Giờ cao điểm (Rush Hour):** Khách đi làm -> Giảm **1.0 chuyến**.
+- **Tiền mặt (Cash Penalty):** Khách dùng tiền mặt có sức mua/độ trung thành thấp hơn -> Giảm **0.5 chuyến**.
+- **Hiệu ứng Win-back (Recency Boost):** Bỏ app càng lâu, Voucher càng có tác dụng đánh thức mạnh.
+
+Ngoài ra, ITE còn bị suy giảm bởi **Quy luật Hiệu suất giảm dần (Diminishing Returns)**: Những người vốn dĩ đã đi quá nhiều chuyến trong tháng (Heavy Users) sẽ rất khó bị kích thích thêm bởi Voucher.
 
 ## 5. Kết luận
 Nhờ có Data Generating Protocol chi tiết này, tập dữ liệu không chỉ là một bảng tính ngẫu nhiên, mà là một **phòng thí nghiệm (Laboratory)** chuẩn mực để chúng ta có thể kiểm thử, đo lường các thuật toán Clustering (Tuần 3) và Uplift Modeling (Tuần 7) một cách chính xác tuyệt đối.
