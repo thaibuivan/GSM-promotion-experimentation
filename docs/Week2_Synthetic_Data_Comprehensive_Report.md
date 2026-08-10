@@ -111,7 +111,7 @@ Nhờ có Data Generating Protocol chi tiết này, tập dữ liệu không ch�
 
 ## Phần III: Từ điển Dữ liệu Giả lập (Synthetic Data Dictionary)
 
-Tài liệu này định nghĩa chi tiết các biến số (features) được mô phỏng trong tập dữ liệu `complex_simulation_data.csv` (20,000 khách hàng), phục vụ trực tiếp cho bài toán Phân cụm (K-Means) và Suy luận Nhân quả (Uplift Modeling).
+Tài liệu này định nghĩa chi tiết các biến số (features) được mô phỏng trong tập dữ liệu `segmented_simulation_data.csv` (20,000 khách hàng), phục vụ trực tiếp cho bài toán Phân cụm (K-Means) và Suy luận Nhân quả (Uplift Modeling).
 
 ### 1. Biến Định danh (Identifier)
 | Tên biến | Kiểu dữ liệu | Mô tả chi tiết |
