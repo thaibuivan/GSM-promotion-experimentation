@@ -186,3 +186,19 @@ Một A/B Test thất bại thường không phải do kết quả, mà do dữ 
 
 
 ---
+
+
+## 12. Góc nhìn Chiến lược (Strategic Insights): Tại sao dùng K-Means thay vì Rule-based?
+
+Một câu hỏi lớn được đặt ra: *Nếu muốn tìm nhóm khách hàng đi mưa, tại sao không dùng luật `IF is_rain_rider == 1` mà phải dùng thuật toán K-Means phức tạp (và chấp nhận sai số)?*
+
+Dưới đây là 3 lý do cốt lõi giải thích tư duy thiết kế hệ thống của dự án này:
+
+### 1. Vượt qua giới hạn của Luật tự chế (Rule-based)
+Nếu gán nhãn bằng quy tắc `IF / ELSE`, hệ thống sẽ sụp đổ trước những tệp khách hàng phức tạp (Ví dụ: Vừa hay đi sân bay, vừa đi lúc trời mưa, lại thanh toán bằng tiền mặt). K-Means giải quyết bằng cách đánh giá toàn diện **11 chiều dữ liệu (11 Features)** cùng lúc. Mặc dù cái tên 'Rain Riders' do con người tự đặt có thể bị lệch chuẩn (do sai số gán nhãn động), nhưng bản thân các cá thể trong cụm đó thực sự có **khoảng cách toán học** gần nhau nhất.
+
+### 2. Giải quyết bài toán Vận hành Marketing
+Data Scientist có thể tính toán cho 1 triệu khách hàng, nhưng đội ngũ Marketing **không thể thiết kế 1 triệu mẫu Banner**. Phân cụm (Segmentation) là công cụ 'cầu nối' bắt buộc: Gom 20,000 khách hàng hỗn độn thành 4-5 Persona (ví dụ: Suburban Card) để team Marketing có thể thiết kế thông điệp truyền thông và chương trình khuyến mãi riêng biệt cho từng nhóm.
+
+### 3. Ý đồ kịch bản: Bàn đạp tiến tới Uplift Modeling (Tuần 5)
+Việc sử dụng K-Means ở Tuần 3 và 4 là cách tiếp cận 'truyền thống' trong ngành. Tuy nhiên, qua quá trình A/B Testing, chúng ta đã chủ động bóc trần những điểm yếu chí mạng của nó (Nhãn bị khái quát hóa quá mức, ROI âm nếu target sai nhóm). Sự thất bại một phần của K-Means chính là **tiền đề hoàn hảo** để tôn vinh thuật toán **Uplift Modeling** ở Tuần 5 — nơi hệ thống không còn phụ thuộc vào các cụm tĩnh, mà tính toán Tác động Nhân quả (ITE) đến cấp độ từng cá nhân riêng biệt.
