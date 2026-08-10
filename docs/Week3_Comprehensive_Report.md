@@ -127,11 +127,11 @@ Vào ngày thứ 5 kể từ khi user không mở app:
 
 Để kết quả A/B Test có ý nghĩa thống kê (không bị nhiễu ngẫu nhiên), hệ thống yêu cầu các thiết lập sau:
 - **Baseline (Mean Control):** Giả định trung bình là 4 chuyến/user trong 14 ngày.
-- **Minimum Detectable Effect (MDE):** +0.05 chuyến/user (Tăng trưởng tối thiểu cần phát hiện để chiến dịch có lãi).
+- **Minimum Detectable Effect (MDE):** +0.112 chuyến/user (Tăng trưởng tối thiểu cần phát hiện để chiến dịch có lãi).
 - **Statistical Power (1 - $\beta$):** 80% (Xác suất phát hiện ra sự khác biệt nếu có).
 - **Significance Level ($\alpha$):** 5% (Mức độ chấp nhận False Positive).
 
-Dựa trên công thức T-test độc lập hai mẫu, kích thước mẫu tối thiểu yêu cầu là **~2,500 users mỗi nhóm** (Total: 5,000 users). 
+Dựa trên công thức T-test độc lập hai mẫu, kích thước mẫu tối thiểu yêu cầu là **~1,250 users mỗi nhóm** (Total: 2,500 users). 
 Trong thí nghiệm này, dữ liệu mô phỏng có hơn **2,700 users** cho nhóm `Suburban Card`, hoàn toàn vượt qua bài kiểm tra Power Analysis.
 
 ---
