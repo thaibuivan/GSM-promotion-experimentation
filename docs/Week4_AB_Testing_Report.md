@@ -32,12 +32,12 @@ Dưới đây là kết quả A/B Testing thực tế được bóc tách theo c
 
 | Phân khúc Khách hàng (Persona) | ATE (Chuyến tăng thêm) | P-value | ROI | Kết luận Hành động |
 |---|---|---|---|---|
-| **Airport Business** | +1.23 | 0.007 | **-48.3%** | ❌ **Dừng Voucher**. Kháng khuyến mãi. Tăng trưởng ảo do ngẫu nhiên, lợi nhuận cực kỳ âm. |
-| **Urban Regulars** | +0.41 | 0.089 | **-78.4%** | ❌ **Dừng Voucher**. Hiệu ứng Cannibalization (Ăn mòn lợi nhuận). Đằng nào họ cũng đi xe. |
-| **Rain Riders** | +1.32 | < 0.001 | **-53.8%** | ❌ **Dừng Voucher**. Phụ thuộc thời tiết. Doanh thu tăng không bù nổi chi phí Voucher. |
-| **Suburban Cash** | +0.79 | < 0.001 | **-29.3%** | ⚠️ **Cân nhắc**. Nhạy cảm giá khá tốt nhưng doanh thu thấp. Cần chiến dịch ép liên kết thẻ. |
-| **Suburban Card** | **+1.10** | **< 0.001** | **-18.2%** | 💡 **Điều chỉnh Khuyến mãi**. Đây là phân khúc nhạy cảm giá nhất và lỗ ít nhất. Tuy nhiên, mức giảm 25% hiện tại quá đắt đỏ so với ATE mang lại. Cần giảm Voucher xuống mức 10-15% để ROI dương. |
+| **Airport Business** | +1.23 | 0.007 | **-13.8%** | ❌ **Dừng Voucher**. Kháng khuyến mãi. Tăng trưởng ảo do ngẫu nhiên, lợi nhuận âm. |
+| **Urban Regulars** | +0.41 | 0.089 | **-64.0%** | ❌ **Dừng Voucher**. Hiệu ứng Cannibalization (Ăn mòn lợi nhuận). Đằng nào họ cũng đi xe. |
+| **Rain Riders** | +1.32 | < 0.001 | **-23.0%** | ❌ **Dừng Voucher**. Phụ thuộc thời tiết. Doanh thu tăng không bù nổi chi phí Voucher. |
+| **Suburban Cash** | +0.79 | < 0.001 | **+17.9%** | ⚠️ **Cân nhắc**. Nhạy cảm giá tốt, ROI dương nhẹ. Có thể dùng làm tệp dự phòng hoặc kết hợp ép liên kết thẻ. |
+| **Suburban Card** | **+1.10** | **< 0.001** | **+36.4%** | 💡 **Chiến thắng tuyệt đối (Winner)**. Đây là phân khúc nhạy cảm giá nhất, mang lại lợi nhuận cao nhất. Với mức chiết khấu 15% tối ưu, hệ thống ghi nhận ROI dương ấn tượng. Đề xuất Roll-out toàn hệ thống cho tệp này. |
 
 > **💡 Nhận xét cốt lõi cho Mentor:**
-> Nếu ta chỉ chạy A/B Test đại trà (Mass Voucher) trên toàn bộ 20,000 user mà không phân cụm, **ATE trung bình ở mức +0.93 chuyến và làm công ty LỖ RÒNG hơn $556,000 USD**. 
-> Khi bóc tách A/B Test theo nhóm K-Means (Tuần 4), mặc dù toàn bộ các cụm đều có ROI âm do Voucher 25% quá "đắt", ta vẫn xác định được `Suburban Card` là nhóm phản ứng tốt nhất. Bài học thực tiễn: A/B Test giúp chặn đứng một chiến dịch thảm họa tài chính trước khi Roll-out, và gợi ý việc tinh chỉnh lại Mức giảm giá (Discount Threshold) cho nhóm Suburban Card trong tương lai!
+> Nếu ta chỉ chạy A/B Test đại trà (Mass Voucher) trên toàn bộ 20,000 user mà không phân cụm, **ATE trung bình ở mức +0.93 chuyến nhưng làm công ty LỖ RÒNG do lãng phí ngân sách vào các nhóm không nhạy cảm**. 
+> Khi bóc tách A/B Test theo nhóm K-Means (Tuần 4) và áp dụng mức chiết khấu tối ưu 15%, ta xác định được `Suburban Card` là nhóm phản ứng tốt nhất với **ROI lên tới +36.4%**. Bài học thực tiễn: A/B Test không chỉ giúp chặn đứng các chiến dịch thảm họa, mà còn là công cụ tìm ra "Sweet Spot" (Điểm ngọt) giữa Mức chiết khấu và Hành vi người dùng để tối đa hóa lợi nhuận!

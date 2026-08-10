@@ -82,7 +82,7 @@ Từ phân tích EDA (Notebook 6), chúng ta biết rằng phần lớn người
 ### Treatment Group (Nhóm can thiệp):
 Vào ngày thứ 5 kể từ khi user không mở app:
 1. Hệ thống tự động gửi **Push Notification** với nội dung cá nhân hóa:  
-   *"Lâu rồi không gặp! Mã giảm 25% cho chuyến đi tiếp theo của bạn — Hết hạn sau 48h."*
+   *"Lâu rồi không gặp! Mã giảm 15% cho chuyến đi tiếp theo của bạn — Hết hạn sau 48h."*
 2. Khi user mở app, hiển thị **In-app Banner** nhắc nhở về voucher còn hiệu lực.
 3. Mã voucher tự động áp dụng khi thanh toán, không cần nhập tay.
 
