@@ -76,7 +76,7 @@ chart_layout = dict(
 )
 
 # ----------------- TÍNH TOÁN DATA CHUNG -----------------
-# Giả định Mức Khuyến mãi mặc định là 25% trên tổng doanh thu chuyến đi
+# Giả định Mức Khuyến mãi mặc định là 15% trên tổng doanh thu chuyến đi
 DISCOUNT_PERCENT = 25.0
 df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]

@@ -25,7 +25,7 @@ Từ phân tích EDA (Notebook 6), chúng ta biết rằng phần lớn người
 
 ## 2. Hypothesis (Giả thuyết)
 
-**Nếu** chúng ta gửi Push Notification kèm Voucher giảm giá 25% (tối đa 50,000 VNĐ) đến tệp khách hàng Regular Users đã không mở app trong 5+ ngày,  
+**Nếu** chúng ta gửi Push Notification kèm Voucher giảm giá 15% (tối đa 50,000 VNĐ) đến tệp khách hàng Regular Users đã không mở app trong 5+ ngày,  
 **Thì** số chuyến đi trung bình của nhóm này trong 14 ngày tiếp theo sẽ tăng lên,  
 **Bởi vì** việc nhắc nhở cá nhân hóa (Personalized Nudge) kết hợp với ưu đãi sẽ vượt qua ngưỡng quán tính (Inertia) đang cản trở họ mở app trở lại.
 
@@ -116,7 +116,7 @@ Vào ngày thứ 5 kể từ khi user không mở app:
 
 ### Economics Guardrail Metrics (Chỉ số Bảo vệ Lợi nhuận):
 - **Incremental Gross Revenue:** Doanh thu gộp tăng thêm từ các chuyến đi mới.
-- **Voucher Cost:** Chi phí phát hành Voucher (Giả định = 25% doanh thu của nhóm Treatment).
+- **Voucher Cost:** Chi phí phát hành Voucher (Giả định = 15% doanh thu của nhóm Treatment).
 - **Incremental Net Revenue (Doanh thu thuần tăng thêm):** `= Incremental Gross Revenue - Voucher Cost`
 - **ROI (Return on Investment):** Đảm bảo chiến dịch sinh lời (ROI > 0). `= Incremental Net Revenue / Voucher Cost`
 
