@@ -8,7 +8,7 @@ Trước khi đưa vào triển khai bất kỳ thí nghiệm A/B Testing nào, 
 Mục tiêu cốt lõi là xác minh Tỷ lệ Dương tính giả (False Positive Rate - Type I Error) của hệ thống hội tụ chính xác về mức lý thuyết ($\alpha = 0.05$), đồng thời đảm bảo không có sự thiên vị trong việc phân bổ mẫu.
 
 ## 2. Phương pháp Thực hiện (Methodology)
-Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng mục tiêu (`Suburban Card`) được phân bổ ngẫu nhiên thành hai nhóm (A và A') qua 5.000 vòng lặp độc lập. Các chỉ số thống kê được ghi nhận ở mỗi vòng lặp để phân tích hành vi của hệ thống.
+Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng mục tiêu (`Suburban Occasionals`) được phân bổ ngẫu nhiên thành hai nhóm (A và A') qua 5.000 vòng lặp độc lập. Các chỉ số thống kê được ghi nhận ở mỗi vòng lặp để phân tích hành vi của hệ thống.
 
 ## 3. Các Chỉ số Đánh giá & Kết quả
 
@@ -71,13 +71,13 @@ Dưới đây là kết quả A/B Testing thực tế được bóc tách theo c
 |---|---|---|---|---|
 | **Airport Business** | +1.23 | 0.007 | **-13.8%** | ❌ **Dừng Voucher**. Kháng khuyến mãi. Tăng trưởng ảo do ngẫu nhiên, lợi nhuận âm. |
 | **Urban Regulars** | +0.41 | 0.089 | **-64.0%** | ❌ **Dừng Voucher**. Hiệu ứng Cannibalization (Ăn mòn lợi nhuận). Đằng nào họ cũng đi xe. |
-| **Rain Riders** | +1.32 | < 0.001 | **-23.0%** | ❌ **Dừng Voucher**. Phụ thuộc thời tiết. Doanh thu tăng không bù nổi chi phí Voucher. |
+| **GenZ / Young Riders** | +1.32 | < 0.001 | **-23.0%** | ❌ **Dừng Voucher**. Phụ thuộc thời tiết. Doanh thu tăng không bù nổi chi phí Voucher. |
 | **Suburban Cash** | +0.79 | < 0.001 | **+17.9%** | ⚠️ **Cân nhắc**. Nhạy cảm giá tốt, ROI dương nhẹ. Có thể dùng làm tệp dự phòng hoặc kết hợp ép liên kết thẻ. |
-| **Suburban Card** | **+1.10** | **< 0.001** | **+36.4%** | 💡 **Chiến thắng tuyệt đối (Winner)**. Đây là phân khúc nhạy cảm giá nhất, mang lại lợi nhuận cao nhất. Với mức chiết khấu 15% tối ưu, hệ thống ghi nhận ROI dương ấn tượng. Đề xuất Roll-out toàn hệ thống cho tệp này. |
+| **Suburban Occasionals** | **+1.10** | **< 0.001** | **+38.2%** | 💡 **Chiến thắng tuyệt đối (Winner)**. Đây là phân khúc nhạy cảm giá nhất, mang lại lợi nhuận cao nhất. Với mức chiết khấu 15% tối ưu, hệ thống ghi nhận ROI dương ấn tượng. Đề xuất Roll-out toàn hệ thống cho tệp này. |
 
 > **💡 Bài học Kinh doanh Cốt lõi:**
 > Nếu ta chỉ chạy A/B Test đại trà (Mass Voucher) trên toàn bộ 20,000 user mà không phân cụm, **ATE trung bình ở mức +0.93 chuyến nhưng làm công ty LỖ RÒNG do lãng phí ngân sách vào các nhóm không nhạy cảm**. 
-> Khi bóc tách A/B Test theo nhóm K-Means (Tuần 4) và áp dụng mức chiết khấu tối ưu 15%, ta xác định được `Suburban Card` là nhóm phản ứng tốt nhất với **ROI lên tới +36.4%**. Bài học thực tiễn: A/B Test không chỉ giúp chặn đứng các chiến dịch thảm họa, mà còn là công cụ tìm ra "Sweet Spot" (Điểm ngọt) giữa Mức chiết khấu và Hành vi người dùng để tối đa hóa lợi nhuận!
+> Khi bóc tách A/B Test theo nhóm K-Means (Tuần 4) và áp dụng mức chiết khấu tối ưu 15%, ta xác định được `Suburban Occasionals` là nhóm phản ứng tốt nhất với **ROI lên tới +38.2%**. Bài học thực tiễn: A/B Test không chỉ giúp chặn đứng các chiến dịch thảm họa, mà còn là công cụ tìm ra "Sweet Spot" (Điểm ngọt) giữa Mức chiết khấu và Hành vi người dùng để tối đa hóa lợi nhuận!
 
 
 ---
