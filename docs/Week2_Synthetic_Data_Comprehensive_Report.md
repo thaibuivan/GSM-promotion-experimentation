@@ -67,7 +67,19 @@ Trong thực tế, Việc phát Voucher không bao giờ diễn ra ngẫu nhiên
 
 > **Kết quả của Biến nhiễu:** Trong tập dữ liệu quan sát (`y_obs`), những người KHÔNG nhận Voucher lại có vẻ đi xe nhiều hơn người CÓ nhận. Nghịch lý này (Simpson's Paradox) là bài kiểm tra hoàn hảo cho các mô hình Causal Inference.
 
-### 4. Gài Luật Nhân quả (Hardcoding the Uplift)
+### 4. Cơ chế Kỹ thuật Sinh Biến Kết quả (Potential Outcomes)
+
+Đóng góp lớn nhất của hệ thống SCM là quy trình sinh `Y0` (số chuyến đi khi không có Voucher), `ITE` (Tác động cá nhân) và `Y1` (Số chuyến đi khi có Voucher) dựa trên các nguyên lý Toán học chặt chẽ.
+
+#### 4.1. Quy trình sinh Y0 (Zero-Inflated Negative Binomial)
+Thay vì dùng phân phối Poisson thông thường, `Y0` được sinh bằng hàm `_zinb_draw()` (Zero-Inflated Negative Binomial) hoạt động như 2 "cỗ máy" song song:
+- **Cỗ máy 1 (Negative Binomial):** Sinh ra phổ số lượng chuyến đi có "cái đuôi rất dài" (Overdispersion) để mô phỏng nhóm Heavy Users. Bản thân cỗ máy này đã sinh ra một lượng người đi 0 chuyến tự nhiên (`p_nb0`).
+- **Cỗ máy 2 (Zero-Inflation Trap):** Ép một tỷ lệ khách hàng (`pi`) về đúng 0 chuyến, đại diện cho nhóm "Ngủ đông tuyệt đối" (cài App nhưng không bao giờ mở).
+- **Thuật toán Brentq (Root-finding):** Để kiểm soát chính xác lượng khách hàng có 0 chuyến đi, hệ thống dùng thuật toán `brentq` để giải phương trình:
+  `ZERO_TARGET = pi + (1 - pi) * p_nb0`
+  Thuật toán này tự động căn chỉnh biến `pi` bù trừ cho lượng `p_nb0`, đảm bảo tổng lượng người đi 0 chuyến trong dataset khớp 100% với mục tiêu kinh doanh.
+
+#### 4.2. Gài Luật Nhân quả (Tính toán ITE)
 
 Đây là giá trị lớn nhất của bộ dữ liệu. Chúng tôi quy định trước (Ground Truth) ai là người nhạy cảm với khuyến mãi (Persuadables) và ai kháng khuyến mãi (Sure-things).
 
@@ -78,7 +90,7 @@ ITE = 2.0 (Base) + 2.0 * SuburbanLeisure + 0.5 * RainAgeInteraction - 1.5 * is_a
 
 **Diễn giải logic kinh doanh chi tiết:**
 - Tác động cơ bản của Voucher là tăng **2.0 chuyến/tháng**.
-- **Ngoại ô & Cuối tuần (Suburban Leisure):** Khách đi chơi ngoại ô cuối tuần cực kỳ nhạy cảm giá -> Tăng thêm **+2.0 chuyến**. Đây chính là hạt nhân toán học tạo ra nhóm *Suburban Card* thành công ở Tuần 3 và 4.
+- **Ngoại ô & Cuối tuần (Suburban Leisure):** Khách đi chơi ngoại ô cuối tuần cực kỳ nhạy cảm giá -> Tăng thêm **+2.0 chuyến**. Đây chính là hạt nhân toán học tạo ra nhóm *Suburban Card*.
 - **Tương tác Mưa & Tuổi (Rain Age Interaction):** Khách hàng trẻ tuổi nhạy cảm hơn với khuyến mãi khi trời mưa -> Tăng thêm **+0.5 chuyến**.
 - **Sân bay (Airport):** Khách ra sân bay bắt buộc phải đi -> Giảm **1.5 chuyến**. Voucher là vô nghĩa.
 - **Giờ cao điểm (Rush Hour):** Khách đi làm -> Giảm **1.0 chuyến**.
@@ -86,6 +98,10 @@ ITE = 2.0 (Base) + 2.0 * SuburbanLeisure + 0.5 * RainAgeInteraction - 1.5 * is_a
 - **Hiệu ứng Win-back (Recency Boost):** Bỏ app càng lâu, Voucher càng có tác dụng đánh thức mạnh.
 
 Ngoài ra, ITE còn bị suy giảm bởi **Quy luật Hiệu suất giảm dần (Diminishing Returns)**: Những người vốn dĩ đã đi quá nhiều chuyến trong tháng (Heavy Users) sẽ rất khó bị kích thích thêm bởi Voucher.
+
+#### 4.3. Tổng hợp Y1 và CATE (Conditional Average Treatment Effect)
+- **Y1 (Potential Outcome under Treatment):** Số chuyến đi lý thuyết nếu khách hàng được nhận Voucher, tính bằng `Y1 = Y0 + ITE`. Hệ thống sử dụng phân phối Poisson để tái lấy mẫu (resample) và `np.clip` để đảm bảo kết quả luôn là số nguyên, không bao giờ bị âm.
+- **CATE:** Hệ thống cho phép nhóm các `ITE` theo từng lát cắt đặc trưng (ví dụ: CATE của nhóm nội thành dùng thẻ tín dụng). Điều này cung cấp điểm chuẩn (Benchmark Ground Truth) vô giá để đánh giá độ chính xác của các mô hình Uplift Modeling ở Tuần 7.
 
 ### 5. Kết luận
 Nhờ có Data Generating Protocol chi tiết này, tập dữ liệu không chỉ là một bảng tính ngẫu nhiên, mà là một **phòng thí nghiệm (Laboratory)** chuẩn mực để chúng ta có thể kiểm thử, đo lường các thuật toán Clustering (Tuần 3) và Uplift Modeling (Tuần 7) một cách chính xác tuyệt đối.
