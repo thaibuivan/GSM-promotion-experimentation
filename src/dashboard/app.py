@@ -82,7 +82,7 @@ df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]
 
 # ----------------- CHIA TABS -----------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["💰 Hiệu quả Tài chính", "🎯 Phân tích Hành vi", "🧠 Causal Engine", "🤖 So sánh Policy (Uplift ML)", "🛠️ Admin Pipeline"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["💰 Hiệu quả Tài chính", "🎯 Phân tích Hành vi", "🧠 Causal Engine", "🤖 So sánh Policy", "⚙️ Policy Simulator", "🛠️ Admin Pipeline"])
 
 # ================= TAB 1: TÀI CHÍNH =================
 with tab1:
@@ -363,8 +363,83 @@ with tab4:
     except Exception as e:
         st.warning(f"Nhấn 'Chạy Pipeline' ở tab Admin để tạo dữ liệu Policy Comparison. ({str(e)})")
 
-# ================= TAB 6: KỸ THUẬT (PIPELINE ADMIN) =================
+# ================= TAB 5: POLICY SIMULATOR =================
 with tab5:
+    st.subheader("⚙️ Trình giả lập Quyết định (Promotion Policy Simulator)")
+    st.markdown("Business nhập các tham số kỳ vọng, hệ thống sẽ mô phỏng lại các kịch bản phát Voucher và đưa ra đề xuất tối ưu nhất.")
+    
+    col_sim_left, col_sim_right = st.columns([1, 2.5])
+    
+    with col_sim_left:
+        st.markdown("#### Thiết lập Tham số (Economics)")
+        sim2_budget = st.number_input("Ngân sách Chiến dịch ($)", min_value=1000, max_value=500000, value=50000, step=5000)
+        sim2_voucher = st.slider("Mức Khuyến mãi (% Doanh thu)", min_value=5.0, max_value=50.0, value=15.0, step=5.0)
+        sim2_margin = st.slider("Biên lợi nhuận gộp (%)", min_value=10.0, max_value=100.0, value=75.0, step=5.0)
+        sim2_max_target = st.slider("Max Target % (Giới hạn KH)", min_value=10, max_value=100, value=100, step=10)
+        
+    with col_sim_right:
+        st.markdown("#### Bảng So sánh Kịch bản (Policy Evaluation)")
+        try:
+            preds_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'test_predictions.csv'))
+            
+            # Recompute Expected Value based on sliders
+            preds_df['voucher_cost'] = preds_df['avg_fare'] * (sim2_voucher / 100.0)
+            preds_df['margin_per_ride'] = preds_df['avg_fare'] * (sim2_margin / 100.0)
+            preds_df['expected_value'] = (preds_df['cate_pred'] * preds_df['margin_per_ride']) - (preds_df['pred_rides_treated'] * preds_df['voucher_cost'])
+            
+            def eval_policy_sim(mask, label):
+                targeted = preds_df[mask]
+                n_t = mask.sum()
+                if n_t == 0:
+                    return {"Kịch bản": label, "Users": 0, "Cost": 0, "Profit": 0, "ROI": 0}
+                t_ev = targeted['expected_value'].sum()
+                t_cost = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
+                roi = (t_ev / t_cost * 100) if t_cost > 0 else 0
+                return {"Kịch bản": label, "Users": int(n_t), "Cost": round(t_cost, 0), "Profit": round(t_ev, 0), "ROI": round(roi, 1)}
+            
+            sim_results = []
+            
+            # 1. Mass Voucher
+            mass_m = pd.Series([True]*len(preds_df), index=preds_df.index)
+            if sim2_max_target < 100:
+                mass_m.iloc[int(len(preds_df) * sim2_max_target / 100):] = False
+            sim_results.append(eval_policy_sim(mass_m, "Mass Voucher"))
+            
+            # 2. Segment (Suburban)
+            seg_m = preds_df['persona'].str.contains('Suburban', case=False, na=False)
+            sim_results.append(eval_policy_sim(seg_m, "Segment (Suburban)"))
+            
+            # 3. Profit Targeting (EV > 0)
+            prof_m = preds_df['expected_value'] > 0
+            # Apply max target constraint
+            if prof_m.sum() > (len(preds_df) * sim2_max_target / 100):
+                thresh = preds_df['expected_value'].quantile(1 - (sim2_max_target / 100))
+                prof_m = preds_df['expected_value'] > thresh
+            sim_results.append(eval_policy_sim(prof_m, "Profit Targeting (EV > 0)"))
+            
+            # 4. Budget-Constrained Profit
+            df_sorted = preds_df.sort_values('expected_value', ascending=False).copy()
+            df_sorted['cum_cost'] = (df_sorted['pred_rides_treated'] * df_sorted['voucher_cost']).cumsum()
+            budget_m_idx = df_sorted[df_sorted['cum_cost'] <= sim2_budget].index
+            budget_m = preds_df.index.isin(budget_m_idx)
+            sim_results.append(eval_policy_sim(budget_m, f"Budget-Constrained (${sim2_budget:,})"))
+            
+            sim_df = pd.DataFrame(sim_results)
+            st.dataframe(
+                sim_df.style
+                .format({'Cost': '${:,.0f}', 'Profit': '${:,.0f}', 'ROI': '{:.1f}%'})
+                .background_gradient(subset=['Profit'], cmap='RdYlGn', vmin=-100000, vmax=50000),
+                use_container_width=True, hide_index=True
+            )
+            
+            best_policy = sim_df.loc[sim_df['Profit'].idxmax()]
+            st.success(f"🏆 **Đề xuất Tối ưu:** Kịch bản **{best_policy['Kịch bản']}** mang lại Lợi nhuận Kỳ vọng cao nhất (**${best_policy['Profit']:,.0f}**), tiếp cận **{best_policy['Users']}** khách hàng (trong tệp Test).")
+            
+        except Exception as e:
+            st.warning(f"Vui lòng xuất dữ liệu 'test_predictions.csv' trước. ({str(e)})")
+
+# ================= TAB 6: KỸ THUẬT (PIPELINE ADMIN) =================
+with tab6:
     st.subheader("Trình quản lý Data Pipeline (Backend Developer Only)")
     st.markdown("Giả lập hệ thống kết nối Data Warehouse và chạy luồng Machine Learning (K-Means & T-Learner) end-to-end.")
     
