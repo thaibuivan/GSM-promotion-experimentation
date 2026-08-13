@@ -82,7 +82,7 @@ df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]
 
 # ----------------- CHIA TABS -----------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["💰 Hiệu quả Tài chính", "🎯 Phân tích Hành vi", "🧠 Causal Engine", "🤖 Tối ưu hóa Cá nhân (Uplift ML)", "🛠️ Admin Pipeline"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["💰 Hiệu quả Tài chính", "🎯 Phân tích Hành vi", "🧠 Causal Engine", "🤖 So sánh Policy (Uplift ML)", "🛠️ Admin Pipeline"])
 
 # ================= TAB 1: TÀI CHÍNH =================
 with tab1:
@@ -292,10 +292,75 @@ with tab4:
             fig_donut.update_traces(textinfo='percent+label')
             st.plotly_chart(fig_donut, use_container_width=True)
             
-            st.success("✅ **Xác nhận Chiến lược:** AI (X-Learner) hoàn toàn không biết về chiến lược của ta, nhưng kết quả nhả ra lại tập trung >85% vào nhóm Suburban. Nước cờ Tuần 3 đã được Máy Học chứng minh là chính xác tuyệt đối!")
+            st.success("✅ **Xác nhận Chiến lược (trong Sandbox):** X-Learner không biết về chiến lược của ta, nhưng kết quả tập trung vào nhóm Suburban — phù hợp với assumptions HTE đã thiết kế. Cần validation trên GSM data thật để xác nhận.")
             
     except Exception as e:
         st.error(f"Lỗi khi tải hoặc hiển thị dữ liệu Uplift: {str(e)}\n\nVui lòng chạy lại Pipeline hoặc script export.")
+
+    # ─── POLICY COMPARISON SECTION ─────────────────────────
+    st.markdown("---")
+    st.subheader("🏆 So sánh 5 Policy: Business Decision là gì?")
+    st.markdown("""
+    **Business không mua một Qini Curve — Business cần một Policy cụ thể.**  
+    Dưới đây là so sánh 5 chiến lược phát Voucher trên cùng tập dữ liệu test, dưới cùng tham số kinh tế (Voucher 15% doanh thu, Margin 75%/ride).
+    """)
+    
+    try:
+        policy_df_raw = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'policy_comparison.csv'))
+        
+        # — Bar chart: Expected Incremental Profit by Policy
+        policy_colors = {
+            '0. No Voucher': '#555555',
+            '1. Mass Voucher (All Users)': '#FF007F',
+            '2. Segment Targeting (Suburban)': '#FFA500',
+            '3. Uplift Targeting (Top 30% CATE)': '#AAAAFF',
+            '4. Profit Targeting (EV > 0)': '#00E5FF',
+            '5. Budget-Constrained ($50,000)': '#FFD700',
+            '6. Oracle Policy (True ITE — Sandbox only)': '#00FF88',
+        }
+        
+        fig_policy = go.Figure()
+        for _, row in policy_df_raw.iterrows():
+            color = policy_colors.get(row['Policy'], '#FFFFFF')
+            fig_policy.add_trace(go.Bar(
+                x=[row['Policy'].split('.',1)[1].strip() if '.' in row['Policy'] else row['Policy']],
+                y=[row['Expected_Incremental_Profit']],
+                name=row['Policy'],
+                marker_color=color,
+                text=[f"${row['Expected_Incremental_Profit']:,.0f}\n({row['Pct_Targeted']:.0f}% users)"],
+                textposition='outside'
+            ))
+        
+        fig_policy.add_hline(y=0, line_width=2, line_dash='dash', line_color='white', opacity=0.5)
+        fig_policy.update_layout(**chart_layout, title="Lợi nhuận Kỳ vọng theo từng Policy (Test Set)",
+                                 height=420, showlegend=False, barmode='group')
+        fig_policy.update_yaxes(title="Expected Incremental Profit ($)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+        fig_policy.update_xaxes(title="", tickangle=-20)
+        st.plotly_chart(fig_policy, use_container_width=True)
+        
+        # — Table with color gradient
+        display_df = policy_df_raw.copy()
+        display_df.columns = ['Policy', 'N Users Targetật', '% Users', 'Chi phí Voucher ($)', 'Lợi nhuận Kỳ vọng ($)', 'ROI (%)']
+        st.dataframe(
+            display_df.style
+            .format({'Chi phí Voucher ($)': '${:,.0f}', 'Lợi nhuận Kỳ vọng ($)': '${:,.0f}', 'ROI (%)': '{:.1f}%', '% Users': '{:.1f}%'})
+            .background_gradient(subset=['Lợi nhuận Kỳ vọng ($)'], cmap='RdYlGn', vmin=-80000, vmax=15000),
+            use_container_width=True, hide_index=True
+        )
+        
+        # — Key insight callout
+        profit_row = policy_df_raw[policy_df_raw['Policy'].str.contains('Profit Targeting')].iloc[0]
+        mass_row = policy_df_raw[policy_df_raw['Policy'].str.contains('Mass Voucher')].iloc[0]
+        st.info(f"""
+        **📊 Kết luận trong Sandbox:**  
+        Profit Targeting (phát cho {profit_row['Pct_Targeted']:.0f}% user có Expected Value > 0) cho lợi nhuận **${profit_row['Expected_Incremental_Profit']:,.0f}**,  
+        trong khi Mass Voucher (phát cho tất cả) gây lỗ **${abs(mass_row['Expected_Incremental_Profit']):,.0f}**.  
+        Điều này cho thấy trong sandbox với assumptions hiện tại: **nhắm mục tiêu đúng đối tượng quan trọng hơn việc phát rộng.** 
+        Kết quả cần được kiểm chứng trên GSM data thật trước khi áp dụng thực tế.
+        """)
+        
+    except Exception as e:
+        st.warning(f"Nhấn 'Chạy Pipeline' ở tab Admin để tạo dữ liệu Policy Comparison. ({str(e)})")
 
 # ================= TAB 6: KỸ THUẬT (PIPELINE ADMIN) =================
 with tab5:
