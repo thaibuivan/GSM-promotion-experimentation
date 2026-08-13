@@ -86,14 +86,24 @@ def evaluate_policy(target_mask, df_eval, label):
     
     if n_targeted == 0:
         return {"Policy": label, "N_Targeted": 0, "Pct_Targeted": 0.0,
-                "Total_Voucher_Cost": 0, "Expected_Incremental_Profit": 0,
+                "Expected_Incremental_Rides": 0, "Expected_GMV": 0, "Incremental_GMV": 0,
+                "Burn": 0, "CPIR": 0, "Burn_per_GMV_pct": 0, "Burn_per_Inc_GMV_pct": 0,
+                "Expected_Incremental_Profit": 0,
                 "EV_Lower_95": 0, "EV_Upper_95": 0,
                 "Est_ROI_pct": 0}
 
     # Among targeted: use model's expected value as proxy
     total_ev = targeted['expected_value'].sum()
-    total_voucher_cost = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
-    roi = (total_ev / total_voucher_cost * 100) if total_voucher_cost > 0 else 0
+    total_burn = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
+    
+    total_inc_rides = targeted['cate_pred'].sum()
+    total_gmv = (targeted['pred_rides_treated'] * targeted['avg_fare']).sum()
+    total_inc_gmv = (targeted['cate_pred'] * targeted['avg_fare']).sum()
+    
+    roi = (total_ev / total_burn * 100) if total_burn > 0 else 0
+    cpir = (total_burn / total_inc_rides) if total_inc_rides > 0 else 0
+    burn_per_gmv = (total_burn / total_gmv * 100) if total_gmv > 0 else 0
+    burn_per_inc_gmv = (total_burn / total_inc_gmv * 100) if total_inc_gmv > 0 else 0
     
     if n_targeted > 1:
         std_ev = targeted['expected_value'].std()
@@ -105,7 +115,13 @@ def evaluate_policy(target_mask, df_eval, label):
         "Policy": label,
         "N_Targeted": int(n_targeted),
         "Pct_Targeted": round(n_targeted / len(df_eval) * 100, 1),
-        "Total_Voucher_Cost": round(total_voucher_cost, 0),
+        "Expected_Incremental_Rides": round(total_inc_rides, 0),
+        "Expected_GMV": round(total_gmv, 0),
+        "Incremental_GMV": round(total_inc_gmv, 0),
+        "Burn": round(total_burn, 0),
+        "CPIR": round(cpir, 0),
+        "Burn_per_GMV_pct": round(burn_per_gmv, 1),
+        "Burn_per_Inc_GMV_pct": round(burn_per_inc_gmv, 1),
         "Expected_Incremental_Profit": round(total_ev, 0),
         "EV_Lower_95": round(total_ev - moe, 0),
         "EV_Upper_95": round(total_ev + moe, 0),

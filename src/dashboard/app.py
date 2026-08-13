@@ -376,11 +376,25 @@ with tab4:
         display_df['Khoảng Rủi ro (95% CI)'] = display_df.apply(lambda r: f"[{r.get('EV_Lower_95', 0):,.0f} ~ {r.get('EV_Upper_95', 0):,.0f}]", axis=1)
         
         # Keep specific columns
-        display_df = display_df[['Policy', 'N_Targeted', 'Pct_Targeted', 'Total_Voucher_Cost', 'Expected_Incremental_Profit', 'Khoảng Rủi ro (95% CI)', 'Est_ROI_pct']]
-        display_df.columns = ['Policy', 'N Users Target', '% Users', 'Chi phí Voucher ($)', 'Lợi nhuận Kỳ vọng ($)', 'Khoảng Rủi ro (95% CI)', 'ROI (%)']
+        display_df = display_df[['Policy', 'N_Targeted', 'Pct_Targeted', 'Expected_GMV', 'Burn', 'Burn_per_GMV_pct', 'Incremental_GMV', 'Burn_per_Inc_GMV_pct', 'Expected_Incremental_Rides', 'CPIR', 'Expected_Incremental_Profit', 'Khoảng Rủi ro (95% CI)', 'Est_ROI_pct']]
+        
+        display_df.columns = [
+            'Policy', 'N Users Target', '% Users', 
+            'Dự kiến GMV ($)', 'Burn ($)', 'Burn/GMV (%)', 
+            'Inc GMV ($)', 'Burn/Inc GMV (%)', 
+            'Inc Rides', 'CPIR ($)', 
+            'Lợi nhuận Kỳ vọng ($)', 'Khoảng Rủi ro (95% CI)', 'ROI (%)'
+        ]
         st.dataframe(
             display_df.style
-            .format({'Chi phí Voucher ($)': '${:,.0f}', 'Lợi nhuận Kỳ vọng ($)': '${:,.0f}', 'ROI (%)': '{:.1f}%', '% Users': '{:.1f}%'})
+            .format({
+                'Dự kiến GMV ($)': '${:,.0f}', 'Burn ($)': '${:,.0f}', 
+                'Inc GMV ($)': '${:,.0f}', 'CPIR ($)': '${:,.0f}',
+                'Lợi nhuận Kỳ vọng ($)': '${:,.0f}', 
+                'ROI (%)': '{:.1f}%', '% Users': '{:.1f}%',
+                'Burn/GMV (%)': '{:.1f}%', 'Burn/Inc GMV (%)': '{:.1f}%',
+                'Inc Rides': '{:,.0f}'
+            })
             .background_gradient(subset=['Lợi nhuận Kỳ vọng ($)'], cmap='RdYlGn', vmin=-80000, vmax=15000),
             use_container_width=True, hide_index=True
         )
@@ -438,10 +452,15 @@ with tab5:
                 targeted = preds_df[mask]
                 n_t = mask.sum()
                 if n_t == 0:
-                    return {"Kịch bản": label, "Users": 0, "Cost": 0, "Profit": 0, "Khoảng Rủi ro": "[0 ~ 0]", "ROI": 0, "Lower": 0, "Upper": 0}
+                    return {"Kịch bản": label, "Users": 0, "GMV": 0, "Burn": 0, "Inc GMV": 0, "CPIR": 0, "Profit": 0, "Khoảng Rủi ro": "[0 ~ 0]", "ROI": 0, "Lower": 0, "Upper": 0}
                 t_ev = targeted['expected_value'].sum()
-                t_cost = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
-                roi = (t_ev / t_cost * 100) if t_cost > 0 else 0
+                t_burn = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
+                t_inc_rides = targeted['cate_pred'].sum()
+                t_gmv = (targeted['pred_rides_treated'] * targeted['avg_fare']).sum()
+                t_inc_gmv = (targeted['cate_pred'] * targeted['avg_fare']).sum()
+                
+                roi = (t_ev / t_burn * 100) if t_burn > 0 else 0
+                cpir = (t_burn / t_inc_rides) if t_inc_rides > 0 else 0
                 
                 moe = 0
                 if n_t > 1:
@@ -449,7 +468,7 @@ with tab5:
                     moe = 1.96 * std_ev * np.sqrt(n_t)
                 lower, upper = t_ev - moe, t_ev + moe
                 
-                return {"Kịch bản": label, "Users": int(n_t), "Cost": round(t_cost, 0), "Profit": round(t_ev, 0), "Khoảng Rủi ro": f"[{lower:,.0f} ~ {upper:,.0f}]", "ROI": round(roi, 1), "Lower": lower, "Upper": upper}
+                return {"Kịch bản": label, "Users": int(n_t), "GMV": round(t_gmv, 0), "Burn": round(t_burn, 0), "Inc GMV": round(t_inc_gmv, 0), "CPIR": round(cpir, 0), "Profit": round(t_ev, 0), "Khoảng Rủi ro": f"[{lower:,.0f} ~ {upper:,.0f}]", "ROI": round(roi, 1), "Lower": lower, "Upper": upper}
             
             sim_results = []
             
@@ -479,10 +498,10 @@ with tab5:
             sim_results.append(eval_policy_sim(budget_m, f"Budget-Constrained (${sim2_budget:,})"))
             
             sim_df = pd.DataFrame(sim_results)
-            display_sim = sim_df[['Kịch bản', 'Users', 'Cost', 'Profit', 'Khoảng Rủi ro', 'ROI']]
+            display_sim = sim_df[['Kịch bản', 'Users', 'GMV', 'Burn', 'Inc GMV', 'CPIR', 'Profit', 'Khoảng Rủi ro', 'ROI']]
             st.dataframe(
                 display_sim.style
-                .format({'Cost': '${:,.0f}', 'Profit': '${:,.0f}', 'ROI': '{:.1f}%'})
+                .format({'GMV': '${:,.0f}', 'Burn': '${:,.0f}', 'Inc GMV': '${:,.0f}', 'CPIR': '${:,.0f}', 'Profit': '${:,.0f}', 'ROI': '{:.1f}%'})
                 .background_gradient(subset=['Profit'], cmap='RdYlGn', vmin=-100000, vmax=50000),
                 use_container_width=True, hide_index=True
             )
@@ -494,7 +513,7 @@ with tab5:
             elif best_policy['Profit'] > 0:
                 st.success(f"🏆 **Đề xuất Tối ưu:** Kịch bản **{best_policy['Kịch bản']}** mang lại Lợi nhuận cao nhất và An toàn (**${best_policy['Profit']:,.0f}**, Khoảng rủi ro 95%: {best_policy['Khoảng Rủi ro']}), tiếp cận **{best_policy['Users']}** khách hàng.")
             else:
-                st.error(f"🛑 **Tín hiệu Xấu:** Ngay cả kịch bản tốt nhất ({best_policy['Kịch bản']}) cũng đang Lỗ (**${best_policy['Profit']:,.0f}**). Đề xuất: Dừng chạy Campaign hoặc tìm cách giảm Voucher Cost.")
+                st.error(f"🛑 **Tín hiệu Xấu:** Ngay cả kịch bản tốt nhất ({best_policy['Kịch bản']}) cũng đang Lỗ (**${best_policy['Profit']:,.0f}**). Đề xuất: Dừng chạy Campaign hoặc tìm cách giảm Burn/Tăng Margin.")
             
         except Exception as e:
             st.warning(f"Vui lòng xuất dữ liệu 'test_predictions.csv' trước. ({str(e)})")
