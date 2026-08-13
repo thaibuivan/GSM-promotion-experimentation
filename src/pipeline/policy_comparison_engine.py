@@ -83,12 +83,19 @@ def evaluate_policy(target_mask, df_eval, label):
     if n_targeted == 0:
         return {"Policy": label, "N_Targeted": 0, "Pct_Targeted": 0.0,
                 "Total_Voucher_Cost": 0, "Expected_Incremental_Profit": 0,
+                "EV_Lower_95": 0, "EV_Upper_95": 0,
                 "Est_ROI_pct": 0}
 
     # Among targeted: use model's expected value as proxy
     total_ev = targeted['expected_value'].sum()
     total_voucher_cost = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
     roi = (total_ev / total_voucher_cost * 100) if total_voucher_cost > 0 else 0
+    
+    if n_targeted > 1:
+        std_ev = targeted['expected_value'].std()
+        moe = 1.96 * std_ev * np.sqrt(n_targeted)
+    else:
+        moe = 0
 
     return {
         "Policy": label,
@@ -96,6 +103,8 @@ def evaluate_policy(target_mask, df_eval, label):
         "Pct_Targeted": round(n_targeted / len(df_eval) * 100, 1),
         "Total_Voucher_Cost": round(total_voucher_cost, 0),
         "Expected_Incremental_Profit": round(total_ev, 0),
+        "EV_Lower_95": round(total_ev - moe, 0),
+        "EV_Upper_95": round(total_ev + moe, 0),
         "Est_ROI_pct": round(roi, 1)
     }
 
@@ -111,6 +120,8 @@ results.append({
     "Pct_Targeted": 0.0,
     "Total_Voucher_Cost": 0,
     "Expected_Incremental_Profit": 0,
+    "EV_Lower_95": 0,
+    "EV_Upper_95": 0,
     "Est_ROI_pct": 0.0
 })
 
@@ -146,12 +157,22 @@ if 'true_ite' in df_test.columns:
     oracle_ev = df_test[oracle_mask]['oracle_ev'].sum()
     oracle_cost = (df_test[oracle_mask]['pred_rides_treated'] * df_test[oracle_mask]['voucher_cost']).sum()
     oracle_roi = (oracle_ev / oracle_cost * 100) if oracle_cost > 0 else 0
+    
+    n_oracle = oracle_mask.sum()
+    if n_oracle > 1:
+        oracle_std = df_test[oracle_mask]['oracle_ev'].std()
+        oracle_moe = 1.96 * oracle_std * np.sqrt(n_oracle)
+    else:
+        oracle_moe = 0
+
     results.append({
         "Policy": "6. Oracle Policy (True ITE — Sandbox only)",
-        "N_Targeted": int(oracle_mask.sum()),
-        "Pct_Targeted": round(oracle_mask.sum() / len(df_test) * 100, 1),
+        "N_Targeted": int(n_oracle),
+        "Pct_Targeted": round(n_oracle / len(df_test) * 100, 1),
         "Total_Voucher_Cost": round(oracle_cost, 0),
         "Expected_Incremental_Profit": round(oracle_ev, 0),
+        "EV_Lower_95": round(oracle_ev - oracle_moe, 0),
+        "EV_Upper_95": round(oracle_ev + oracle_moe, 0),
         "Est_ROI_pct": round(oracle_roi, 1)
     })
 

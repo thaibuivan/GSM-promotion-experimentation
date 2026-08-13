@@ -341,11 +341,15 @@ with tab4:
         fig_policy = go.Figure()
         for _, row in policy_df_raw.iterrows():
             color = policy_colors.get(row['Policy'], '#FFFFFF')
+            # Calculate error array for plotly
+            error_val = row.get('EV_Upper_95', row['Expected_Incremental_Profit']) - row['Expected_Incremental_Profit']
+            
             fig_policy.add_trace(go.Bar(
                 x=[row['Policy'].split('.',1)[1].strip() if '.' in row['Policy'] else row['Policy']],
                 y=[row['Expected_Incremental_Profit']],
                 name=row['Policy'],
                 marker_color=color,
+                error_y=dict(type='data', array=[error_val], visible=True, color='rgba(255,255,255,0.7)', thickness=1.5, width=4),
                 text=[f"${row['Expected_Incremental_Profit']:,.0f}\n({row['Pct_Targeted']:.0f}% users)"],
                 textposition='outside'
             ))
@@ -359,7 +363,11 @@ with tab4:
         
         # — Table with color gradient
         display_df = policy_df_raw.copy()
-        display_df.columns = ['Policy', 'N Users Targetật', '% Users', 'Chi phí Voucher ($)', 'Lợi nhuận Kỳ vọng ($)', 'ROI (%)']
+        display_df['Khoảng Rủi ro (95% CI)'] = display_df.apply(lambda r: f"[{r.get('EV_Lower_95', 0):,.0f} ~ {r.get('EV_Upper_95', 0):,.0f}]", axis=1)
+        
+        # Keep specific columns
+        display_df = display_df[['Policy', 'N_Targeted', 'Pct_Targeted', 'Total_Voucher_Cost', 'Expected_Incremental_Profit', 'Khoảng Rủi ro (95% CI)', 'Est_ROI_pct']]
+        display_df.columns = ['Policy', 'N Users Target', '% Users', 'Chi phí Voucher ($)', 'Lợi nhuận Kỳ vọng ($)', 'Khoảng Rủi ro (95% CI)', 'ROI (%)']
         st.dataframe(
             display_df.style
             .format({'Chi phí Voucher ($)': '${:,.0f}', 'Lợi nhuận Kỳ vọng ($)': '${:,.0f}', 'ROI (%)': '{:.1f}%', '% Users': '{:.1f}%'})
@@ -420,11 +428,18 @@ with tab5:
                 targeted = preds_df[mask]
                 n_t = mask.sum()
                 if n_t == 0:
-                    return {"Kịch bản": label, "Users": 0, "Cost": 0, "Profit": 0, "ROI": 0}
+                    return {"Kịch bản": label, "Users": 0, "Cost": 0, "Profit": 0, "Khoảng Rủi ro": "[0 ~ 0]", "ROI": 0, "Lower": 0, "Upper": 0}
                 t_ev = targeted['expected_value'].sum()
                 t_cost = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
                 roi = (t_ev / t_cost * 100) if t_cost > 0 else 0
-                return {"Kịch bản": label, "Users": int(n_t), "Cost": round(t_cost, 0), "Profit": round(t_ev, 0), "ROI": round(roi, 1)}
+                
+                moe = 0
+                if n_t > 1:
+                    std_ev = targeted['expected_value'].std()
+                    moe = 1.96 * std_ev * np.sqrt(n_t)
+                lower, upper = t_ev - moe, t_ev + moe
+                
+                return {"Kịch bản": label, "Users": int(n_t), "Cost": round(t_cost, 0), "Profit": round(t_ev, 0), "Khoảng Rủi ro": f"[{lower:,.0f} ~ {upper:,.0f}]", "ROI": round(roi, 1), "Lower": lower, "Upper": upper}
             
             sim_results = []
             
@@ -454,15 +469,22 @@ with tab5:
             sim_results.append(eval_policy_sim(budget_m, f"Budget-Constrained (${sim2_budget:,})"))
             
             sim_df = pd.DataFrame(sim_results)
+            display_sim = sim_df[['Kịch bản', 'Users', 'Cost', 'Profit', 'Khoảng Rủi ro', 'ROI']]
             st.dataframe(
-                sim_df.style
+                display_sim.style
                 .format({'Cost': '${:,.0f}', 'Profit': '${:,.0f}', 'ROI': '{:.1f}%'})
                 .background_gradient(subset=['Profit'], cmap='RdYlGn', vmin=-100000, vmax=50000),
                 use_container_width=True, hide_index=True
             )
             
             best_policy = sim_df.loc[sim_df['Profit'].idxmax()]
-            st.success(f"🏆 **Đề xuất Tối ưu:** Kịch bản **{best_policy['Kịch bản']}** mang lại Lợi nhuận Kỳ vọng cao nhất (**${best_policy['Profit']:,.0f}**), tiếp cận **{best_policy['Users']}** khách hàng (trong tệp Test).")
+            
+            if best_policy['Lower'] < 0 and best_policy['Profit'] > 0:
+                st.warning(f"⚠️ **Tín hiệu Rủi ro:** Kịch bản **{best_policy['Kịch bản']}** mang lại Lợi nhuận Trung bình cao nhất (**${best_policy['Profit']:,.0f}**), nhưng Cận dưới của Khoảng rủi ro đang ÂM (**${best_policy['Lower']:,.0f}**). Cân nhắc giảm Quy mô (Max Target) hoặc tăng Margin.")
+            elif best_policy['Profit'] > 0:
+                st.success(f"🏆 **Đề xuất Tối ưu:** Kịch bản **{best_policy['Kịch bản']}** mang lại Lợi nhuận cao nhất và An toàn (**${best_policy['Profit']:,.0f}**, Khoảng rủi ro 95%: {best_policy['Khoảng Rủi ro']}), tiếp cận **{best_policy['Users']}** khách hàng.")
+            else:
+                st.error(f"🛑 **Tín hiệu Xấu:** Ngay cả kịch bản tốt nhất ({best_policy['Kịch bản']}) cũng đang Lỗ (**${best_policy['Profit']:,.0f}**). Đề xuất: Dừng chạy Campaign hoặc tìm cách giảm Voucher Cost.")
             
         except Exception as e:
             st.warning(f"Vui lòng xuất dữ liệu 'test_predictions.csv' trước. ({str(e)})")
