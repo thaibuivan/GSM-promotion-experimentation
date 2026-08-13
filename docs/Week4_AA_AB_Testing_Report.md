@@ -31,7 +31,8 @@ Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng m
 - **Kết luận:** ĐẠT (PASS). Động cơ tính toán thống kê (Statistical Engine) hoạt động chuẩn xác, kiểm soát hoàn hảo tỷ lệ báo động giả.
 
 ## 4. Kết luận Tổng thể
-Hệ thống Thử nghiệm (Experimentation Platform) đã vượt qua toàn bộ các tiêu chí kiểm định ngặt nghèo trong danh sách Trust Checklist. Pipeline dữ liệu minh bạch, vô tư và chuẩn xác về mặt toán học. Mọi kết quả phân tích A/B Testing được chạy trên nền tảng này hoàn toàn đủ độ tin cậy để phục vụ cho các quyết định vận hành thực tế.
+Không phát hiện randomization/statistical calibration issue đáng kể dưới các thiết lập mô phỏng đã kiểm tra. Pipeline có đủ độ tin cậy để chạy A/B Test trong môi trường synthetic. Để áp dụng vào dữ liệu GSM thật, cần thêm: kiểm tra exposure/logging, invariant metrics và guardrails thực tế vận hành.
+
 
 
 ---
@@ -40,7 +41,7 @@ Hệ thống Thử nghiệm (Experimentation Platform) đã vượt qua toàn b�
 ## 1. Phương pháp Kiểm định Giả thuyết Nâng cao (OLS Regression with HC1)
 Thay vì sử dụng phương pháp T-Test truyền thống (có phương sai lớn, dễ dẫn đến khoảng tin cậy rộng và khó phát hiện sự khác biệt), dự án đã nâng cấp thuật toán đo lường ATE bằng **Mô hình Hồi quy OLS với Robust Standard Errors (HC1)**.
 
-- **Cơ chế Giảm Phương sai (Variance Reduction):** Mô hình Hồi quy đưa thêm biến lịch sử chuyến đi (`monthly_rides_history`) vào làm Hiệp phương sai (Covariate). Kỹ thuật này hoạt động tương tự như thuật toán CUPED nổi tiếng tại Microsoft/Netflix, giúp "hút" bớt phương sai tự nhiên của khách hàng, qua đó thu hẹp Khoảng tin cậy (Confidence Interval) và tăng độ nhạy (Power) của thí nghiệm.
+- **Pre-treatment Covariate Adjustment:** Mô hình Hồi quy đưa thêm biến lịch sử chuyến đi (`monthly_rides_history`) vào làm Covariate (biến đã có trước treatment). Kỹ thuật này giúp giảm phương sai của số dư, tương tự về mục đích với CUPED — nhưng không triển khai đầy đủ CUPED formulation của Microsoft/Netflix.
 - **Robust Standard Errors (HC1):** Xử lý triệt để hiện tượng Phương sai sai số thay đổi (Heteroskedasticity), đảm bảo P-value tính ra là hoàn toàn chính xác và đáng tin cậy.
 
 - **Giả thuyết Không ($H_0$):** Hệ số của biến Treatment trong phương trình hồi quy bằng 0 (Voucher không có tác dụng).

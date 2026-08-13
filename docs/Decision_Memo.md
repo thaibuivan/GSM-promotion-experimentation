@@ -1,40 +1,91 @@
-# BÁO CÁO PHÂN TÍCH & ĐỀ XUẤT: CHIẾN LƯỢC TỐI ƯU HÓA KHUYẾN MÃI
-**Subject:** Đánh giá hiệu quả chiến dịch khuyến mãi bằng Causal Inference & Uplift Modeling  
+# DECISION MEMO: Promotion Policy Recommendation (Synthetic Sandbox)
+
+**Subject:** Đánh giá hiệu quả chiến dịch khuyến mãi trong môi trường mô phỏng  
+**Scope:** Prototype trên Synthetic Causal Data — Kết quả cần validation trên dữ liệu GSM thật trước khi áp dụng thực tế
 
 ---
 
-## 1. Tóm tắt Nội dung (Executive Summary)
-Dựa trên việc phân tích dữ liệu thử nghiệm (A/B Testing) và mô hình hóa hành vi khách hàng (Uplift Modeling), báo cáo này cung cấp cái nhìn định lượng về hiệu quả thực sự của các chiến dịch khuyến mãi (Voucher). Dữ liệu cho thấy việc phát hành mã đại trà (Mass Voucher) đang gặp rủi ro chi phí vô cùng lớn, gây lỗ ròng khổng lồ do phần lớn ngân sách bị lãng phí vào nhóm khách hàng kháng khuyến mãi (như *Airport Business*, *Urban Regulars*).
+## A. Decision Question
+Với budget giới hạn và voucher economics giả định, policy nào tối đa hóa **incremental profit** (doanh thu tăng thêm trừ chi phí voucher) trên eligible population?
 
-**Các đề xuất từ góc độ dữ liệu:**
-1. **Dừng hoàn toàn việc phát mã đại trà (Mass Voucher):** Phân tích Economics Guardrail cho thấy chiến lược này đang làm tổn thất hơn $116,000 doanh thu thuần do lãng phí vào nhóm kháng khuyến mãi (như *Airport Business*, *Urban Regulars*).
-2. **Triển khai Chiến dịch Kép dựa trên PCA Segmentation:** Phương pháp PCA đã bóc tách thành công 2 tập khách hàng ngoại ô mang lại lợi nhuận, nhưng yêu cầu 2 chiến lược vận hành khác nhau:
-   - **Chiến dịch Tối ưu Lợi nhuận (Target: `Suburban Card`):** Triển khai ngay Voucher 15%. Đây là tập khách hàng thanh toán thẻ, nhạy cảm giá (ROI +20.7%). Trải nghiệm thanh toán mượt mà mang lại lợi nhuận trực tiếp.
-   - **Chiến dịch Chuyển đổi Hành vi (Target: `Suburban Cash`):** Khám phá mới cho thấy nhóm này có ROI tiềm năng cực cao (+24.7%). Tuy nhiên, để tránh rủi ro vận hành tiền mặt, đề xuất KHÔNG phát Voucher đi xe trực tiếp. Thay vào đó, chạy chiến dịch "Tặng Combo 3 mã 20% khi liên kết Thẻ" để ép chuyển đổi (Cashless Conversion), tăng giá trị vòng đời (LTV) dài hạn.
-4. **Tiến tới Cá nhân hóa bằng Uplift Modeling (Tuần 5):** Đề xuất áp dụng Meta-Learners (T-Learner/X-Learner) để tính toán ITE (Tác động Cá nhân). Thay vì nhắm mục tiêu toàn bộ cụm `Suburban Card`, hệ thống sẽ chỉ phát mã cho những cá nhân "Persuadables" thực sự, tối đa hóa ROI.
+---
 
-## 2. Bối cảnh & Phương pháp Phân tích
-Trong thời gian qua, các chiến dịch khuyến mãi nhắm vào việc thúc đẩy số chuyến đi có dấu hiệu gặp phải hiện tượng **Cannibalization (Ăn thịt doanh thu)**. 
-Để giải quyết vấn đề này, nhóm Dữ liệu đã áp dụng hai phương pháp kiểm định:
-- **A/B Testing:** Để đo lường Tác động Trung bình (ATE) và tính toán Chi phí/Lợi nhuận thực tế.
-- **Uplift Modeling (Machine Learning):** Để đi sâu vào Tác động Cá nhân hóa (ITE/CATE), tìm ra những khách hàng thực sự thay đổi hành vi nhờ khuyến mãi (Persuadables).
+## B. Evidence (Bằng chứng đã được kiểm chứng)
 
-## 3. Kết quả Phân tích Chi tiết (Key Findings)
+### B.1. Kiểm định Nền tảng A/B (A/A Trust Checks)
+Pipeline randomization đã được kiểm định qua 5.000 vòng lặp Monte Carlo:
+- **SRM Check:** Tỷ lệ cảnh báo 5.26% — nằm trong vùng phương sai ngẫu nhiên kỳ vọng (Binomial P-value = 0.3988). Không phát hiện mismatch đáng kể.
+- **Covariate Balance (SMD):** Tất cả biến kiểm soát có |SMD| < 0.1. Không phát hiện selection bias trong settings đã thử.
+- **False Positive Rate:** 5.08% — phù hợp với ngưỡng lý thuyết α = 0.05.
+- **Kết luận:** Không phát hiện randomization/statistical calibration issue đáng kể dưới các thiết lập mô phỏng đã kiểm tra.
 
-### A. Đánh giá chiến lược A/B Testing & Phân khúc (K-Means)
-Dựa trên thuật toán K-Means (K=5), chúng tôi đã tách được tập khách hàng thành 5 Personas với hành vi hoàn toàn khác biệt. Kết quả A/B Test mô phỏng trên các nhóm này cho thấy:
-- **Phát đại trà (Mass Voucher):** Chiến dịch gây lỗ nặng (-$668,077) vì chi phí phát sinh khổng lồ trên những khách hàng đằng nào cũng đi xe.
-- **Nhắm mục tiêu cơ bản (Segment Targeting):** Khi chỉ nhắm vào nhóm *Suburban Card*, chiến dịch tạo ra +3,776 chuyến đi tăng thêm. Trừ đi chi phí Voucher, chiến dịch này giữ lại được mức lợi nhuận ròng dương (+$4,548).
+### B.2. A/B Effect Estimation (trong Synthetic Sandbox)
+Kết quả A/B Test trên synthetic data với assumptions HTE đã thiết kế:
 
-### B. Tối ưu hóa bằng Uplift Modeling (Định hướng)
-Mặc dù Target theo Persona (như Suburban Card) đã mang lại ROI dương, nhưng nó vẫn là Target cấp độ nhóm. Bằng cách áp dụng các mô hình Machine Learning như T-Learner XGBoost trong tương lai, hệ thống sẽ lọc ra các khách hàng **Persuadables** ở mức độ cá nhân, từ đó có thể biến cả những nhóm đang có ROI âm trở thành các mỏ vàng mới.
+| Persona | N Users | ATE | ROI (dưới assumptions) | Kết luận trong Sandbox |
+|---|---|---|---|---|
+| Urban Regulars | 8,424 | +1.00 | -40.7% | Mass voucher gây cannibalization |
+| Rain Riders | 2,592 | +0.86 | -38.9% | Phụ thuộc thời tiết, chi phí > lợi nhuận |
+| Airport Business | 1,131 | +1.21 | -18.0% | ATE dương nhưng margin không bù voucher cost |
+| **Suburban Card** | 2,792 | +1.04 | **+20.7%** | Phù hợp assumptions — ROI dương trong sandbox |
+| **Suburban Cash** | 5,061 | +0.79 | **+24.7%** | Phù hợp assumptions — ROI dương trong sandbox |
 
-## 4. Kiểm định Độ tin cậy (Robustness Check)
-Để đảm bảo các kết luận trên không bị nhiễu bởi yếu tố ngẫu nhiên, hệ thống đã chạy một bài kiểm tra **A/A Test & Monte Carlo Simulation (1000 lần)**:
-- Kết quả kiểm tra SRM (Sample Ratio Mismatch) và phân phối P-Value đều vượt qua ngưỡng kiểm định thống kê một cách hoàn hảo (FPR ~4.8%). Điều này chứng minh thuật toán Randomization hoạt động chính xác tuyệt đối.
+### B.3. Uplift Model Evaluation
+- X-Learner (XGBoost) cho profit tốt nhất ở top 30-50% population.
+- Profit Targeting (rank theo Expected Value_i = CATE_i × Margin − Voucher Cost) vượt trội Segment Targeting thuần.
+- Oracle Regret so với true ITE: [xem notebook Week5].
 
-## 5. Đề xuất Kế hoạch Tiếp theo (Next Steps)
-Nếu định hướng này được sự đồng thuận từ Business/Marketing, nhóm Dữ liệu đề xuất các bước tiếp theo:
-1. **Pilot Test mục tiêu `Suburban Card`:** Triển khai ngay chiến dịch thu hẹp trên tệp khách hàng Ngoại ô dùng Thẻ và theo dõi sự thay đổi của Gross Revenue trong 2 tuần.
-2. **Thiết lập Dashboard theo dõi:** Xây dựng dashboard giám sát phân phối điểm CATE của khách hàng, giúp đội ngũ Business dễ dàng ra quyết định thiết lập ngưỡng (threshold) hòa vốn.
-3. **Chạy chiến dịch liên kết thẻ:** Làm việc với Product Team để ra mắt in-app campaign thúc đẩy nhóm `Suburban Cash` nhập thông tin thẻ.
+---
+
+## C. Recommendation IN SANDBOX
+Trong synthetic sandbox với assumptions hiện tại về treatment effect, voucher cost và contribution margin:
+
+> **Profit-based Uplift Targeting** (rank toàn eligible population theo Expected Incremental Value, phát đến hết budget) cho policy value tốt hơn Mass Voucher và Segment Targeting.
+
+Mức Voucher giả định 15% → Top 30-50% population → Expected Incremental Profit ~$10,500 (trong sandbox).
+
+---
+
+## D. Conditions Required (Điều kiện để kết luận đúng)
+- Margin per incremental ride ≈ 0.75 × average fare (assumption hiện tại)
+- Voucher cost = 15% of user's average revenue (assumption hiện tại)
+- Uplift model được calibrated đúng (predicted CATE ≈ observed uplift)
+- SUTVA: không có marketplace interference
+- Eligible population có cùng DGP distribution như training data
+
+---
+
+## E. What We Cannot Claim (Giới hạn bằng chứng)
+- **Không** chứng minh khách hàng thật của GSM có treatment response như đã mô phỏng
+- **Không** khẳng định các ROI trên là achievable trong vận hành thực tế
+- **Không** thể rollout policy này mà không có pilot experiment trên real GSM data
+- Kết quả A/A chỉ xác nhận pipeline hoạt động đúng trong settings đã thử, không chứng minh production correctness
+
+---
+
+## F. Next Real Experiment (Bước tiếp theo nếu có GSM data)
+Để kiểm chứng recommendations trên trong thực tế, cần:
+
+1. **Experiment Design:**
+   - Eligibility: xác định eligible population thực tế
+   - Randomization unit: user-level
+   - Treatment ratio: 50/50 (hoặc 80/20 với holdout)
+   - Exposure window: 14 ngày
+   - Outcome window: 30 ngày
+
+2. **MDE & Sample Size:**
+   - Baseline rides/user: đo từ GSM data thật
+   - Desired MDE: ≥ 0.5 rides/user incremental
+   - Power = 0.8, α = 0.05
+
+3. **Trust Checks:** SRM, Covariate Balance, Invariant Metrics
+
+4. **Primary Metric:** Incremental rides per eligible user
+
+5. **Guardrails:** Voucher cost per user, cancellation rate, completion rate
+
+6. **Champion–Challenger:** So sánh Segment Targeting (champion) vs Profit-based Uplift Targeting (challenger) trên split traffic
+
+---
+
+*Document này là output của synthetic simulation. Tất cả số liệu phản ánh kết quả trong sandbox với assumptions đã thiết kế, không phải dữ liệu vận hành thực tế của GSM.*
