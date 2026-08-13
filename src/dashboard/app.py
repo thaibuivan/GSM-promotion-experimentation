@@ -192,7 +192,8 @@ with tab3:
     
     with col_sim1:
         st.markdown("#### Bảng Điều Khiển (Simulator)")
-        sim_discount = st.slider("📉 Tinh chỉnh Mức Khuyến mãi (%)", min_value=5.0, max_value=50.0, value=25.0, step=5.0)
+        sim_discount = st.slider("📉 Tinh chỉnh Mức Khuyến mãi (%)", min_value=5.0, max_value=50.0, value=15.0, step=5.0)
+        sim_margin = st.slider("💰 Tinh chỉnh Biên lợi nhuận (Margin %)", min_value=10.0, max_value=100.0, value=75.0, step=5.0)
         test_persona = st.selectbox("🎯 Kiểm thử cho Tệp Khách hàng:", df['persona'].unique())
         
         # Mô phỏng Tính năng T-Learner (Feature Importance Mock)
@@ -218,9 +219,9 @@ with tab3:
         # Tính toán lại ngầm theo giá voucher mới
         t = df[(df['persona'] == test_persona) & (df['treatment_rand'] == 1)]
         c = df[(df['persona'] == test_persona) & (df['treatment_rand'] == 0)]
-        d_rev = t['gross_revenue_30d'].mean() - c['gross_revenue_30d'].mean()
+        d_margin = (t['gross_revenue_30d'].mean() - c['gross_revenue_30d'].mean()) * (sim_margin / 100.0)
         cost = (sim_discount / 100.0) * t['gross_revenue_30d'].mean()
-        roi = (d_rev - cost) / cost * 100 if cost > 0 else -100
+        roi = (d_margin - cost) / cost * 100 if cost > 0 else -100
         
         if roi > 0:
             st.success(f"""
