@@ -5,4 +5,8 @@ scikit-learn
 xgboost==2.0.3
 plotly
 matplotlib
+seaborn
+statsmodels
+python-pptx
+jupyter
 jinja2
