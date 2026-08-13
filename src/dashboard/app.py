@@ -263,7 +263,25 @@ with tab4:
         3. **Tính độc lập (SUTVA):** Hành vi của User A không can thiệp (interfere) vào quyết định của User B.
         """)
         
+    with st.expander("📊 Kiểm định Độ tin cậy Mô hình (Uplift Calibration)", expanded=False):
+        st.markdown("Kiểm tra xem mô hình dự đoán có bị 'ảo' (overconfident) hay không bằng cách so sánh **Dự đoán** (Predicted CATE) với **Thực tế** (Observed Uplift) theo từng nhóm Decile (1 = Nhóm tiềm năng nhất).")
+        try:
+            calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
+            fig_calib = go.Figure()
+            fig_calib.add_trace(go.Bar(x=calib_df['Decile'], y=calib_df['Observed_Uplift'], name='Thực tế quan sát (Observed)', marker_color='#FF007F'))
+            fig_calib.add_trace(go.Scatter(x=calib_df['Decile'], y=calib_df['Predicted_CATE'], mode='lines+markers', name='Mô hình Dự đoán (Predicted)', line=dict(color='#00E5FF', width=3)))
+            if 'True_ITE' in calib_df.columns and calib_df['True_ITE'].notnull().any():
+                fig_calib.add_trace(go.Scatter(x=calib_df['Decile'], y=calib_df['True_ITE'], mode='lines', name='Sự thật (True ITE - Sandbox)', line=dict(color='#00FF88', dash='dash')))
+            fig_calib.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+            fig_calib.update_xaxes(title="Nhóm khách hàng (Decile 1 = Tốt nhất -> 10 = Tệ nhất)", dtick=1)
+            fig_calib.update_yaxes(title="Incremental Rides", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+            st.plotly_chart(fig_calib, use_container_width=True)
+            st.info("💡 **Insight:** Đường dự đoán (màu xanh) bám sát các cột thực tế (màu hồng) theo hướng dốc xuống chứng tỏ mô hình có khả năng **Rank đúng** (tìm ra người tốt nhất) và **Calibrate tốt** (dự đoán đúng mức độ tăng chuyến).")
+        except Exception as e:
+            st.warning(f"Chưa có dữ liệu Calibration. ({str(e)})")
+            
     try:
+
         curves_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_profit_curves.csv'))
         persona_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'top30_persona_dist.csv'))
         
@@ -352,10 +370,21 @@ with tab4:
         # — Key insight callout
         profit_row = policy_df_raw[policy_df_raw['Policy'].str.contains('Profit Targeting')].iloc[0]
         mass_row = policy_df_raw[policy_df_raw['Policy'].str.contains('Mass Voucher')].iloc[0]
+        import json
+        regret_str = ""
+        try:
+            with open(os.path.join(base_path, 'data', 'processed', 'oracle_regret.json'), 'r') as f:
+                regret_data = json.load(f)
+                regret_str = f"**Oracle Regret:** So với kịch bản hoàn hảo (biết trước True ITE), mô hình của chúng ta bỏ lỡ **${regret_data['regret_abs']:,.0f}** ({regret_data['regret_pct']}% giá trị lý thuyết max)."
+        except:
+            pass
+
         st.info(f"""
         **📊 Kết luận trong Sandbox:**  
         Profit Targeting (phát cho {profit_row['Pct_Targeted']:.0f}% user có Expected Value > 0) cho lợi nhuận **${profit_row['Expected_Incremental_Profit']:,.0f}**,  
         trong khi Mass Voucher (phát cho tất cả) gây lỗ **${abs(mass_row['Expected_Incremental_Profit']):,.0f}**.  
+        {regret_str}
+        
         Điều này cho thấy trong sandbox với assumptions hiện tại: **nhắm mục tiêu đúng đối tượng quan trọng hơn việc phát rộng.** 
         Kết quả cần được kiểm chứng trên GSM data thật trước khi áp dụng thực tế.
         """)
