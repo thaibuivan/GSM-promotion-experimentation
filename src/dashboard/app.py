@@ -247,43 +247,6 @@ with tab3:
             Thuật toán Uplift dự đoán hành vi của nhóm này bị chi phối bởi tính chất bắt buộc (Commuting) chứ không phải do giá cả. Cấm phát Khuyến mãi để bảo vệ Profit Margin.
             """)
             
-        # Thêm biểu đồ minh họa Lợi nhuận Tích lũy (Profit Curve) động theo sim_discount
-        np.random.seed(42)
-        x = np.linspace(0, 1, 100)
-        
-        # Giả lập: Tổng doanh thu tăng thêm cực đại là 120. Tổng chi phí là (sim_discount * 3)
-        max_gross_rev = 120
-        total_cost = sim_discount * 3.5 
-        final_profit = max_gross_rev - total_cost
-        
-        # Đường Baseline (Random): Đi thẳng từ 0 đến final_profit
-        Y_random = final_profit * x
-        
-        # Đường Model (T-Learner): Ưu tiên người sinh lời cao lên trước (đường cong lồi)
-        # Hệ số 120 đại diện cho sức mạnh (Uplift) của mô hình
-        y_model = final_profit * x + 120 * x * (1 - x) 
-        
-        # Thêm chút nhiễu (noise) cho chân thực
-        y_model += np.random.normal(0, 1.5, 100)
-        y_model[0] = 0 # Bắt đầu từ 0
-        
-        x_pop = x * 100
-        
-        fig_qini = go.Figure()
-        fig_qini.add_trace(go.Scatter(x=x_pop, y=y_model, mode='lines', name='Mô hình Uplift (T-Learner)', line=dict(color='#00E5FF', width=3)))
-        fig_qini.add_trace(go.Scatter(x=[0, 100], y=[0, final_profit], mode='lines', name='Phân bổ Ngẫu nhiên', line=dict(color='#FF007F', width=2, dash='dash')))
-        
-        # Nếu đường model vượt quá 0, ta vẽ một điểm Optimal Threshold
-        max_profit_idx = np.argmax(y_model)
-        if y_model[max_profit_idx] > 0 and max_profit_idx > 0 and max_profit_idx < 99:
-            fig_qini.add_trace(go.Scatter(x=[x_pop[max_profit_idx]], y=[y_model[max_profit_idx]], mode='markers', 
-                                          name=f'Điểm Tối ưu (Top {int(x_pop[max_profit_idx])}%)',
-                                          marker=dict(color='#FFD700', size=10, symbol='star')))
-                                          
-        fig_qini.update_layout(**chart_layout, title="Biểu đồ Tối ưu hóa Lợi nhuận (Profit Optimization Curve)", height=300)
-        fig_qini.update_xaxes(title="% Tập khách hàng được nhắm mục tiêu")
-        fig_qini.update_yaxes(title="Lợi nhuận Ròng Tích lũy ($)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
-        st.plotly_chart(fig_qini, use_container_width=True)
 
 # ================= TAB 5: UPLIFT ML (X-LEARNER) =================
 with tab4:
