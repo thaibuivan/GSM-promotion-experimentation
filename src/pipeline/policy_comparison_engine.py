@@ -21,10 +21,14 @@ print("\n[1/5] Loading data...")
 df = pd.read_csv(data_path)
 print(f"  Total users: {len(df):,}")
 
-# Economics parameters
-VOUCHER_RATE = 0.15       # 15% of user's average fare
-MARGIN_RATE  = 0.75       # 75% of incremental fare is margin
-CAMPAIGN_BUDGET = 50000   # $50,000 total budget cap (for budget-constrained policy)
+# Economics parameters from config
+config_path = os.path.join(base_path, 'config.json')
+with open(config_path, 'r') as f:
+    config = json.load(f)
+
+VOUCHER_RATE = config['economics']['voucher_rate']
+MARGIN_RATE  = config['economics']['margin_rate']
+CAMPAIGN_BUDGET = config['economics']['budget_limit']
 
 features = ['age', 'is_urban', 'preferred_hour', 'is_rush_hour', 'is_airport_trip',
             'is_rain_rider', 'is_weekend_rider', 'is_credit_card', 'passenger_count',

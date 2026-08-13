@@ -1,0 +1,18 @@
+{
+    "economics": {
+        "voucher_rate": 0.15,
+        "margin_rate": 0.75,
+        "budget_limit": 50000
+    },
+    "features": {
+        "target_col": "Y_rand",
+        "treatment_col": "treatment_rand"
+    },
+    "model_params": {
+        "min_child_weight": 5,
+        "reg_lambda": 1.0,
+        "n_estimators": 200,
+        "learning_rate": 0.05,
+        "max_depth": 4
+    }
+}

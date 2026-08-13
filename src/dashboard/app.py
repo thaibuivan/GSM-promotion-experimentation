@@ -77,12 +77,22 @@ chart_layout = dict(
 
 # ----------------- TÍNH TOÁN DATA CHUNG -----------------
 # Giả định Mức Khuyến mãi mặc định là 15% trên tổng doanh thu chuyến đi
-DISCOUNT_PERCENT = 15.0
+import json
+config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'config.json')
+try:
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+    DISCOUNT_PERCENT = config['economics']['voucher_rate'] * 100
+    MARGIN_PERCENT = config['economics']['margin_rate'] * 100
+except:
+    DISCOUNT_PERCENT = 15.0
+    MARGIN_PERCENT = 75.0
+
 df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]
 
 # ----------------- CHIA TABS -----------------
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["💰 Hiệu quả Tài chính", "🎯 Phân tích Hành vi", "🧠 Causal Engine", "🤖 So sánh Policy", "⚙️ Policy Simulator", "🛠️ Admin Pipeline"])
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["💰 Hiệu quả Tài chính", "🎯 Phân tích Hành vi", "🧠 Causal Engine", "🤖 So sánh Policy", "⚙️ Policy Simulator", "📏 MDE Calculator", "🛠️ Admin Pipeline"])
 
 # ================= TAB 1: TÀI CHÍNH =================
 with tab1:
@@ -489,8 +499,45 @@ with tab5:
         except Exception as e:
             st.warning(f"Vui lòng xuất dữ liệu 'test_predictions.csv' trước. ({str(e)})")
 
-# ================= TAB 6: KỸ THUẬT (PIPELINE ADMIN) =================
+# ================= TAB 6: MDE CALCULATOR =================
 with tab6:
+    import scipy.stats as stats
+    st.header("🧮 MDE & Sample Size Calculator (Kế hoạch A/B Test)")
+    st.markdown("Công cụ giúp Marketing dự tính số lượng khách hàng cần thiết để chạy một chiến dịch A/B Test đạt chuẩn thống kê.")
+    
+    col_mde1, col_mde2 = st.columns(2)
+    with col_mde1:
+        base_rides = st.number_input("Baseline (Số chuyến đi trung bình hiện tại/14 ngày)", value=2.0, min_value=0.1)
+        std_dev = st.number_input("Standard Deviation (Độ lệch chuẩn)", value=1.5, min_value=0.1)
+        mde_pct = st.slider("Minimum Detectable Effect (Kỳ vọng tăng % so với Baseline)", min_value=1, max_value=50, value=10)
+        
+    with col_mde2:
+        alpha = st.selectbox("Độ tin cậy (Confidence Level)", options=[0.9, 0.95, 0.99], index=1)
+        power = st.selectbox("Statistical Power (Xác suất bắt được tín hiệu)", options=[0.8, 0.9], index=0)
+        ratio = st.slider("Tỷ lệ chia nhóm Treatment (%)", min_value=10, max_value=90, value=50) / 100.0
+        
+    mde_abs = base_rides * (mde_pct / 100.0)
+    
+    z_alpha = stats.norm.ppf(1 - (1 - alpha) / 2)
+    z_beta = stats.norm.ppf(power)
+    
+    # Formula for unequal sample size continuous metric
+    var_factor = (1 / ratio) + (1 / (1 - ratio))
+    n_total = ((z_alpha + z_beta)**2 * (std_dev**2) * var_factor) / (mde_abs**2)
+    
+    st.info(f"""
+    **Kết quả Yêu cầu Cỡ mẫu (Required Sample Size):**
+    - Đơn vị đo lường (MDE Tuyệt đối): Cần tăng **{mde_abs:.2f}** chuyến đi / khách hàng.
+    - Cần tối thiểu **{int(np.ceil(n_total)):,}** người dùng hợp lệ tham gia thử nghiệm.
+    - Nhóm Treatment ({ratio*100:.0f}%): **{int(np.ceil(n_total * ratio)):,}** users.
+    - Nhóm Control ({(1-ratio)*100:.0f}%): **{int(np.ceil(n_total * (1-ratio))):,}** users.
+    """)
+    if n_total > 100000:
+        st.warning("⚠️ Cỡ mẫu quá lớn (>100.000). Rất khó khả thi ngoài đời thực. Bạn nên tăng MDE (chấp nhận chỉ phát hiện được mức tăng lớn) hoặc nới lỏng mức độ tin cậy.")
+
+
+# ================= TAB 7: KỸ THUẬT (PIPELINE ADMIN) =================
+with tab7:
     st.subheader("Trình quản lý Data Pipeline (Backend Developer Only)")
     st.markdown("Giả lập hệ thống kết nối Data Warehouse và chạy luồng Machine Learning (K-Means & T-Learner) end-to-end.")
     
