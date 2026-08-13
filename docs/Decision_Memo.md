@@ -7,10 +7,11 @@
 Dựa trên việc phân tích dữ liệu thử nghiệm (A/B Testing) và mô hình hóa hành vi khách hàng (Uplift Modeling), báo cáo này cung cấp cái nhìn định lượng về hiệu quả thực sự của các chiến dịch khuyến mãi (Voucher). Dữ liệu cho thấy việc phát hành mã đại trà (Mass Voucher) đang gặp rủi ro chi phí vô cùng lớn, gây lỗ ròng khổng lồ do phần lớn ngân sách bị lãng phí vào nhóm khách hàng kháng khuyến mãi (như *Airport Business*, *Urban Regulars*).
 
 **Các đề xuất từ góc độ dữ liệu:**
-1. **Dừng hoàn toàn việc phát mã đại trà (Mass Voucher):** Phân tích Economics Guardrail cho thấy chiến lược này đang làm tổn thất hơn $668,000 doanh thu thuần.
-2. **Ưu tiên ngân sách tuyệt đối cho nhóm `Suburban Card`:** Phân tích A/B Test chỉ ra rằng đây là "mỏ vàng" duy nhất. Nhóm khách hàng Ngoại ô dùng Thẻ cực kỳ nhạy cảm với giá (ATE +1.36 chuyến) và khi nhắm mục tiêu vào nhóm này, công ty ghi nhận Doanh thu thuần (Net GMV) dương (+$4,548).
-3. **Chiến thuật thay thế cho nhóm `Suburban Cash`:** Nhóm Ngoại ô dùng tiền mặt có độ nhạy Voucher khá (ATE +0.97 chuyến) nhưng giá trị chuyến đi thấp hơn khiến ROI âm (-24.5%). Đề xuất tạm ngưng tặng Voucher đi xe trực tiếp, thay vào đó chạy chiến dịch "Tặng 50k khi liên kết Thẻ Tín Dụng" để chuyển đổi họ thành tập `Suburban Card`.
-4. **Thử nghiệm tích hợp thuật toán Uplift Modeling (Tuần 7):** Đề xuất đội ngũ xem xét việc sử dụng điểm số CATE (Conditional Average Treatment Effect) từ mô hình Uplift để tối ưu hóa việc phân bổ ngân sách xuống cấp độ cá nhân (ITE) thay vì chỉ phân khúc.
+1. **Dừng hoàn toàn việc phát mã đại trà (Mass Voucher):** Phân tích Economics Guardrail cho thấy chiến lược này đang làm tổn thất hơn $116,000 doanh thu thuần do lãng phí vào nhóm kháng khuyến mãi (như *Airport Business*, *Urban Regulars*).
+2. **Triển khai Chiến dịch Kép dựa trên PCA Segmentation:** Phương pháp PCA đã bóc tách thành công 2 tập khách hàng ngoại ô mang lại lợi nhuận, nhưng yêu cầu 2 chiến lược vận hành khác nhau:
+   - **Chiến dịch Tối ưu Lợi nhuận (Target: `Suburban Card`):** Triển khai ngay Voucher 15%. Đây là tập khách hàng thanh toán thẻ, nhạy cảm giá (ROI +20.7%). Trải nghiệm thanh toán mượt mà mang lại lợi nhuận trực tiếp.
+   - **Chiến dịch Chuyển đổi Hành vi (Target: `Suburban Cash`):** Khám phá mới cho thấy nhóm này có ROI tiềm năng cực cao (+24.7%). Tuy nhiên, để tránh rủi ro vận hành tiền mặt, đề xuất KHÔNG phát Voucher đi xe trực tiếp. Thay vào đó, chạy chiến dịch "Tặng Combo 3 mã 20% khi liên kết Thẻ" để ép chuyển đổi (Cashless Conversion), tăng giá trị vòng đời (LTV) dài hạn.
+4. **Tiến tới Cá nhân hóa bằng Uplift Modeling (Tuần 5):** Đề xuất áp dụng Meta-Learners (T-Learner/X-Learner) để tính toán ITE (Tác động Cá nhân). Thay vì nhắm mục tiêu toàn bộ cụm `Suburban Card`, hệ thống sẽ chỉ phát mã cho những cá nhân "Persuadables" thực sự, tối đa hóa ROI.
 
 ## 2. Bối cảnh & Phương pháp Phân tích
 Trong thời gian qua, các chiến dịch khuyến mãi nhắm vào việc thúc đẩy số chuyến đi có dấu hiệu gặp phải hiện tượng **Cannibalization (Ăn thịt doanh thu)**. 

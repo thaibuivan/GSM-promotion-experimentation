@@ -88,8 +88,8 @@ tab1, tab2, tab3, tab4 = st.tabs(["💰 Hiệu quả Tài chính & Lợi nhuận
 with tab1:
     st.subheader("Bức tranh Tổng thể Dòng tiền (Executive Summary)")
     
-    avg_rev_treat = df_treat['fare_rand'].mean()
-    avg_rev_ctrl = df_ctrl['fare_rand'].mean()
+    avg_rev_treat = df_treat['gross_revenue_30d'].mean()
+    avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
     
     incremental_rev_per_user = avg_rev_treat - avg_rev_ctrl
     cost_per_user = (DISCOUNT_PERCENT / 100.0) * avg_rev_treat
@@ -109,8 +109,8 @@ with tab1:
         t = df[(df['persona'] == p) & (df['treatment_rand'] == 1)]
         c = df[(df['persona'] == p) & (df['treatment_rand'] == 0)]
         if len(t) > 0 and len(c) > 0:
-            rev_c = c['fare_rand'].mean()
-            rev_t = t['fare_rand'].mean()
+            rev_c = c['gross_revenue_30d'].mean()
+            rev_t = t['gross_revenue_30d'].mean()
             d_rev = rev_t - rev_c
             cost = (DISCOUNT_PERCENT / 100.0) * rev_t
             roi = (d_rev - cost) / cost * 100 if cost > 0 else 0
@@ -156,7 +156,7 @@ with tab2:
     
     c1, c2 = st.columns(2)
     with c1:
-        fig_box = px.box(df, x="persona", y="fare_rand", color="treatment_rand",
+        fig_box = px.box(df, x="persona", y="gross_revenue_30d", color="treatment_rand",
                       color_discrete_sequence=neon_colors, title="Sự Dịch chuyển Doanh thu (Boxplot)")
         fig_box.update_layout(**chart_layout)
         fig_box.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title="Doanh thu ($)")
@@ -167,14 +167,14 @@ with tab2:
         # Nhóm (Bin) Recency Days để vẽ biểu đồ dễ nhìn hơn
         df['recency_bins'] = pd.cut(df['recency_days'], bins=[-1, 4, 9, 14, 30], labels=['0-4 ngày (Rất chăm)', '5-9 ngày', '10-14 ngày', '15+ ngày (Ngủ đông)'])
         
-        # Tính trung bình số chuyến đi (TRONG CHIẾN DỊCH = y_rand) theo từng Bin và Nhóm
-        agg_df = df.groupby(['recency_bins', 'treatment_rand'])['y_rand'].mean().reset_index()
+        # Tính trung bình số chuyến đi (TRONG CHIẾN DỊCH = Y_rand) theo từng Bin và Nhóm
+        agg_df = df.groupby(['recency_bins', 'treatment_rand'])['Y_rand'].mean().reset_index()
         agg_df['treatment_rand'] = agg_df['treatment_rand'].astype(str)
         
-        fig_bar = px.bar(agg_df, x='recency_bins', y='y_rand', color='treatment_rand',
+        fig_bar = px.bar(agg_df, x='recency_bins', y='Y_rand', color='treatment_rand',
                          barmode='group', color_discrete_sequence=neon_colors,
                          title="Tác động của Khuyến mãi theo Mức độ Ngủ đông",
-                         labels={'recency_bins': 'Nhóm khách hàng (Theo thời gian từ cuốc cuối)', 'y_rand': 'Trung bình Số chuyến đi (Sau KM)'})
+                         labels={'recency_bins': 'Nhóm khách hàng (Theo thời gian từ cuốc cuối)', 'Y_rand': 'Trung bình Số chuyến đi (Sau KM)'})
         
         fig_bar.update_layout(**chart_layout)
         fig_bar.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)')
@@ -218,8 +218,8 @@ with tab3:
         # Tính toán lại ngầm theo giá voucher mới
         t = df[(df['persona'] == test_persona) & (df['treatment_rand'] == 1)]
         c = df[(df['persona'] == test_persona) & (df['treatment_rand'] == 0)]
-        d_rev = t['fare_rand'].mean() - c['fare_rand'].mean()
-        cost = (sim_discount / 100.0) * t['fare_rand'].mean()
+        d_rev = t['gross_revenue_30d'].mean() - c['gross_revenue_30d'].mean()
+        cost = (sim_discount / 100.0) * t['gross_revenue_30d'].mean()
         roi = (d_rev - cost) / cost * 100 if cost > 0 else -100
         
         if roi > 0:
@@ -257,7 +257,7 @@ with tab3:
         final_profit = max_gross_rev - total_cost
         
         # Đường Baseline (Random): Đi thẳng từ 0 đến final_profit
-        y_random = final_profit * x
+        Y_random = final_profit * x
         
         # Đường Model (T-Learner): Ưu tiên người sinh lời cao lên trước (đường cong lồi)
         # Hệ số 120 đại diện cho sức mạnh (Uplift) của mô hình
