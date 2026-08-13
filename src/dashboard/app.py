@@ -324,7 +324,7 @@ with tab4:
             st.info(f"**Quyết định Chốt hạ:** Khuyến nghị áp dụng **X-Learner** và phát Voucher cho **Top {max_profit_x}%**. S-Learner có đường cong mượt nhưng mắc 'Thiên kiến Zero-effect' (Sợ rủi ro) nên bỏ lỡ hơn 50% lợi nhuận!")
             
         with c_donut:
-            fig_donut = px.pie(persona_df, values='Percentage', names='Persona', hole=0.6, title="Chân dung 'Khách hàng Vàng' (Top 30%)", color_discrete_sequence=px.colors.sequential.Agal)
+            fig_donut = px.pie(persona_df, values='Percentage', names='Persona', hole=0.6, title="Chân dung 'Khách hàng Vàng' (Top 30%)", color_discrete_sequence=px.colors.qualitative.Pastel)
             fig_donut.update_layout(**chart_layout, height=400, showlegend=True)
             fig_donut.update_traces(textinfo='percent+label')
             st.plotly_chart(fig_donut, use_container_width=True)
@@ -332,7 +332,7 @@ with tab4:
             st.success("✅ **Xác nhận Chiến lược:** AI (X-Learner) hoàn toàn không biết về chiến lược của ta, nhưng kết quả nhả ra lại tập trung >85% vào nhóm Suburban. Nước cờ Tuần 3 đã được Máy Học chứng minh là chính xác tuyệt đối!")
             
     except Exception as e:
-        st.error("Chưa tìm thấy kết quả Uplift. Vui lòng chạy lại Pipeline hoặc script export.")
+        st.error(f"Lỗi khi tải hoặc hiển thị dữ liệu Uplift: {str(e)}\n\nVui lòng chạy lại Pipeline hoặc script export.")
 
 # ================= TAB 6: KỸ THUẬT (PIPELINE ADMIN) =================
 with tab5:
