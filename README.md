@@ -1,9 +1,10 @@
-# GSM Promotion Experimentation: Từ A/B Testing đến Causal Inference & Uplift Modeling
+# Simulation-Based Promotion Experimentation: From Real-Data-Calibrated Causal Simulation to A/B Testing and Uplift-Based Policy Evaluation
+*(Xây dựng hệ thống mô phỏng dữ liệu nhân quả, A/B Testing và Uplift Modeling cho bài toán đánh giá và phân bổ khuyến mãi trong dịch vụ gọi xe)*
 
 ## 📌 Tổng quan Dự án
-Dự án này xây dựng một pipeline toàn diện — từ thiết kế thí nghiệm, phân tích nhân quả, đến Uplift Modeling — nhằm **minh họa cách một doanh nghiệp ride-hailing có thể chuyển từ mass promotion sang experimentation-driven, uplift-informed và profit-aware targeting**.
+Dự án này là một **Experimentation-Driven Promotion Sandbox**. Bắt đầu từ Data Quality & EDA trên dữ liệu mobility công khai, chuyển empirical patterns thành synthetic user-level causal data có Y0/Y1/ITE ground truth. Sau đó, sử dụng A/B Testing để kiểm chứng incremental treatment effect, và mở rộng sang Uplift Modeling cùng business metrics (GMV, Burn) để đánh giá các targeting policies dưới controlled assumptions.
 
-Câu hỏi kinh doanh trung tâm: *"Voucher có tạo thêm chuyến đi hay chỉ trợ giá cho những khách vốn đã sử dụng dịch vụ, và với ngân sách giới hạn nên phát voucher cho ai để tối đa hóa incremental profit?"*
+Câu hỏi kinh doanh trung tâm: *"Làm thế nào để từ dữ liệu mobility công khai xây một causal experimentation sandbox đủ hợp lý, sau đó dùng randomized A/B Testing để đo incremental effect, mở rộng sang Uplift Modeling để phát hiện heterogeneous response, và đánh giá các promotion policy theo Incremental Rides/GMV và Promotion Burn?"*
 
 > **⚠️ Lưu ý quan trọng:** Toàn bộ kết quả trong dự án này được kiểm chứng **trong môi trường mô phỏng (synthetic sandbox)** với dữ liệu tổng hợp. Các kết luận chứng minh pipeline ra quyết định hoạt động đúng dưới các assumptions đã thiết kế — không phải bằng chứng về hành vi khách hàng thực tế của GSM/Xanh SM. Policy thực tế cần được kiểm chứng bằng randomized experiment trên dữ liệu GSM thật.
 
