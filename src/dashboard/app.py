@@ -278,8 +278,8 @@ with tab5:
     c1, c2 = st.columns(2)
     with c1:
         # Sử dụng roi_df đã tính ở Tab 4
-        fig_prof = px.bar(roi_df.sort_values('Lợi nhuận Ròng ($)'), x='Phân khúc (Persona)', y='Lợi nhuận Ròng ($)', 
-                          color='Lợi nhuận Ròng ($)', color_continuous_scale=['#FF007F', '#00E5FF'],
+        fig_prof = px.bar(roi_df.sort_values('Net Profit ($)'), x='Phân khúc (Persona)', y='Net Profit ($)', 
+                          color='Net Profit ($)', color_continuous_scale=['#FF007F', '#00E5FF'],
                           title="Ai đang làm công ty LỖ? (Net Profit theo Phân khúc)")
         fig_prof.update_layout(**chart_layout, coloraxis_showscale=False)
         fig_prof.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)', zeroline=True, zerolinecolor='white', zerolinewidth=2)
