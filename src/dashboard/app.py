@@ -158,7 +158,7 @@ with tab2:
 # ================= TAB 3: EXPERIMENT HEALTH =================
 with tab3:
     st.subheader("🩺 Kiểm tra Sức khỏe Thí nghiệm (Experiment Health Gate)")
-    st.markdown("Trước khi phân tích kết quả A/B Test, cần đảm bảo phân phối mẫu là hoàn toàn ngẫu nhiên và công bằng.")
+    st.markdown("Trước khi phân tích kết quả A/B Test, cần xác minh không có lỗi phân bổ ngẫu nhiên rõ rệt.")
     
     col_eh1, col_eh2 = st.columns(2)
     with col_eh1:
@@ -176,7 +176,7 @@ with tab3:
         if p_srm < 0.01:
             st.error(f"🔴 Phát hiện SRM! (p-value = {p_srm:.4f} < 0.01). Việc phân bổ bị lệch nghiêm trọng.")
         else:
-            st.success(f"🟢 Không phát hiện SRM (p-value = {p_srm:.4f} >= 0.01). Tỷ lệ phân bổ công bằng.")
+            st.success(f"🟢 Không phát hiện SRM (p-value = {p_srm:.4f} >= 0.01). Tỷ lệ phân bổ hợp lý trong mô phỏng.")
             
     with col_eh2:
         st.markdown("#### 2. Covariate Balance (SMD)")
@@ -216,7 +216,7 @@ with tab3:
             
             st.plotly_chart(fig_smd, use_container_width=True)
             
-            st.success("🟢 Tất cả các biến số đều có |SMD| < 0.1 (nằm trong vạch đỏ), chứng tỏ hai nhóm hoàn toàn tương đồng về đặc tính trước chiến dịch.")
+            st.success("🟢 Tất cả các biến số đều có |SMD| < 0.1 (nằm trong vạch đỏ), chứng tỏ hai nhóm có độ tương đồng tốt trong dữ liệu mô phỏng.")
         else:
             st.warning("⚠️ Không tìm thấy biến số nào để tính SMD.")
 

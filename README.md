@@ -32,7 +32,7 @@ Dự án sử dụng phương pháp lai ghép (Hybrid Approach):
 - Kết quả: Trong sandbox với assumptions hiện tại, segment-targeting cho policy value tốt hơn mass-targeting.
 
 ### Giai đoạn 3: Uplift Modeling & Policy Optimization (Tuần 5 & 6)
-- Triển khai T-Learner, S-Learner, X-Learner (XGBoost) trên toàn eligible population.
+- Triển khai T-Learner (XGBoost) làm Champion Model trên toàn eligible population.
 - Đánh giá bằng Qini Curve, AUUC, và **profit-based policy comparison** (No Voucher / Mass / Segment / Uplift / Profit Targeting).
 - Stress Test: Kiểm định robustness dưới tỷ lệ chia mẫu lệch và Gaussian noise.
 

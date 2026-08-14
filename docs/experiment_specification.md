@@ -1,4 +1,6 @@
-# Experiment Specification: AI Profit Targeting vs K-Means Segment Targeting
+# Illustrative Experiment Specification — Hypothetical Business Translation
+
+> **Disclaimer:** All campaign parameters below (Voucher 15%, max 50,000 VND, 10% holdout, etc.) are illustrative assumptions for methodology demonstration unless explicitly confirmed by Business/Marketing.
 
 **Author:** Data Science Team
 **Status:** Draft / Ready for Review
@@ -6,7 +8,7 @@
 
 ## 1. Thông tin Chung (Overview)
 - **Experiment Name:** `GSM_PROMO_AI_VS_KMEANS_2026`
-- **Business Question:** Việc áp dụng mô hình Causal ML (X-Learner) để chọn lọc khách hàng phát Voucher có mang lại Lợi nhuận tăng thêm (Incremental Profit) cao hơn so với chiến lược nhắm mục tiêu theo cụm tĩnh (K-Means) hiện tại hay không?
+- **Business Question:** Việc áp dụng mô hình Causal ML (T-Learner) để chọn lọc khách hàng phát Voucher có mang lại Lợi nhuận tăng thêm (Incremental Profit) cao hơn so với chiến lược nhắm mục tiêu theo cụm tĩnh (K-Means) hiện tại hay không?
 - **Hypothesis:** Mô hình AI Profit Targeting sẽ giảm thiểu chi phí "ăn thịt doanh thu" (Cannibalization) từ những khách hàng Sure Things, từ đó tăng ROI của chiến dịch lên ít nhất 15% so với nhóm K-Means.
 
 ## 2. Thiết kế Thử nghiệm (Experiment Design)
