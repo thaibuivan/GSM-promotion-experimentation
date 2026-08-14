@@ -311,24 +311,9 @@ with tab5:
     st.info("💡 **Góc nhìn Phân tích (Business Insight):** Khách hàng càng trung thành (Khách ruột, Airport Business) thì khi nhận được Voucher, họ càng mang lại ROI ÂM sâu (Cột đâm xuống dưới). Khách hàng lười đi (Ngủ đông, Suburban) mới là nhóm sinh lời thực sự. **👉 Ta phải ngừng phát Voucher cho nhóm khách ruột!**")
 
     st.markdown("---")
-    st.markdown("#### Động cơ Uplift (Feature SHAP & Calibration)")
-    with st.expander("📊 Kiểm định Độ tin cậy Mô hình (Uplift Calibration)", expanded=False):
-        try:
-            calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
-            fig_calib = go.Figure()
-            fig_calib.add_trace(go.Bar(x=calib_df['Decile'], y=calib_df['Observed_Uplift'], name='Thực tế quan sát (Observed)', marker_color='#FF007F'))
-            fig_calib.add_trace(go.Scatter(x=calib_df['Decile'], y=calib_df['Predicted_CATE'], mode='lines+markers', name='Mô hình Dự đoán (Predicted)', line=dict(color='#00E5FF', width=3)))
-            if 'True_ITE' in calib_df.columns and calib_df['True_ITE'].notnull().any():
-                fig_calib.add_trace(go.Scatter(x=calib_df['Decile'], y=calib_df['True_ITE'], mode='lines', name='Sự thật (True ITE - Sandbox)', line=dict(color='#00FF88', dash='dash')))
-            fig_calib.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-            fig_calib.update_xaxes(title="Nhóm khách hàng (Decile 1 = Tốt nhất -> 10 = Tệ nhất)", dtick=1)
-            fig_calib.update_yaxes(title="Incremental Rides", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
-            st.plotly_chart(fig_calib, use_container_width=True)
-            st.info("Đường dự đoán bám sát thực tế theo hướng dốc xuống chứng tỏ mô hình Rank đúng và Calibrate tốt.")
-        except Exception as e:
-            st.warning(f"Chưa có dữ liệu Calibration. ({str(e)})")
-
-    with st.expander("📈 Đánh giá Hiệu quả Tích lũy (Qini Curve)", expanded=True):
+    st.markdown("#### Hiệu quả Mô hình AI (Qini Curve)")
+    
+    with st.expander("📈 Đánh giá Hiệu quả Tích lũy (Cumulative Uplift)", expanded=True):
         try:
             qini_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
             fig_qini = go.Figure()
