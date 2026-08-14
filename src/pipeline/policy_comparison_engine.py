@@ -19,6 +19,8 @@ print("=" * 60)
 # ─── 1. LOAD DATA ─────────────────────────────────────────
 print("\n[1/5] Loading data...")
 df = pd.read_csv(data_path)
+if 'cate_true' in df.columns:
+    df['true_ite'] = df['cate_true']
 print(f"  Total users: {len(df):,}")
 
 # Economics parameters from config
@@ -48,8 +50,8 @@ df_test['avg_fare'] = df_test['avg_fare_per_trip']
 print(f"  Test set size: {len(df_test):,}")
 
 # ─── 2. TRAIN X-LEARNER ───────────────────────────────────
-print("\n[2/5] Training X-Learner...")
-params = dict(random_state=42, min_child_weight=5, reg_lambda=1.0, n_estimators=200, learning_rate=0.05, max_depth=4)
+print("\n[2/5] Training X-Learner (Regularized)...")
+params = dict(random_state=42, min_child_weight=30, reg_lambda=5.0, n_estimators=100, learning_rate=0.05, max_depth=3)
 
 m0 = xgb.XGBRegressor(**params)
 m1 = xgb.XGBRegressor(**params)
@@ -59,10 +61,10 @@ m1.fit(X_train[T_train == 1], y_train[T_train == 1])
 pseudo0 = m1.predict(X_train[T_train == 0]) - y_train[T_train == 0]
 pseudo1 = y_train[T_train == 1] - m0.predict(X_train[T_train == 1])
 
-# tau0 = xgb.XGBRegressor(**params); tau0.fit(X_train[T_train == 0], pseudo0)
-# tau1 = xgb.XGBRegressor(**params); tau1.fit(X_train[T_train == 1], pseudo1)
+tau0 = xgb.XGBRegressor(**params); tau0.fit(X_train[T_train == 0], pseudo0)
+tau1 = xgb.XGBRegressor(**params); tau1.fit(X_train[T_train == 1], pseudo1)
 
-cate = m1.predict(X_test) - m0.predict(X_test)
+cate = 0.5 * tau0.predict(X_test) + 0.5 * tau1.predict(X_test)
 pred1 = m1.predict(X_test)
 print(f"  Mean predicted CATE: {cate.mean():.4f}")
 
