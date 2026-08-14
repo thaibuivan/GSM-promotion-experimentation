@@ -233,9 +233,9 @@ with tab4:
     overall_roi = (net_profit_per_user / cost_per_user) * 100 if cost_per_user > 0 else 0
     
     col1, col2, col3 = st.columns(3)
-    col1.metric("Doanh thu Tăng thêm (Mỗi KH)", f"${incremental_rev_per_user:.2f}", "Nếu áp dụng đại trà")
-    col2.metric(f"Chi phí Trợ giá ({DISCOUNT_PERCENT}%)", f"${cost_per_user:.2f}", f"Chi phí/KH (Giảm {DISCOUNT_PERCENT}%)")
-    col3.metric("Lợi nhuận Ròng (Net Profit)", f"${net_profit_per_user:.2f}", f"ROI: {overall_roi:.1f}%", delta_color="normal" if net_profit_per_user > 0 else "inverse")
+    col1.metric("Incremental GMV (Tăng thêm/KH)", f"${incremental_rev_per_user:.2f}", "Nếu áp dụng đại trà")
+    col2.metric(f"Burn (Chi phí Khuyến mãi)", f"${cost_per_user:.2f}", f"{DISCOUNT_PERCENT}% GMV")
+    col3.metric("Net Profit (Lợi nhuận Ròng)", f"${net_profit_per_user:.2f}", f"ROI: {overall_roi:.1f}%", delta_color="normal" if net_profit_per_user > 0 else "inverse")
     
     st.warning("⚠️ **Cảnh báo Tài chính:** Việc phát Voucher ĐẠI TRÀ cho 100% khách hàng đang gây LỖ RÒNG (Lợi nhuận ròng âm). Điều này chứng tỏ hiệu ứng trung bình (ATE) không đủ lớn để bù đắp chi phí phát voucher dàn trải.")
     
@@ -254,18 +254,18 @@ with tab4:
             
             roi_data.append({
                 'Phân khúc (Persona)': p, 
-                'Doanh thu tự nhiên ($)': round(rev_c, 2),
-                'Doanh thu có Voucher ($)': round(rev_t, 2),
-                'Doanh thu Tăng thêm ($)': round(d_rev, 2),
-                'Chi phí Trợ giá ($)': round(cost, 2),
-                'Lợi nhuận Ròng ($)': round(d_rev - cost, 2),
+                'Baseline GMV ($)': round(rev_c, 2),
+                'Treated GMV ($)': round(rev_t, 2),
+                'Incremental GMV ($)': round(d_rev, 2),
+                'Burn ($)': round(cost, 2),
+                'Net Profit ($)': round(d_rev - cost, 2),
                 'ROI (%)': round(roi, 1)
             })
     
     roi_df = pd.DataFrame(roi_data).sort_values(by='ROI (%)', ascending=False)
     st.dataframe(roi_df.style.format(precision=1)
                  .background_gradient(subset=['ROI (%)'], cmap='RdYlGn', vmin=-100, vmax=50)
-                 .highlight_max(subset=['Lợi nhuận Ròng ($)'], color='rgba(0,229,255,0.3)'), 
+                 .highlight_max(subset=['Net Profit ($)'], color='rgba(0,229,255,0.3)'), 
                  use_container_width=True, hide_index=True)
 
 # ================= TAB 5: HETEROGENEITY =================
