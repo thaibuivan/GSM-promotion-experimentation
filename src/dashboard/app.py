@@ -399,11 +399,11 @@ with tab6:
         try:
             with open(os.path.join(base_path, 'data', 'processed', 'oracle_regret.json'), 'r') as f:
                 regret_data = json.load(f)
-                regret_str = f"**Oracle Regret:** So với kịch bản hoàn hảo, ta bỏ lỡ **${regret_data['regret_abs']:,.0f}** ({regret_data['regret_pct']}% giá trị max)."
+                regret_str = f"**Oracle Regret:** So với kịch bản hoàn hảo, ta bỏ lỡ **{regret_data['regret_abs']:,.0f} USD** ({regret_data['regret_pct']}% giá trị max)."
         except:
             pass
 
-        st.info(f"**📊 Kết luận trong Sandbox:** Profit Targeting cho lợi nhuận **${profit_row['Expected_Incremental_Profit']:,.0f}**, trong khi Mass Voucher gây lỗ **${mass_row['Expected_Incremental_Profit']:,.0f}**. {regret_str}".replace('$', '\$'))
+        st.info(f"**📊 Kết luận trong Sandbox:** Profit Targeting cho lợi nhuận **{profit_row['Expected_Incremental_Profit']:,.0f} USD**, trong khi Mass Voucher gây lỗ **{abs(mass_row['Expected_Incremental_Profit']):,.0f} USD**. {regret_str}")
         
     except Exception as e:
         st.warning(f"Nhấn 'Chạy Pipeline' ở tab Admin để tạo dữ liệu Policy Comparison. ({str(e)})")
