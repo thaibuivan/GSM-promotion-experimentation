@@ -59,10 +59,10 @@ m1.fit(X_train[T_train == 1], y_train[T_train == 1])
 pseudo0 = m1.predict(X_train[T_train == 0]) - y_train[T_train == 0]
 pseudo1 = y_train[T_train == 1] - m0.predict(X_train[T_train == 1])
 
-tau0 = xgb.XGBRegressor(**params); tau0.fit(X_train[T_train == 0], pseudo0)
-tau1 = xgb.XGBRegressor(**params); tau1.fit(X_train[T_train == 1], pseudo1)
+# tau0 = xgb.XGBRegressor(**params); tau0.fit(X_train[T_train == 0], pseudo0)
+# tau1 = xgb.XGBRegressor(**params); tau1.fit(X_train[T_train == 1], pseudo1)
 
-cate = 0.5 * tau0.predict(X_test) + 0.5 * tau1.predict(X_test)
+cate = m1.predict(X_test) - m0.predict(X_test)
 pred1 = m1.predict(X_test)
 print(f"  Mean predicted CATE: {cate.mean():.4f}")
 

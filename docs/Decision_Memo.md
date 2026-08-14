@@ -6,7 +6,7 @@
 ---
 
 ## A. Decision Question
-Với budget giới hạn và voucher economics giả định, policy nào tối đa hóa **incremental profit** (doanh thu tăng thêm trừ chi phí voucher) trên eligible population?
+Với budget giới hạn và promotion economics giả định, policy nào tối đa hóa **incremental GMV** và **incremental profit**, đồng thời đảm bảo hiệu quả đốt tiền (**Burn Efficiency / CPIR**) trên eligible population?
 
 ---
 

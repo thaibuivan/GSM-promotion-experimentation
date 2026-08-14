@@ -1,0 +1,106 @@
+# GSM Promotion Experimentation — Review tổng thể và hướng tối ưu hóa dự án
+# 1. Kết luận tổng quát
+### Hướng chốt nên theo
+# 2. Những gì project hiện đã làm tốt
+## 2.1. Synthetic Data không phải random data đơn giản
+## 2.2. Có heterogeneous treatment effect rõ ràng
+## 2.3. Segmentation đã vượt mức “cluster cho có”
+## 2.4. A/A Testing khá đầy đủ
+## 2.5. A/B Testing đã có economics
+## 2.6. Uplift Modeling đã đi tới business threshold
+## 2.7. Có stress test
+## 2.8. Đã bắt đầu productization
+# 3. Vấn đề lớn nhất: business conclusion đang mạnh hơn bằng chứng
+## 3.1. Vì sao?
+## 3.2. Cần sửa wording
+## 3.3. Cách kết luận đúng hơn
+# 4. Vấn đề thứ hai: Synthetic DGP đang hơi “biết trước đáp án”
+## 4.1. Cơ chế hiện tại
+## 4.2. Nên chia synthetic evaluation thành hai tầng
+### Tier A — Known-DGP Validation
+### Tier B — Misspecified / Adversarial DGP
+# 5. Đổi vai trò K-Means
+## 5.1. Không nên để K-Means là targeting engine cuối cùng
+## 5.2. Vai trò đúng của K-Means
+## 5.3. Architecture mới
+# 6. Chuyển từ uplift sang expected incremental profit
+# 7. So sánh Policy chứ không chỉ Model
+# 8. Uplift Model nên train trên toàn eligible population
+# 9. Không cần model zoo
+# 10. Evaluation nên nâng cấp từ model metric sang policy metric
+## Model metrics
+## Policy metrics
+## Oracle Policy
+# 11. Thêm uplift calibration
+# 12. Economics cần trở thành tham số
+# 13. Policy Frontier
+# 14. A/B pipeline nên trở thành Experiment Trust Gate
+# 15. A/A Test cần diễn giải đúng
+# 16. HC1 và covariate adjustment cần diễn giải thận trọng
+# 17. Stress Test hiện tại nên mở rộng
+## Data Shift
+## Treatment Effect Shift
+## Economic Shift
+## Missingness
+## Segment Drift
+## Null World repeated trials
+# 18. Experiment → Learn → Policy → Re-test
+# 19. Randomized Holdout
+# 20. Champion–Challenger
+# 21. Product cuối nên là Promotion Policy Simulator
+# 22. Dashboard không phải production deployment
+# 23. Mọi report cuối nên có hai lớp bằng chứng
+# 24. Decision Memo nên viết lại
+## A. Decision Question
+## B. Evidence
+## C. Recommendation in Sandbox
+## D. Conditions Required
+## E. What We Cannot Claim
+## F. Next Real Experiment
+# 25. README cần chỉnh framing
+## Timeline
+## Data source wording
+## Business wording
+# 26. Thêm Experiment Configuration
+# 27. Thêm Data Contract
+# 28. Experiment Specification chuẩn
+# 29. Metric Specification
+# 30. Uncertainty trong Economics
+# 31. Statistical Significance ≠ Business Significance
+# 32. MDE / Power nên được đưa vào product
+# 33. Feature Store cần rõ time cutoff
+# 34. Explainability nên giải thích treatment response
+# 35. Agent chỉ nên là optional analytics layer
+# 36. Không nên mở rộng Driver Agent trong scope chính
+# 37. Scope cuối khuyến nghị
+## Tên project
+## Business Question
+## Core Scope
+## Optional
+## Out of Scope
+# 38. Target Architecture
+# 39. Deliverable cuối nên có
+## Technical
+## Business
+# 40. Acceptance Criteria
+## Simulation
+## Experiment
+## Uplift
+## Economics
+## Robustness
+## Product
+# 41. Ưu tiên 1–2 tuần tới
+## Priority 1 — Sửa framing
+## Priority 2 — Refactor economics thành config
+## Priority 3 — Train uplift toàn eligible population
+## Priority 4 — Xây 5-policy comparison
+## Priority 5 — Policy Value + Oracle Regret
+## Priority 6 — Policy Simulator
+# 42. Nếu còn thời gian
+# 43. Không nên ưu tiên
+# 44. Cách trình bày với PM/Mentor
+# 45. Storyline thuyết trình đề xuất
+# 46. Câu hỏi phản biện cần trả lời trước final review
+# 47. Final Recommendation
+# 48. Checklist hành động
+# 49. Một câu chốt cho toàn dự án

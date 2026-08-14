@@ -1,4 +1,4 @@
-# Calibration Scorecard (Thẻ điểm Hiệu chuẩn)
+#### Calibration Scorecard (Thẻ điểm Hiệu chuẩn)
 
 Bảng dưới đây đánh giá mức độ hội tụ giữa dữ liệu Synthetic (dữ liệu được sinh ra) và các mục tiêu thực tế (Target Statistic).
 

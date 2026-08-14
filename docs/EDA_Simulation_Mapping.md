@@ -1,4 +1,4 @@
-# EDA → Simulation Mapping (Bản đồ Mô phỏng Dữ liệu)
+#### EDA → Simulation Mapping (Bản đồ Mô phỏng Dữ liệu)
 
 Dưới đây là bảng ghi nhận cách chúng tôi chuyển các quan sát từ dữ liệu thực tế (EDA trên TLC NYC Taxi) thành các quyết định thiết lập trong hệ thống mô phỏng nhân quả (Causal Sandbox).
 
