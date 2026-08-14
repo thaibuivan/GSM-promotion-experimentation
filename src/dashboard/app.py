@@ -183,7 +183,7 @@ with tab3:
         st.markdown("Đo lường độ lệch chuẩn hóa (Standardized Mean Difference) của các biến trước khi can thiệp.")
         
         # Calculate SMD dynamically instead of relying on a static image
-        covariates = ['recency_days', 'historical_spend', 'app_opens_30d', 'airport_trips_30d', 'age']
+        covariates = ['age', 'monthly_rides_history', 'recency_days', 'is_urban', 'is_weekend_rider', 'is_airport_trip', 'is_rush_hour']
         valid_covs = [c for c in covariates if c in df.columns]
         
         if valid_covs:
@@ -207,7 +207,9 @@ with tab3:
             fig_smd.add_vline(x=-0.1, line_dash="dash", line_color="red")
             fig_smd.add_vline(x=0, line_width=1, line_color="white")
             
-            fig_smd.update_layout(**chart_layout, height=300, coloraxis_showscale=False)
+            # Set fixed range to see the threshold lines clearly
+            fig_smd.update_xaxes(range=[-0.15, 0.15], title="SMD (Độ lệch chuẩn hóa)")
+            fig_smd.update_layout(**chart_layout, height=350, coloraxis_showscale=False)
             fig_smd.update_yaxes(title="")
             st.plotly_chart(fig_smd, use_container_width=True)
             
