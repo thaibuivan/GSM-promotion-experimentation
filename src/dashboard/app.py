@@ -197,20 +197,29 @@ with tab3:
                 smd = (mean_t - mean_c) / std_pool if std_pool > 0 else 0
                 smd_data.append({'Biến số': col, 'SMD': smd})
                 
-            smd_df = pd.DataFrame(smd_data)
-            fig_smd = px.bar(smd_df, y='Biến số', x='SMD', orientation='h', 
-                             title="Standardized Mean Difference (SMD)",
-                             color='SMD', color_continuous_scale=['#00E5FF', '#FF007F'])
+            smd_df = pd.DataFrame(smd_data).sort_values(by='SMD')
             
-            # Add vertical threshold lines for 0.1 and -0.1
-            fig_smd.add_vline(x=0.1, line_dash="dash", line_color="red")
-            fig_smd.add_vline(x=-0.1, line_dash="dash", line_color="red")
-            fig_smd.add_vline(x=0, line_width=1, line_color="white")
+            fig_smd = go.Figure()
+            # Draw the points
+            fig_smd.add_trace(go.Scatter(
+                x=smd_df['SMD'], 
+                y=smd_df['Biến số'],
+                mode='markers',
+                marker=dict(size=12, color='#00E5FF', line=dict(width=1, color='white')),
+                name='SMD'
+            ))
             
-            # Set fixed range to see the threshold lines clearly
-            fig_smd.update_xaxes(range=[-0.15, 0.15], title="SMD (Độ lệch chuẩn hóa)")
-            fig_smd.update_layout(**chart_layout, height=350, coloraxis_showscale=False)
-            fig_smd.update_yaxes(title="")
+            # Add vertical threshold lines
+            fig_smd.add_vline(x=0.1, line_dash="dash", line_color="#FF007F", annotation_text="0.1", annotation_position="top right")
+            fig_smd.add_vline(x=-0.1, line_dash="dash", line_color="#FF007F", annotation_text="-0.1", annotation_position="top left")
+            fig_smd.add_vline(x=0, line_width=2, line_color="rgba(255,255,255,0.5)")
+            
+            # Formatting to make it look like a standard Love Plot
+            fig_smd.update_xaxes(range=[-0.15, 0.15], title="SMD (Độ lệch chuẩn hóa)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+            fig_smd.update_yaxes(title="", showgrid=True, gridcolor='rgba(255,255,255,0.05)')
+            fig_smd.update_layout(**chart_layout, height=350, showlegend=False, 
+                                  title="Biểu đồ Love Plot (Covariate Balance)")
+            
             st.plotly_chart(fig_smd, use_container_width=True)
             
             st.success("🟢 Tất cả các biến số đều có |SMD| < 0.1 (nằm trong vạch đỏ), chứng tỏ hai nhóm hoàn toàn tương đồng về đặc tính trước chiến dịch.")
