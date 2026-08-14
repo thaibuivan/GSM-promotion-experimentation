@@ -85,6 +85,10 @@ df_test['margin_per_ride'] = df_test['avg_fare'] * MARGIN_RATE
 df_test['expected_value'] = (df_test['cate_pred'] * df_test['margin_per_ride']) - \
                             (df_test['pred_rides_treated'] * df_test['voucher_cost'])
 
+if 'true_ite' in df_test.columns:
+    df_test['oracle_ev'] = (df_test['true_ite'] * df_test['margin_per_ride']) - \
+                           (df_test['pred_rides_treated'] * df_test['voucher_cost'])
+
 # Observed uplift on test set (for policy outcome evaluation)
 # We use the actual Y_rand and treatment assignment in test set
 # For each policy, "profit" = ATE_for_targeted × margin − voucher_cost_for_targeted
@@ -101,13 +105,29 @@ def evaluate_policy(target_mask, df_eval, label):
                 "EV_Lower_95": 0, "EV_Upper_95": 0,
                 "Est_ROI_pct": 0}
 
-    # Among targeted: use model's expected value as proxy
-    total_ev = targeted['expected_value'].sum()
+    # Among targeted: use Oracle (Ground Truth) if available, otherwise model proxy
+    if 'oracle_ev' in df_eval.columns:
+        total_ev = targeted['oracle_ev'].sum()
+        total_inc_rides = targeted['true_ite'].sum()
+        total_inc_gmv = (targeted['true_ite'] * targeted['avg_fare']).sum()
+        if n_targeted > 1:
+            std_ev = targeted['oracle_ev'].std()
+            moe = 1.96 * std_ev * np.sqrt(n_targeted)
+        else:
+            moe = 0
+    else:
+        total_ev = targeted['expected_value'].sum()
+        total_inc_rides = targeted['cate_pred'].sum()
+        total_inc_gmv = (targeted['cate_pred'] * targeted['avg_fare']).sum()
+        if n_targeted > 1:
+            std_ev = targeted['expected_value'].std()
+            moe = 1.96 * std_ev * np.sqrt(n_targeted)
+        else:
+            moe = 0
+
     total_burn = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
     
-    total_inc_rides = targeted['cate_pred'].sum()
     total_gmv = (targeted['pred_rides_treated'] * targeted['avg_fare']).sum()
-    total_inc_gmv = (targeted['cate_pred'] * targeted['avg_fare']).sum()
     
     roi = (total_ev / total_burn * 100) if total_burn > 0 else 0
     cpir = (total_burn / total_inc_rides) if total_inc_rides > 0 else 0
@@ -180,8 +200,6 @@ results.append(evaluate_policy(budget_mask, df_test, f"5. Budget-Constrained (${
 
 # Oracle Policy (using true_ite if available)
 if 'true_ite' in df_test.columns:
-    df_test['oracle_ev'] = (df_test['true_ite'] * df_test['margin_per_ride']) - \
-                           (df_test['pred_rides_treated'] * df_test['voucher_cost'])
     oracle_mask = df_test['oracle_ev'] > 0
     oracle_ev = df_test[oracle_mask]['oracle_ev'].sum()
     oracle_cost = (df_test[oracle_mask]['pred_rides_treated'] * df_test[oracle_mask]['voucher_cost']).sum()
