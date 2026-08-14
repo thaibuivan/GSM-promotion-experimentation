@@ -257,6 +257,36 @@ calib_path = os.path.join(base_path, 'data', 'processed', 'uplift_calibration.cs
 calib_df.to_csv(calib_path, index=False)
 print(f"  Calibration data saved to: uplift_calibration.csv")
 
+# Compute and save Qini Curve (Cumulative Incremental Rides)
+df_qini = df_test.sort_values('cate_pred', ascending=False).copy()
+df_qini['is_treated'] = df_qini['treatment_rand'].astype(int)
+df_qini['is_control'] = 1 - df_qini['is_treated']
+
+df_qini['cum_n_t'] = df_qini['is_treated'].cumsum()
+df_qini['cum_n_c'] = df_qini['is_control'].cumsum()
+
+df_qini['cum_y_t'] = (df_qini['Y_rand'] * df_qini['is_treated']).cumsum()
+df_qini['cum_y_c'] = (df_qini['Y_rand'] * df_qini['is_control']).cumsum()
+
+# Handle division by zero for the first few rows
+safe_n_c = np.where(df_qini['cum_n_c'] == 0, 1, df_qini['cum_n_c'])
+
+df_qini['qini_uplift'] = df_qini['cum_y_t'] - df_qini['cum_y_c'] * (df_qini['cum_n_t'] / safe_n_c)
+df_qini['pct_targeted'] = np.arange(1, len(df_qini) + 1) / len(df_qini) * 100
+
+# Random baseline
+total_uplift = df_qini['qini_uplift'].iloc[-1]
+df_qini['random_uplift'] = df_qini['pct_targeted'] / 100.0 * total_uplift
+
+qini_df = df_qini[['pct_targeted', 'qini_uplift', 'random_uplift']]
+# Add a starting point at (0,0)
+start_point = pd.DataFrame({'pct_targeted': [0], 'qini_uplift': [0], 'random_uplift': [0]})
+qini_df = pd.concat([start_point, qini_df], ignore_index=True)
+
+qini_path = os.path.join(base_path, 'data', 'processed', 'qini_curve.csv')
+qini_df.to_csv(qini_path, index=False)
+print(f"  Qini curve data saved to: qini_curve.csv")
+
 # Save regret info if oracle is available
 if 'true_ite' in df_test.columns:
     regret_info = {
