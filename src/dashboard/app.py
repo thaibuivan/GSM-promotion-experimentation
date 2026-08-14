@@ -430,11 +430,19 @@ with tab7:
             preds_df['margin_per_ride'] = preds_df['avg_fare'] * (sim2_margin / 100.0)
             preds_df['expected_value'] = (preds_df['cate_pred'] * preds_df['margin_per_ride']) - (preds_df['pred_rides_treated'] * preds_df['voucher_cost'])
             
+            if 'true_ite' in preds_df.columns:
+                preds_df['oracle_ev_sim'] = (preds_df['true_ite'] * preds_df['margin_per_ride']) - (preds_df['pred_rides_treated'] * preds_df['voucher_cost'])
+            
             def eval_policy_sim(mask, label):
                 targeted = preds_df[mask]
                 n_t = mask.sum()
                 if n_t == 0: return {"Kịch bản": label, "Profit": 0, "Users": 0}
-                t_ev = targeted['expected_value'].sum()
+                
+                if 'oracle_ev_sim' in targeted.columns:
+                    t_ev = targeted['oracle_ev_sim'].sum()
+                else:
+                    t_ev = targeted['expected_value'].sum()
+                    
                 return {"Kịch bản": label, "Profit": round(t_ev, 0), "Users": int(n_t)}
             
             sim_results = []
