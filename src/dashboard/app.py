@@ -272,32 +272,42 @@ with tab4:
 
 # ================= TAB 5: HETEROGENEITY =================
 with tab5:
-    st.subheader("🎯 Bóc tách Hành vi & CATE (Heterogeneity)")
-    st.markdown("Cùng nhìn sâu vào thói quen đặt xe để giải thích tại sao nhóm đi làm (Commuters) lại gây lỗ, còn nhóm thỉnh thoảng đi (Occasionals) lại sinh lời.")
+    st.subheader("🎯 Nghịch lý Lợi nhuận (Heterogeneity)")
+    st.markdown("Thay vì nhìn vào Số chuyến đi hay Doanh thu (rất dễ bị đánh lừa), hãy nhìn thẳng vào **Lợi Nhuận Ròng (Net Profit)** và **ROI**. Hai biểu đồ dưới đây sẽ vạch trần việc chúng ta đang 'đốt tiền' sai chỗ như thế nào.")
     
     c1, c2 = st.columns(2)
     with c1:
-        fig_box = px.box(df, x="persona", y="gross_revenue_30d", color="treatment_rand",
-                      color_discrete_sequence=neon_colors, title="Sự Dịch chuyển Doanh thu (Boxplot)")
-        fig_box.update_layout(**chart_layout)
-        fig_box.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title="Doanh thu ($)")
-        fig_box.for_each_trace(lambda t: t.update(name = 'Được Khuyến mãi' if t.name == '1' else 'Không Khuyến mãi'))
-        st.plotly_chart(fig_box, use_container_width=True)
+        # Sử dụng roi_df đã tính ở Tab 4
+        fig_prof = px.bar(roi_df.sort_values('Lợi nhuận Ròng ($)'), x='Phân khúc (Persona)', y='Lợi nhuận Ròng ($)', 
+                          color='Lợi nhuận Ròng ($)', color_continuous_scale=['#FF007F', '#00E5FF'],
+                          title="Ai đang làm công ty LỖ? (Net Profit theo Phân khúc)")
+        fig_prof.update_layout(**chart_layout, coloraxis_showscale=False)
+        fig_prof.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)', zeroline=True, zerolinecolor='white', zerolinewidth=2)
+        st.plotly_chart(fig_prof, use_container_width=True)
         
     with c2:
-        df['recency_bins'] = pd.cut(df['recency_days'], bins=[-1, 4, 9, 14, 30], labels=['0-4 ngày (Rất chăm)', '5-9 ngày', '10-14 ngày', '15+ ngày (Ngủ đông)'])
-        agg_df = df.groupby(['recency_bins', 'treatment_rand'])['Y_rand'].mean().reset_index()
-        agg_df['treatment_rand'] = agg_df['treatment_rand'].astype(str)
-        fig_bar = px.bar(agg_df, x='recency_bins', y='Y_rand', color='treatment_rand',
-                         barmode='group', color_discrete_sequence=neon_colors,
-                         title="Tác động của Khuyến mãi theo Mức độ Ngủ đông",
-                         labels={'recency_bins': 'Thời gian từ cuốc cuối', 'Y_rand': 'Trung bình Số chuyến đi'})
-        fig_bar.update_layout(**chart_layout)
-        fig_bar.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)')
-        fig_bar.for_each_trace(lambda t: t.update(name = 'Được Khuyến mãi' if t.name == '1' else 'Không Khuyến mãi'))
-        st.plotly_chart(fig_bar, use_container_width=True)
+        df['recency_bins'] = pd.cut(df['recency_days'], bins=[-1, 4, 9, 14, 30], labels=['0-4 ngày (Khách ruột)', '5-9 ngày', '10-14 ngày', '15+ ngày (Ngủ đông)'])
+        recency_roi = []
+        for b in df['recency_bins'].dropna().unique():
+            t = df[(df['recency_bins'] == b) & (df['treatment_rand'] == 1)]
+            c = df[(df['recency_bins'] == b) & (df['treatment_rand'] == 0)]
+            if len(t) > 0 and len(c) > 0:
+                rev_c = c['gross_revenue_30d'].mean()
+                rev_t = t['gross_revenue_30d'].mean()
+                d_rev = rev_t - rev_c
+                cost = (DISCOUNT_PERCENT / 100.0) * rev_t
+                roi = (d_rev - cost) / cost * 100 if cost > 0 else 0
+                recency_roi.append({'Nhóm Recency': b, 'ROI (%)': roi})
+                
+        recency_roi_df = pd.DataFrame(recency_roi).sort_values('Nhóm Recency')
+        fig_roi = px.bar(recency_roi_df, x='Nhóm Recency', y='ROI (%)', 
+                         color='ROI (%)', color_continuous_scale=['#FF007F', '#00E5FF'],
+                         title="Nghịch lý Lòng trung thành (ROI theo Recency)")
+        fig_roi.update_layout(**chart_layout, coloraxis_showscale=False)
+        fig_roi.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)', zeroline=True, zerolinecolor='white', zerolinewidth=2)
+        st.plotly_chart(fig_roi, use_container_width=True)
         
-    st.info("💡 **Góc nhìn Phân tích:** Khách hàng càng chăm đi thì hai cột Hồng và Xanh cao gần bằng nhau (Cannibalization). Khách hàng ngủ đông có cột Xanh cao vượt trội (Uplift).")
+    st.info("💡 **Góc nhìn Phân tích (Business Insight):** Khách hàng càng trung thành (Khách ruột, Airport Business) thì khi nhận được Voucher, họ càng mang lại ROI ÂM sâu (Cột đâm xuống dưới). Khách hàng lười đi (Ngủ đông, Suburban) mới là nhóm sinh lời thực sự. **👉 Ta phải ngừng phát Voucher cho nhóm khách ruột!**")
 
     st.markdown("---")
     st.markdown("#### Động cơ Uplift (Feature SHAP & Calibration)")
