@@ -450,6 +450,16 @@ with tab7:
             if sim2_max_target < 100: mass_m.iloc[int(len(preds_df) * sim2_max_target / 100):] = False
             sim_results.append(eval_policy_sim(mass_m, "Mass Voucher"))
             
+            # Segment Targeting
+            if 'is_urban' in preds_df.columns:
+                sub_m = preds_df['is_urban'] == 0
+                sim_results.append(eval_policy_sim(sub_m, "Segment Targeting (Suburban)"))
+                
+            # Uplift Targeting
+            if 'cate_pred' in preds_df.columns:
+                uplift_m = preds_df['cate_pred'] >= preds_df['cate_pred'].quantile(0.70)
+                sim_results.append(eval_policy_sim(uplift_m, "Uplift Targeting (Top 30% CATE)"))
+            
             prof_m = preds_df['expected_value'] > 0
             if prof_m.sum() > (len(preds_df) * sim2_max_target / 100):
                 thresh = preds_df['expected_value'].quantile(1 - (sim2_max_target / 100))
