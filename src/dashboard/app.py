@@ -258,7 +258,7 @@ with tab4:
                 'Treated GMV ($)': round(rev_t, 2),
                 'Incremental GMV ($)': round(d_rev, 2),
                 'Burn ($)': round(cost, 2),
-                'Burn Rate (%)': round((cost / rev_t * 100) if rev_t > 0 else 0, 1),
+                'Burn / Inc. GMV (%)': round((cost / d_rev * 100) if d_rev > 0 else 999.9, 1),
                 'Net Profit ($)': round(d_rev - cost, 2),
                 'ROI (%)': round(roi, 1)
             })
@@ -266,6 +266,7 @@ with tab4:
     roi_df = pd.DataFrame(roi_data).sort_values(by='ROI (%)', ascending=False)
     st.dataframe(roi_df.style.format(precision=1)
                  .background_gradient(subset=['ROI (%)'], cmap='RdYlGn', vmin=-100, vmax=50)
+                 .background_gradient(subset=['Burn / Inc. GMV (%)'], cmap='OrRd', vmin=50, vmax=200)
                  .highlight_max(subset=['Net Profit ($)'], color='rgba(0,229,255,0.3)'), 
                  use_container_width=True, hide_index=True)
 
