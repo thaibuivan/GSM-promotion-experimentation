@@ -240,33 +240,32 @@ with tab4:
     
     st.warning("⚠️ **Cảnh báo Tài chính:** Việc phát Voucher ĐẠI TRÀ cho 100% khách hàng đang gây LỖ RÒNG (Lợi nhuận ròng âm). Điều này chứng tỏ hiệu ứng trung bình (ATE) không đủ lớn để bù đắp chi phí phát voucher dàn trải.")
     
-    st.markdown("#### 🎯 K-Means: Chân dung Khách hàng (Persona Profiling)")
-    st.markdown("Trước khi phân tích tài chính, chúng ta cần hiểu rõ 5 cụm khách hàng được thuật toán K-Means phân loại tự động dựa trên hành vi lịch sử:")
-    
-    # K-Means Radar Chart
-    cluster_features = ['age', 'monthly_rides_history', 'recency_days', 'avg_fare_per_trip']
-    cluster_means = df.groupby('persona')[cluster_features].mean().reset_index()
-    
-    # Min-Max Scaling for Radar Chart
-    from sklearn.preprocessing import MinMaxScaler
-    scaler = MinMaxScaler()
-    cluster_means_scaled = cluster_means.copy()
-    cluster_means_scaled[cluster_features] = scaler.fit_transform(cluster_means[cluster_features])
-    
-    # Reshape for plotly
-    radar_data = pd.melt(cluster_means_scaled, id_vars=['persona'], value_vars=cluster_features, 
-                         var_name='Feature', value_name='Score')
-    
-    # Rename features for display
-    feature_names = {'age': 'Độ tuổi', 'monthly_rides_history': 'Tần suất đi/tháng', 
-                     'recency_days': 'Ngày rời mạng (Recency)', 'avg_fare_per_trip': 'Giá trị cuốc xe'}
-    radar_data['Feature'] = radar_data['Feature'].map(feature_names)
-    
-    fig_radar = px.line_polar(radar_data, r='Score', theta='Feature', color='persona', line_close=True,
-                              title="Bản đồ Đặc điểm Hành vi theo Phân khúc (Min-Max Scaled)",
-                              color_discrete_sequence=px.colors.qualitative.Pastel)
-    fig_radar.update_layout(polar=dict(radialaxis=dict(visible=False), bgcolor='rgba(0,0,0,0)'), paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
-    st.plotly_chart(fig_radar, use_container_width=True)
+    with st.expander("🎯 Click để xem Chân dung 5 Nhóm Khách hàng (K-Means Profiling)", expanded=False):
+        st.markdown("Trước khi phân tích tài chính, thuật toán K-Means đã gom cụm khách hàng tự động dựa trên hành vi lịch sử:")
+        
+        # K-Means Radar Chart
+        cluster_features = ['age', 'monthly_rides_history', 'recency_days', 'avg_fare_per_trip']
+        cluster_means = df.groupby('persona')[cluster_features].mean().reset_index()
+        
+        # Min-Max Scaling for Radar Chart
+        from sklearn.preprocessing import MinMaxScaler
+        scaler = MinMaxScaler()
+        cluster_means_scaled = cluster_means.copy()
+        cluster_means_scaled[cluster_features] = scaler.fit_transform(cluster_means[cluster_features])
+        
+        # Reshape for plotly
+        radar_data = pd.melt(cluster_means_scaled, id_vars=['persona'], value_vars=cluster_features, 
+                             var_name='Feature', value_name='Score')
+        
+        # Rename features for display
+        feature_names = {'age': 'Độ tuổi', 'monthly_rides_history': 'Tần suất đi/tháng', 
+                         'recency_days': 'Ngày rời mạng (Recency)', 'avg_fare_per_trip': 'Giá trị cuốc xe'}
+        radar_data['Feature'] = radar_data['Feature'].map(feature_names)
+        
+        fig_radar = px.line_polar(radar_data, r='Score', theta='Feature', color='persona', line_close=True,
+                                  color_discrete_sequence=px.colors.qualitative.Pastel)
+        fig_radar.update_layout(polar=dict(radialaxis=dict(visible=False), bgcolor='rgba(0,0,0,0)'), paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'), margin=dict(t=20, b=20, l=20, r=20))
+        st.plotly_chart(fig_radar, use_container_width=True)
     
     st.markdown("#### 🔍 Bảng Kê Chi tiết Tài chính theo Phân khúc (Drill-down)")
     # Tính ROI cho từng nhóm
