@@ -49,23 +49,30 @@ df_test['avg_fare'] = df_test['avg_fare_per_trip']
 
 print(f"  Test set size: {len(df_test):,}")
 
-# ─── 2. TRAIN X-LEARNER ───────────────────────────────────
-print("\n[2/5] Training X-Learner...")
-params = dict(random_state=42, min_child_weight=5, reg_lambda=1.0, n_estimators=200, learning_rate=0.05, max_depth=4)
+# ─── 2. TRAIN R-LEARNER (DOUBLE MACHINE LEARNING) ─────────
+print("\n[2/5] Training R-Learner (Residual Learner) to remove Base Outcome Bias...")
+params_y = dict(random_state=42, n_estimators=100, learning_rate=0.05, max_depth=4)
+params_cate = dict(random_state=42, n_estimators=100, learning_rate=0.05, max_depth=3, min_child_weight=10)
 
-m0 = xgb.XGBRegressor(**params)
-m1 = xgb.XGBRegressor(**params)
-m0.fit(X_train[T_train == 0], y_train[T_train == 0])
-m1.fit(X_train[T_train == 1], y_train[T_train == 1])
+# Bước 1: Mô hình dự đoán Tần suất tự nhiên (Base Outcome)
+m_y = xgb.XGBRegressor(**params_y)
+m_y.fit(X_train, y_train)
 
-pseudo0 = m1.predict(X_train[T_train == 0]) - y_train[T_train == 0]
-pseudo1 = y_train[T_train == 1] - m0.predict(X_train[T_train == 1])
+# Bước 2: Tính Phần dư (Residuals) tinh khiết
+p = 0.5  # Propensity score (do 50/50 RCT)
+Y_tilde = y_train - m_y.predict(X_train)
+T_tilde = T_train - p
 
-tau0 = xgb.XGBRegressor(**params); tau0.fit(X_train[T_train == 0], pseudo0)
-tau1 = xgb.XGBRegressor(**params); tau1.fit(X_train[T_train == 1], pseudo1)
+uplift_target = Y_tilde / T_tilde
+weights = T_tilde ** 2
 
-cate = 0.5 * tau0.predict(X_test) + 0.5 * tau1.predict(X_test)
-pred1 = m1.predict(X_test)
+# Bước 3: Đào tạo mô hình Uplift học trực tiếp từ Phần dư
+r_model = xgb.XGBRegressor(**params_cate)
+r_model.fit(X_train, uplift_target, sample_weight=weights)
+
+# Dự đoán CATE và số chuyến đi mong đợi nếu có Voucher
+cate = r_model.predict(X_test)
+pred1 = m_y.predict(X_test) + 0.5 * cate
 print(f"  Mean predicted CATE: {cate.mean():.4f}")
 
 # ─── 3. COMPUTE EXPECTED VALUE PER USER ───────────────────
