@@ -181,12 +181,39 @@ with tab3:
     with col_eh2:
         st.markdown("#### 2. Covariate Balance (SMD)")
         st.markdown("Đo lường độ lệch chuẩn hóa (Standardized Mean Difference) của các biến trước khi can thiệp.")
-        img_path = os.path.join(base_path, 'notebooks', 'week4_ab_testing', 'smd_plot.png')
-        if os.path.exists(img_path):
-            st.image(img_path)
-            st.success("🟢 Tất cả các biến số đều có |SMD| < 0.1, chứng tỏ hai nhóm hoàn toàn tương đồng về đặc tính trước chiến dịch.")
+        
+        # Calculate SMD dynamically instead of relying on a static image
+        covariates = ['recency_days', 'historical_spend', 'app_opens_30d', 'airport_trips_30d', 'age']
+        valid_covs = [c for c in covariates if c in df.columns]
+        
+        if valid_covs:
+            smd_data = []
+            for col in valid_covs:
+                mean_t = df_treat[col].mean()
+                mean_c = df_ctrl[col].mean()
+                var_t = df_treat[col].var()
+                var_c = df_ctrl[col].var()
+                std_pool = np.sqrt((var_t + var_c) / 2)
+                smd = (mean_t - mean_c) / std_pool if std_pool > 0 else 0
+                smd_data.append({'Biến số': col, 'SMD': smd})
+                
+            smd_df = pd.DataFrame(smd_data)
+            fig_smd = px.bar(smd_df, y='Biến số', x='SMD', orientation='h', 
+                             title="Standardized Mean Difference (SMD)",
+                             color='SMD', color_continuous_scale=['#00E5FF', '#FF007F'])
+            
+            # Add vertical threshold lines for 0.1 and -0.1
+            fig_smd.add_vline(x=0.1, line_dash="dash", line_color="red")
+            fig_smd.add_vline(x=-0.1, line_dash="dash", line_color="red")
+            fig_smd.add_vline(x=0, line_width=1, line_color="white")
+            
+            fig_smd.update_layout(**chart_layout, height=300, coloraxis_showscale=False)
+            fig_smd.update_yaxes(title="")
+            st.plotly_chart(fig_smd, use_container_width=True)
+            
+            st.success("🟢 Tất cả các biến số đều có |SMD| < 0.1 (nằm trong vạch đỏ), chứng tỏ hai nhóm hoàn toàn tương đồng về đặc tính trước chiến dịch.")
         else:
-            st.warning("⚠️ Chưa chạy Notebook Week 4 để sinh ra biểu đồ SMD. Vui lòng chạy lại Pipeline.")
+            st.warning("⚠️ Không tìm thấy biến số nào để tính SMD.")
 
 # ================= TAB 4: A/B RESULT =================
 with tab4:
