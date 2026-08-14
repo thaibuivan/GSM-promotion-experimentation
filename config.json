@@ -1,7 +1,7 @@
 {
     "economics": {
         "voucher_rate": 0.15,
-        "margin_rate": 0.60,
+        "margin_rate": 0.27,
         "budget_limit": 50000
     },
     "features": {

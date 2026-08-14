@@ -86,7 +86,7 @@ try:
     MARGIN_PERCENT = config['economics']['margin_rate'] * 100
 except:
     DISCOUNT_PERCENT = 15.0
-    MARGIN_PERCENT = 60.0
+    MARGIN_PERCENT = 27.0
 
 df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]
@@ -419,7 +419,7 @@ with tab7:
         st.markdown("#### Thiết lập Kinh tế (Economics)")
         sim2_budget = st.number_input("Ngân sách Chiến dịch ($)", min_value=1000, max_value=500000, value=50000, step=5000)
         sim2_voucher = st.slider("Mức Khuyến mãi (% Doanh thu)", min_value=5.0, max_value=50.0, value=15.0, step=5.0)
-        sim2_margin = st.slider("Biên lợi nhuận gộp (%)", min_value=10.0, max_value=100.0, value=60.0, step=5.0)
+        sim2_margin = st.slider("Biên lợi nhuận gộp (%)", min_value=10.0, max_value=100.0, value=27.0, step=5.0)
         sim2_max_target = st.slider("Max Target % (Giới hạn KH)", min_value=10, max_value=100, value=100, step=10)
         
     with col_sim_right:
