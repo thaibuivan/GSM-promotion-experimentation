@@ -258,6 +258,7 @@ with tab4:
                 'Treated GMV ($)': round(rev_t, 2),
                 'Incremental GMV ($)': round(d_rev, 2),
                 'Burn ($)': round(cost, 2),
+                'Burn Rate (%)': round((cost / rev_t * 100) if rev_t > 0 else 0, 1),
                 'Net Profit ($)': round(d_rev - cost, 2),
                 'ROI (%)': round(roi, 1)
             })
