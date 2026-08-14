@@ -197,41 +197,22 @@ with tab3:
                 smd = (mean_t - mean_c) / std_pool if std_pool > 0 else 0
                 smd_data.append({'Biến số': col, 'SMD': smd})
                 
-            smd_df = pd.DataFrame(smd_data).sort_values(by='SMD')
+            smd_df = pd.DataFrame(smd_data).sort_values(by='SMD', key=abs, ascending=True)
             
-            fig_smd = go.Figure()
-            
-            # Draw the horizontal lines (Lollipop sticks)
-            for _, row in smd_df.iterrows():
-                fig_smd.add_shape(
-                    type="line",
-                    x0=0, y0=row['Biến số'],
-                    x1=row['SMD'], y1=row['Biến số'],
-                    line=dict(color="#00E5FF" if row['SMD'] >= 0 else "#FF007F", width=2)
-                )
-
-            # Draw the points
-            colors = ["#00E5FF" if val >= 0 else "#FF007F" for val in smd_df['SMD']]
-            fig_smd.add_trace(go.Scatter(
-                x=smd_df['SMD'], 
-                y=smd_df['Biến số'],
-                mode='markers',
-                marker=dict(size=14, color='#0F172A', line=dict(width=2.5, color=colors)),
-                name='SMD',
-                hoverinfo='text',
-                text=[f"{row['Biến số']}: {row['SMD']:.4f}" for _, row in smd_df.iterrows()]
-            ))
+            # Revert to Bar Chart per user preference
+            fig_smd = px.bar(smd_df, y='Biến số', x='SMD', orientation='h', 
+                             color='SMD', color_continuous_scale=['#00E5FF', '#FF007F'])
             
             # Add vertical threshold lines
-            fig_smd.add_vline(x=0.1, line_dash="dash", line_color="#FF4B4B", line_width=1, annotation_text="0.1", annotation_position="top right")
-            fig_smd.add_vline(x=-0.1, line_dash="dash", line_color="#FF4B4B", line_width=1, annotation_text="-0.1", annotation_position="top left")
-            fig_smd.add_vline(x=0, line_width=2, line_color="rgba(255,255,255,0.3)")
+            fig_smd.add_vline(x=0.1, line_dash="dash", line_color="#FF4B4B", line_width=2)
+            fig_smd.add_vline(x=-0.1, line_dash="dash", line_color="#FF4B4B", line_width=2)
+            fig_smd.add_vline(x=0, line_width=2, line_color="rgba(255,255,255,0.8)")
             
-            # Formatting to make it look like a standard Love Plot
-            fig_smd.update_xaxes(range=[-0.15, 0.15], title="SMD (Độ lệch chuẩn hóa)", showgrid=True, gridcolor='rgba(255,255,255,0.05)', zeroline=False)
+            # Set fixed range so 0.1 is at the edges
+            fig_smd.update_xaxes(range=[-0.11, 0.11], title="SMD (Độ lệch chuẩn hóa)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
             fig_smd.update_yaxes(title="", showgrid=False)
-            fig_smd.update_layout(**chart_layout, height=350, showlegend=False, 
-                                  title="Biểu đồ Love Plot (Covariate Balance)")
+            fig_smd.update_layout(**chart_layout, height=350, coloraxis_showscale=False, 
+                                  title="Biểu đồ Mức độ Tương đồng (Covariate Balance)")
             
             st.plotly_chart(fig_smd, use_container_width=True)
             
