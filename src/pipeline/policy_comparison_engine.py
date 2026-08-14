@@ -50,8 +50,8 @@ df_test['avg_fare'] = df_test['avg_fare_per_trip']
 print(f"  Test set size: {len(df_test):,}")
 
 # ─── 2. TRAIN X-LEARNER ───────────────────────────────────
-print("\n[2/5] Training X-Learner (Regularized)...")
-params = dict(random_state=42, min_child_weight=30, reg_lambda=5.0, n_estimators=100, learning_rate=0.05, max_depth=3)
+print("\n[2/5] Training X-Learner...")
+params = dict(random_state=42, min_child_weight=5, reg_lambda=1.0, n_estimators=200, learning_rate=0.05, max_depth=4)
 
 m0 = xgb.XGBRegressor(**params)
 m1 = xgb.XGBRegressor(**params)
