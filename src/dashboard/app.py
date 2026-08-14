@@ -241,31 +241,30 @@ with tab4:
     st.warning("⚠️ **Cảnh báo Tài chính:** Việc phát Voucher ĐẠI TRÀ cho 100% khách hàng đang gây LỖ RÒNG (Lợi nhuận ròng âm). Điều này chứng tỏ hiệu ứng trung bình (ATE) không đủ lớn để bù đắp chi phí phát voucher dàn trải.")
     
     with st.expander("🎯 Click để xem Chân dung 5 Nhóm Khách hàng (K-Means Profiling)", expanded=False):
-        st.markdown("Trước khi phân tích tài chính, thuật toán K-Means đã gom cụm khách hàng tự động dựa trên hành vi lịch sử:")
+        st.markdown("Trước khi phân tích tài chính, thuật toán K-Means đã gom cụm khách hàng tự động dựa trên hành vi lịch sử. Dưới đây là đặc trưng trung bình của từng nhóm:")
         
-        # K-Means Radar Chart
+        # K-Means Heatmap Table
         cluster_features = ['age', 'monthly_rides_history', 'recency_days', 'avg_fare_per_trip']
         cluster_means = df.groupby('persona')[cluster_features].mean().reset_index()
         
-        # Min-Max Scaling for Radar Chart
-        from sklearn.preprocessing import MinMaxScaler
-        scaler = MinMaxScaler()
-        cluster_means_scaled = cluster_means.copy()
-        cluster_means_scaled[cluster_features] = scaler.fit_transform(cluster_means[cluster_features])
+        # Đổi tên cột cho đẹp
+        cluster_means.rename(columns={
+            'persona': 'Phân khúc (Persona)',
+            'age': 'Độ tuổi (Age)',
+            'monthly_rides_history': 'Số cuốc xe/tháng (Freq)',
+            'recency_days': 'Ngày rời mạng (Recency)',
+            'avg_fare_per_trip': 'Giá trị cuốc (Avg Fare)'
+        }, inplace=True)
         
-        # Reshape for plotly
-        radar_data = pd.melt(cluster_means_scaled, id_vars=['persona'], value_vars=cluster_features, 
-                             var_name='Feature', value_name='Score')
+        # Hiển thị bảng dạng Heatmap (so sánh theo cột)
+        st.dataframe(cluster_means.style.format({
+            'Độ tuổi (Age)': '{:.1f}',
+            'Số cuốc xe/tháng (Freq)': '{:.1f}',
+            'Ngày rời mạng (Recency)': '{:.1f}',
+            'Giá trị cuốc (Avg Fare)': '${:.2f}'
+        }).background_gradient(cmap='YlGnBu', axis=0), use_container_width=True, hide_index=True)
         
-        # Rename features for display
-        feature_names = {'age': 'Độ tuổi', 'monthly_rides_history': 'Tần suất đi/tháng', 
-                         'recency_days': 'Ngày rời mạng (Recency)', 'avg_fare_per_trip': 'Giá trị cuốc xe'}
-        radar_data['Feature'] = radar_data['Feature'].map(feature_names)
-        
-        fig_radar = px.line_polar(radar_data, r='Score', theta='Feature', color='persona', line_close=True,
-                                  color_discrete_sequence=px.colors.qualitative.Pastel)
-        fig_radar.update_layout(polar=dict(radialaxis=dict(visible=False), bgcolor='rgba(0,0,0,0)'), paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'), margin=dict(t=20, b=20, l=20, r=20))
-        st.plotly_chart(fig_radar, use_container_width=True)
+        st.info("💡 **Gợi ý đọc bảng:** Đọc theo chiều dọc để tìm điểm nổi bật. Ví dụ: **Airport Business** có Giá trị cuốc cao đột biến ($46.8) nhưng Số cuốc/tháng rất thấp (2.3). Ngược lại, **Rain Riders** có Ngày rời mạng cao nhất (11.8 ngày), chứng tỏ họ rất ít khi dùng app (chỉ dùng khi trời mưa).")
     
     st.markdown("#### 🔍 Bảng Kê Chi tiết Tài chính theo Phân khúc (Drill-down)")
     # Tính ROI cho từng nhóm
