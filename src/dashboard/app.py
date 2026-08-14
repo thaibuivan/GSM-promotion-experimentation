@@ -304,6 +304,7 @@ with tab5:
                          color='ROI (%)', color_continuous_scale=['#FF007F', '#00E5FF'],
                          title="Nghịch lý Lòng trung thành (ROI theo Recency)")
         fig_roi.update_layout(**chart_layout, coloraxis_showscale=False)
+        fig_roi.update_xaxes(categoryorder='array', categoryarray=['0-4 ngày (Khách ruột)', '5-9 ngày', '10-14 ngày', '15+ ngày (Ngủ đông)'])
         fig_roi.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)', zeroline=True, zerolinecolor='white', zerolinewidth=2)
         st.plotly_chart(fig_roi, use_container_width=True)
         
