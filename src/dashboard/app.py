@@ -228,8 +228,9 @@ with tab4:
     avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
     
     incremental_rev_per_user = avg_rev_treat - avg_rev_ctrl
+    gross_profit_per_user = incremental_rev_per_user * (MARGIN_PERCENT / 100.0)
     cost_per_user = (DISCOUNT_PERCENT / 100.0) * avg_rev_treat
-    net_profit_per_user = incremental_rev_per_user - cost_per_user
+    net_profit_per_user = gross_profit_per_user - cost_per_user
     overall_roi = (net_profit_per_user / cost_per_user) * 100 if cost_per_user > 0 else 0
     
     col1, col2, col3 = st.columns(3)
@@ -249,8 +250,9 @@ with tab4:
             rev_c = c['gross_revenue_30d'].mean()
             rev_t = t['gross_revenue_30d'].mean()
             d_rev = rev_t - rev_c
+            gross_profit = d_rev * (MARGIN_PERCENT / 100.0)
             cost = (DISCOUNT_PERCENT / 100.0) * rev_t
-            roi = (d_rev - cost) / cost * 100 if cost > 0 else 0
+            roi = (gross_profit - cost) / cost * 100 if cost > 0 else 0
             
             roi_data.append({
                 'Phân khúc (Persona)': p, 
@@ -259,7 +261,7 @@ with tab4:
                 'Incremental GMV ($)': round(d_rev, 2),
                 'Burn ($)': round(cost, 2),
                 'Burn / Inc. GMV (%)': round((cost / d_rev * 100) if d_rev > 0 else 999.9, 1),
-                'Net Profit ($)': round(d_rev - cost, 2),
+                'Net Profit ($)': round(gross_profit - cost, 2),
                 'ROI (%)': round(roi, 1)
             })
     
