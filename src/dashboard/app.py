@@ -403,7 +403,7 @@ with tab6:
         except:
             pass
 
-        st.info(f"**📊 Kết luận trong Sandbox:** Profit Targeting cho lợi nhuận **${profit_row['Expected_Incremental_Profit']:,.0f}**, trong khi Mass Voucher gây lỗ **${abs(mass_row['Expected_Incremental_Profit']):,.0f}**. {regret_str}")
+        st.info(f"**📊 Kết luận trong Sandbox:** Profit Targeting cho lợi nhuận **${profit_row['Expected_Incremental_Profit']:,.0f}**, trong khi Mass Voucher gây lỗ **${mass_row['Expected_Incremental_Profit']:,.0f}**. {regret_str}".replace('$', '\$'))
         
     except Exception as e:
         st.warning(f"Nhấn 'Chạy Pipeline' ở tab Admin để tạo dữ liệu Policy Comparison. ({str(e)})")

@@ -201,33 +201,15 @@ results.append(evaluate_policy(budget_mask, df_test, f"5. Budget-Constrained (${
 # Oracle Policy (using true_ite if available)
 if 'true_ite' in df_test.columns:
     oracle_mask = df_test['oracle_ev'] > 0
-    oracle_ev = df_test[oracle_mask]['oracle_ev'].sum()
-    oracle_cost = (df_test[oracle_mask]['pred_rides_treated'] * df_test[oracle_mask]['voucher_cost']).sum()
-    oracle_roi = (oracle_ev / oracle_cost * 100) if oracle_cost > 0 else 0
+    results.append(evaluate_policy(oracle_mask, df_test, "6. Oracle Policy (True ITE — Sandbox only)"))
     
-    n_oracle = oracle_mask.sum()
-    if n_oracle > 1:
-        oracle_std = df_test[oracle_mask]['oracle_ev'].std()
-        oracle_moe = 1.96 * oracle_std * np.sqrt(n_oracle)
-    else:
-        oracle_moe = 0
+    # Save regret info for Dashboard
+    profit_policy_ev = results[-3]["Expected_Incremental_Profit"] # index -3 is Profit Targeting
+    oracle_ev_sum = results[-1]["Expected_Incremental_Profit"]
+    regret = oracle_ev_sum - profit_policy_ev
+    regret_pct = (regret / oracle_ev_sum * 100) if oracle_ev_sum > 0 else 0
 
-    results.append({
-        "Policy": "6. Oracle Policy (True ITE — Sandbox only)",
-        "N_Targeted": int(n_oracle),
-        "Pct_Targeted": round(n_oracle / len(df_test) * 100, 1),
-        "Total_Voucher_Cost": round(oracle_cost, 0),
-        "Expected_Incremental_Profit": round(oracle_ev, 0),
-        "EV_Lower_95": round(oracle_ev - oracle_moe, 0),
-        "EV_Upper_95": round(oracle_ev + oracle_moe, 0),
-        "Est_ROI_pct": round(oracle_roi, 1)
-    })
-
-    # Compute Regret
-    profit_policy_ev = df_test[profit_mask]['expected_value'].sum()
-    regret = oracle_ev - profit_policy_ev
-    regret_pct = (regret / oracle_ev * 100) if oracle_ev > 0 else 0
-    print(f"\n  Oracle Profit: ${oracle_ev:,.0f}")
+    print(f"\n  Oracle Profit: ${oracle_ev_sum:,.0f}")
     print(f"  Profit Targeting: ${profit_policy_ev:,.0f}")
     print(f"  Regret: ${regret:,.0f} ({regret_pct:.1f}% of oracle)")
 
@@ -308,7 +290,7 @@ print(f"  Qini curve data saved to: qini_curve.csv")
 # Save regret info if oracle is available
 if 'true_ite' in df_test.columns:
     regret_info = {
-        "oracle_profit": round(oracle_ev, 0),
+        "oracle_profit": round(oracle_ev_sum, 0),
         "profit_targeting_profit": round(profit_policy_ev, 0),
         "regret_abs": round(regret, 0),
         "regret_pct": round(regret_pct, 1)
