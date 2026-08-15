@@ -550,15 +550,15 @@ with tab8:
     with st.expander("⚙️ Advanced / Developer Mode"):
         st.warning("⚠️ Khu vực này dành cho Developer chạy lại Data Pipeline. Business user không nên thao tác.")
         if st.button("▶️ Chạy toàn bộ Data Pipeline", type="primary"):
-        import sys
-        pipeline_path = os.path.join(base_path, 'src', 'pipeline')
-        if pipeline_path not in sys.path:
-            sys.path.append(pipeline_path)
-        try:
-            from main_pipeline import run_pipeline
-            progress_bar = st.progress(0, text="Khởi tạo Pipeline...")
-            def st_progress_callback(pct, msg): progress_bar.progress(pct, text=f"[{pct}%] {msg}")
-            run_pipeline(n_users=20000, progress_callback=st_progress_callback)
-            st.success("✅ Đã hoàn tất Pipeline! Tải lại trang (F5) để Dashboard cập nhật dữ liệu.")
-        except Exception as e:
-            st.error(f"Lỗi khi chạy Pipeline: {e}")
+            import sys
+            pipeline_path = os.path.join(base_path, 'src', 'pipeline')
+            if pipeline_path not in sys.path:
+                sys.path.append(pipeline_path)
+            try:
+                from main_pipeline import run_pipeline
+                progress_bar = st.progress(0, text="Khởi tạo Pipeline...")
+                def st_progress_callback(pct, msg): progress_bar.progress(pct, text=f"[{pct}%] {msg}")
+                run_pipeline(n_users=20000, progress_callback=st_progress_callback)
+                st.success("✅ Đã hoàn tất Pipeline! Tải lại trang (F5) để Dashboard cập nhật dữ liệu.")
+            except Exception as e:
+                st.error(f"Lỗi khi chạy Pipeline: {e}")
