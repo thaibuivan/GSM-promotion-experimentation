@@ -6,7 +6,7 @@
 *(Vui lòng đợi vài giây để Cloud tải dữ liệu giả lập ở lần truy cập đầu tiên).*
 
 ## 📌 Tổng quan Dự án
-Dự án này là một **Experimentation-Driven Promotion Sandbox**. Bắt đầu từ Data Quality & EDA trên dữ liệu mobility công khai, chuyển empirical patterns thành synthetic user-level causal data có Y0/Y1/ITE ground truth. Sau đó, sử dụng A/B Testing để kiểm chứng incremental treatment effect, và mở rộng sang Uplift Modeling cùng business metrics (GMV, Burn) để đánh giá các targeting policies dưới controlled assumptions.
+Dự án này là một **Experimentation-Driven Promotion Sandbox**. Bắt đầu từ Data Quality & EDA trên dữ liệu mobility công khai, chuyển empirical patterns thành synthetic user-level causal data có Y0/Y1/Ground-Truth CATE và realized ITE. Sau đó, sử dụng A/B Testing để kiểm chứng incremental treatment effect, và mở rộng sang Uplift Modeling cùng business metrics (GMV, Burn) để đánh giá các targeting policies dưới controlled assumptions.
 
 Câu hỏi kinh doanh trung tâm: *"Làm thế nào để từ dữ liệu mobility công khai xây một causal experimentation sandbox đủ hợp lý, sau đó dùng randomized A/B Testing để đo incremental effect, mở rộng sang Uplift Modeling để phát hiện heterogeneous response, và đánh giá các promotion policy theo Incremental Rides/GMV và Promotion Burn?"*
 

@@ -1,4 +1,4 @@
-Policy,N_Targeted,Pct_Targeted,Total_Voucher_Cost,Predicted_Incremental_Profit,Ground_Truth_Incremental_Profit,EV_Lower_95,EV_Upper_95,Est_ROI_pct,Expected_Incremental_Rides,Expected_GMV,Incremental_GMV,Burn,CPIR,Burn_per_GMV_pct,Burn_per_Inc_GMV_pct
+Policy,N_Targeted,Pct_Targeted,Total_Voucher_Cost,Predicted_Incremental_Profit,Synthetic_Causal_Benchmark_Profit,EV_Lower_95,EV_Upper_95,Est_ROI_pct,Expected_Incremental_Rides,Expected_GMV,Incremental_GMV,Burn,CPIR,Burn_per_GMV_pct,Burn_per_Inc_GMV_pct
 0. No Voucher,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,,,,,,
 1. Mass Voucher (All Users),4000,100.0,,-65358.0,-76313.0,-68889.0,-61826.0,-49.5,3821.0,880888.0,95394.0,132133.0,35.0,15.0,138.5
 2. Segment Targeting (Suburban),1660,41.5,,-4286.0,-996.0,-5705.0,-2867.0,-12.1,1437.0,235198.0,44277.0,35280.0,25.0,15.0,79.7

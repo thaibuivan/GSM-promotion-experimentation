@@ -100,7 +100,7 @@ def evaluate_policy(target_mask, df_eval, label):
                 "Expected_Incremental_Rides": 0, "Expected_GMV": 0, "Incremental_GMV": 0,
                 "Burn": 0, "CPIR": 0, "Burn_per_GMV_pct": 0, "Burn_per_Inc_GMV_pct": 0,
                 "Predicted_Incremental_Profit": 0,
-                "Ground_Truth_Incremental_Profit": 0,
+                "Synthetic_Causal_Benchmark_Profit": 0,
                 "EV_Lower_95": 0, "EV_Upper_95": 0,
                 "Est_ROI_pct": 0}
 
@@ -136,7 +136,7 @@ def evaluate_policy(target_mask, df_eval, label):
         "Burn_per_GMV_pct": round(burn_per_gmv, 1),
         "Burn_per_Inc_GMV_pct": round(burn_per_inc_gmv, 1),
         "Predicted_Incremental_Profit": round(predicted_ev, 0),
-        "Ground_Truth_Incremental_Profit": round(ground_truth_ev, 0),
+        "Synthetic_Causal_Benchmark_Profit": round(ground_truth_ev, 0),
         "EV_Lower_95": round(predicted_ev - moe, 0),
         "EV_Upper_95": round(predicted_ev + moe, 0),
         "Est_ROI_pct": round(roi, 1)
@@ -154,7 +154,7 @@ results.append({
     "Pct_Targeted": 0.0,
     "Total_Voucher_Cost": 0,
     "Predicted_Incremental_Profit": 0,
-    "Ground_Truth_Incremental_Profit": 0,
+    "Synthetic_Causal_Benchmark_Profit": 0,
     "EV_Lower_95": 0,
     "EV_Upper_95": 0,
     "Est_ROI_pct": 0.0
@@ -190,9 +190,9 @@ if 'cate_true' in df_test.columns:
     oracle_mask = df_test['oracle_ev'] > 0
     results.append(evaluate_policy(oracle_mask, df_test, "6. Oracle Policy (Synthetic-only)"))
     
-    # Save regret info for Dashboard
-    profit_policy_ev = results[-3]["Ground_Truth_Incremental_Profit"] # index -3 is Profit Targeting
-    oracle_ev_sum = results[-1]["Ground_Truth_Incremental_Profit"]
+    # Basic Regret Evaluation
+    profit_policy_ev = results[-3]["Synthetic_Causal_Benchmark_Profit"] # index -3 is Profit Targeting
+    oracle_ev_sum = results[-1]["Synthetic_Causal_Benchmark_Profit"]
     regret = oracle_ev_sum - profit_policy_ev
     regret_pct = (regret / oracle_ev_sum * 100) if oracle_ev_sum > 0 else 0
 

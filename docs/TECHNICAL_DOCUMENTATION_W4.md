@@ -975,7 +975,7 @@ Synthetic environment chưa phản ánh đầy đủ:
 
 ## 33.5. Analysis-window consistency
 
-Một số artifacts hiện đang dùng các horizon khác nhau (ví dụ experiment design 14-day trong tài liệu và một số revenue variables theo 30-day naming).
+At the Week 4 snapshot, some artifacts used inconsistent analysis horizons. This was standardized to a 30-day primary outcome window in subsequent project iterations.
 
 Trước final delivery cần chuẩn hóa hoặc label rõ từng horizon.
 

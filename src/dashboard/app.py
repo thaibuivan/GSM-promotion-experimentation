@@ -460,7 +460,7 @@ with tab6:
                 ))
             
             # Chart B: Synthetic Causal Benchmark
-            truth_val = row['Ground_Truth_Incremental_Profit']
+            truth_val = row['Synthetic_Causal_Benchmark_Profit']
             fig_truth.add_trace(go.Bar(
                 x=[name], y=[truth_val], name=row['Policy'], marker_color=color,
                 text=[f"${truth_val:,.0f}\n({row['Pct_Targeted']:.0f}%)"], textposition='outside'
@@ -485,7 +485,7 @@ with tab6:
         
         display_df = policy_df_raw.copy()
         display_df['Khoảng Rủi ro (95% CI)'] = display_df.apply(lambda r: f"[{r.get('EV_Lower_95', 0):,.0f} ~ {r.get('EV_Upper_95', 0):,.0f}]", axis=1)
-        display_df = display_df[['Policy', 'N_Targeted', 'Pct_Targeted', 'Expected_GMV', 'Burn', 'Burn_per_GMV_pct', 'Incremental_GMV', 'Burn_per_Inc_GMV_pct', 'Expected_Incremental_Rides', 'CPIR', 'Predicted_Incremental_Profit', 'Ground_Truth_Incremental_Profit', 'Khoảng Rủi ro (95% CI)', 'Est_ROI_pct']]
+        display_df = display_df[['Policy', 'N_Targeted', 'Pct_Targeted', 'Expected_GMV', 'Burn', 'Burn_per_GMV_pct', 'Incremental_GMV', 'Burn_per_Inc_GMV_pct', 'Expected_Incremental_Rides', 'CPIR', 'Predicted_Incremental_Profit', 'Synthetic_Causal_Benchmark_Profit', 'Khoảng Rủi ro (95% CI)', 'Est_ROI_pct']]
         display_df.columns = [
             'Policy', 'N Users Target', '% Users', 
             'Dự kiến GMV ($)', 'Burn ($)', 'Burn/GMV (%)', 
