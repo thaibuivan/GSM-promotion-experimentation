@@ -167,7 +167,8 @@ with tab2:
     
     col_mde1, col_mde2 = st.columns(2)
     with col_mde1:
-        base_rides = st.number_input("Baseline (Số chuyến đi trung bình hiện tại/30 ngày)", value=2.0, min_value=0.1)
+        baseline_default = float(df["Y0"].mean()) if "Y0" in df.columns else 8.0
+        base_rides = st.number_input("Baseline (Số chuyến đi trung bình hiện tại/30 ngày)", value=baseline_default, min_value=0.1)
         std_dev = st.number_input("Standard Deviation (Độ lệch chuẩn)", value=1.5, min_value=0.1)
         mde_pct = st.slider("Minimum Detectable Effect (Kỳ vọng tăng % so với Baseline)", min_value=1, max_value=50, value=10)
         

@@ -31,9 +31,12 @@ Kết quả A/B Test trên synthetic data với assumptions HTE đã thiết k�
 | **Suburban Cash** | 5,061 | +0.79 | **+24.7%** | Phù hợp assumptions — ROI dương trong sandbox |
 
 ### B.3. Uplift Model Evaluation
-- R-Learner (XGBoost-based residual learner) cho profit tốt nhất ở top 30-50% population.
-- Profit Targeting (rank theo Expected Value_i = CATE_i × Margin − Voucher Cost) vượt trội Segment Targeting thuần.
-- Oracle Regret so với Ground-Truth CATE: [xem notebook Week5].
+- R-Learner shows useful ranking signal, while CATE level calibration remains imperfect.
+- Profit Targeting: Nhắm mục tiêu 888 / 4000 users (22.2%) 
+- Predicted Profit: ≈ $7,939
+- Synthetic Causal Benchmark: ≈ $7,060
+- Oracle Benchmark: ≈ $10,818
+- Oracle Regret: ≈ $3,758 (34.7%)
 
 ---
 
@@ -42,7 +45,7 @@ Trong synthetic sandbox với assumptions hiện tại về treatment effect, vo
 
 > **Profit-based Uplift Targeting** (rank toàn eligible population theo Expected Incremental Value, phát đến hết budget) cho policy value tốt hơn Mass Voucher và Segment Targeting.
 
-Mức Voucher giả định 15% → Top 30-50% population → Expected Incremental Profit ~$10,500 (trong sandbox).
+Mức Voucher giả định 15% → Lọc theo Expected Value > 0 → Predicted Profit ~$7,939 (trong sandbox).
 
 ---
 

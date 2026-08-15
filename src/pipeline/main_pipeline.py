@@ -346,7 +346,7 @@ def run_pipeline(n_users=N_USERS, progress_callback=None):
         MARGIN_RATE = 0.70
     net_contribution  = (gross_revenue_30d * MARGIN_RATE - discount_cost_30d).round(2)
 
-    if progress_callback: progress_callback(75, "Dang huan luyen mo hinh K-Means 5 Cum...")
+    if progress_callback: progress_callback(75, "Assigning Behavioral Personas...")
 
     # ----------------------------------------------------------
     # BLOCK 6: Build DataFrame + Segmentation
