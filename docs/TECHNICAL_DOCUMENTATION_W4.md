@@ -1027,7 +1027,7 @@ Có thể mô tả trạng thái sau 4 tuần như sau:
 
 Tài liệu này được tổng hợp từ trạng thái repo hiện tại nhưng **đóng băng scope ở cuối Week 4**.
 
-Một số báo cáo cũ trong repo đã được cập nhật thêm kết quả ở các tuần sau hoặc dùng wording quá mạnh như “hoàn hảo”, “tuyệt đối”, “triển khai ngay”.
+Một số báo cáo cũ trong repo đã được cập nhật thêm kết quả ở các tuần sau hoặc dùng wording quá mạnh như “tương đối chính xác”, “đáng tin cậy”, “xem xét thử nghiệm thực tế”.
 
 Tech doc này sử dụng wording thận trọng hơn:
 

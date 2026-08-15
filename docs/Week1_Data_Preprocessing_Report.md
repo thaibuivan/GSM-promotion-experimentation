@@ -8,7 +8,7 @@
 ---
 
 ## 1. CHIẾN LƯỢC XÓA DỮ LIỆU (DELETION)
-Thay vì dùng các màng lọc gắt gao (như giới hạn thời gian chuyến đi < 12h hay cước phí < $300), dự án quyết định **chỉ xóa những quan sát vi phạm định luật vật lý hoặc lỗi logic hệ thống tuyệt đối**. 
+Thay vì dùng các màng lọc gắt gao (như giới hạn thời gian chuyến đi < 12h hay cước phí < $300), dự án quyết định **chỉ xóa những quan sát vi phạm định luật vật lý hoặc lỗi logic hệ thống đáng tin cậy**. 
 
 Các dữ liệu cực đoan (như chuyến đi 50 tiếng hoặc cước phí $1000) nhưng hợp lý về mặt vật lý đều được GIỮ LẠI để phục vụ phân tích Hành vi khách hàng (Task 4).
 

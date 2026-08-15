@@ -19,8 +19,6 @@ print("=" * 60)
 # ─── 1. LOAD DATA ─────────────────────────────────────────
 print("\n[1/5] Loading data...")
 df = pd.read_csv(data_path)
-if 'cate_true' in df.columns:
-    df['true_ite'] = df['cate_true']
 print(f"  Total users: {len(df):,}")
 
 # Economics parameters from config
@@ -85,8 +83,8 @@ df_test['margin_per_ride'] = df_test['avg_fare'] * MARGIN_RATE
 df_test['expected_value'] = (df_test['cate_pred'] * df_test['margin_per_ride']) - \
                             (df_test['pred_rides_treated'] * df_test['voucher_cost'])
 
-if 'true_ite' in df_test.columns:
-    df_test['oracle_ev'] = (df_test['true_ite'] * df_test['margin_per_ride']) - \
+if 'cate_true' in df_test.columns:
+    df_test['oracle_ev'] = (df_test['cate_true'] * df_test['margin_per_ride']) - \
                            (df_test['pred_rides_treated'] * df_test['voucher_cost'])
 
 # Observed uplift on test set (for policy outcome evaluation)
@@ -108,8 +106,8 @@ def evaluate_policy(target_mask, df_eval, label):
     # Among targeted: use Oracle (Ground Truth) if available, otherwise model proxy
     if 'oracle_ev' in df_eval.columns:
         total_ev = targeted['oracle_ev'].sum()
-        total_inc_rides = targeted['true_ite'].sum()
-        total_inc_gmv = (targeted['true_ite'] * targeted['avg_fare']).sum()
+        total_inc_rides = targeted['cate_true'].sum()
+        total_inc_gmv = (targeted['cate_true'] * targeted['avg_fare']).sum()
         if n_targeted > 1:
             std_ev = targeted['oracle_ev'].std()
             moe = 1.96 * std_ev * np.sqrt(n_targeted)
@@ -198,8 +196,8 @@ budget_mask_idx = df_sorted_ev[df_sorted_ev['cumulative_cost'] <= CAMPAIGN_BUDGE
 budget_mask = df_test.index.isin(budget_mask_idx)
 results.append(evaluate_policy(budget_mask, df_test, f"5. Budget-Constrained (${CAMPAIGN_BUDGET:,})"))
 
-# Oracle Policy (using true_ite if available)
-if 'true_ite' in df_test.columns:
+# Oracle Policy (using cate_true if available)
+if 'cate_true' in df_test.columns:
     oracle_mask = df_test['oracle_ev'] > 0
     results.append(evaluate_policy(oracle_mask, df_test, "6. Oracle Policy (True ITE — Sandbox only)"))
     
@@ -223,8 +221,8 @@ policy_df.to_csv(out_path, index=False)
 
 # Save user-level predictions for interactive Streamlit simulator
 cols_to_save = ['persona', 'avg_fare', 'cate_pred', 'pred_rides_treated', 'Y_rand', 'treatment_rand']
-if 'true_ite' in df_test.columns:
-    cols_to_save.append('true_ite')
+if 'cate_true' in df_test.columns:
+    cols_to_save.append('cate_true')
 df_test_preds = df_test[cols_to_save].copy()
 preds_path = os.path.join(base_path, 'data', 'processed', 'test_predictions.csv')
 df_test_preds.to_csv(preds_path, index=False)
@@ -242,7 +240,7 @@ for d in sorted(df_calib['decile'].unique()):
     t = subset[subset['treatment_rand'] == 1]
     c = subset[subset['treatment_rand'] == 0]
     obs_uplift = t['Y_rand'].mean() - c['Y_rand'].mean()
-    true_uplift = subset['true_ite'].mean() if 'true_ite' in subset.columns else None
+    true_uplift = subset['cate_true'].mean() if 'cate_true' in subset.columns else None
     pred_uplift = subset['cate_pred'].mean()
     
     calib_results.append({
@@ -288,7 +286,7 @@ qini_df.to_csv(qini_path, index=False)
 print(f"  Qini curve data saved to: qini_curve.csv")
 
 # Save regret info if oracle is available
-if 'true_ite' in df_test.columns:
+if 'cate_true' in df_test.columns:
     regret_info = {
         "oracle_profit": round(oracle_ev_sum, 0),
         "profit_targeting_profit": round(profit_policy_ev, 0),

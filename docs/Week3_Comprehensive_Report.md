@@ -88,7 +88,7 @@ Từ phân tích EDA (Notebook 6), chúng ta biết rằng phần lớn người
 ### Tiêu chí chọn vào (Inclusion):
 | Tiêu chí | Điều kiện | Nguồn gốc K-Means Cluster |
 |---|---|---|
-| **Persona Ưu tiên 1** | **`Suburban Card`** (N=2,792) | ROI +20.7%, ATE +1.04 chuyến, P-value = 6.57e-7. Phù hợp triển khai ngay (thanh toán thẻ). |
+| **Persona Ưu tiên 1** | **`Suburban Card`** (N=2,792) | ROI +20.7%, ATE +1.04 chuyến, P-value = 6.57e-7. Phù hợp xem xét thử nghiệm thực tế (thanh toán thẻ). |
 | **Persona Ưu tiên 2** | **`Suburban Cash`** (N=5,061) | ROI +24.7%, ATE +0.79 chuyến, P-value ≈ 0. Cần tích hợp cơ chế Cash Payment trước. |
 | Trạng thái Ngủ đông | **`recency_days` ~ 5-14 ngày** | Lọc user đang có nguy cơ rời bỏ |
 | Tình trạng tài khoản | Tài khoản Active, chưa bị khóa | Mặc định hệ thống |
@@ -236,7 +236,7 @@ Nếu gán nhãn bằng quy tắc `IF / ELSE`, hệ thống sẽ sụp đổ tr�
 Data Scientist có thể tính toán cho 1 triệu khách hàng, nhưng đội ngũ Marketing **không thể thiết kế 1 triệu mẫu Banner**. Phân cụm (Segmentation) là công cụ 'cầu nối' bắt buộc: Gom 20,000 khách hàng hỗn độn thành 4-5 Persona (ví dụ: Suburban Card) để team Marketing có thể thiết kế thông điệp truyền thông và chương trình khuyến mãi riêng biệt cho từng nhóm.
 
 ### 3. Ý đồ kịch bản: Bàn đạp tiến tới Uplift Modeling (Tuần 5)
-Việc sử dụng K-Means ở Tuần 3 và 4 là cách tiếp cận 'truyền thống' trong ngành. Tuy nhiên, qua quá trình A/B Testing, chúng ta đã chủ động bóc trần những điểm yếu chí mạng của nó (Nhãn bị khái quát hóa quá mức, ROI âm nếu target sai nhóm). Sự thất bại một phần của K-Means chính là **tiền đề hoàn hảo** để tôn vinh thuật toán **Uplift Modeling** ở Tuần 5 — nơi hệ thống không còn phụ thuộc vào các cụm tĩnh, mà tính toán Tác động Nhân quả (ITE) đến cấp độ từng cá nhân riêng biệt.
+Việc sử dụng K-Means ở Tuần 3 và 4 là cách tiếp cận 'truyền thống' trong ngành. Tuy nhiên, qua quá trình A/B Testing, chúng ta đã chủ động bóc trần những điểm yếu chí mạng của nó (Nhãn bị khái quát hóa quá mức, ROI âm nếu target sai nhóm). Sự thất bại một phần của K-Means chính là **tiền đề tương đối chính xác** để tôn vinh thuật toán **Uplift Modeling** ở Tuần 5 — nơi hệ thống không còn phụ thuộc vào các cụm tĩnh, mà tính toán Tác động Nhân quả (ITE) đến cấp độ từng cá nhân riêng biệt.
 
 ---
 
@@ -244,7 +244,7 @@ Việc sử dụng K-Means ở Tuần 3 và 4 là cách tiếp cận 'truyền t
 
 Một trong những câu hỏi phản biện gắt gao nhất từ hội đồng (Mentor) thường là: *"Tại sao lại dùng K-Means mà không dùng thuật toán khác? Tại sao lại chọn K=5?"*
 
-Để đảm bảo hệ thống có độ tin cậy tuyệt đối về mặt Toán học, luồng xử lý của Tuần 3 đã được thiết kế với 3 lớp lập luận (Reasoning) vững chắc:
+Để đảm bảo hệ thống có độ tin cậy đáng tin cậy về mặt Toán học, luồng xử lý của Tuần 3 đã được thiết kế với 3 lớp lập luận (Reasoning) vững chắc:
 
 ### 13.1. Tại sao là K-Means? (Tính Giải thích & Khả năng Mở rộng)
 *   **Interpretability (Dễ giải thích):** Khác với DBSCAN (tìm ra các cụm hình thù kỳ dị không rõ ràng), K-Means sinh ra các tâm cụm (Centroids). Chúng ta có thể tính trung bình các biến hành vi tại tâm cụm này để phác họa chân dung Persona (Ví dụ: tỷ lệ quẹt thẻ cao -> Suburban Card). Điều này mang lại giá trị thực tiễn cực cao cho đội ngũ Marketing.
@@ -252,10 +252,10 @@ Một trong những câu hỏi phản biện gắt gao nhất từ hội đồng
 
 ### 13.2. PCA: Lá chắn bảo vệ điểm yếu của K-Means
 *   K-Means đo lường bằng khoảng cách vật lý (Euclidean), do đó rất nhạy cảm với các biến bị "Nhiễu" hoặc "Đa cộng tuyến" (Các biến mang thông tin lặp lại nhau).
-*   **Giải pháp:** Chúng ta không chạy K-Means trực tiếp trên 11 biến. Ta áp dụng thuật toán **PCA** (Giữ lại 90% lượng thông tin cốt lõi) để nén 11 biến thành 9 trục tọa độ hoàn toàn độc lập (Trực giao). Nhờ vậy, K-Means được chạy trong một không gian "Sạch nhiễu", đảm bảo độ chính xác tuyệt đối.
+*   **Giải pháp:** Chúng ta không chạy K-Means trực tiếp trên 11 biến. Ta áp dụng thuật toán **PCA** (Giữ lại 90% lượng thông tin cốt lõi) để nén 11 biến thành 9 trục tọa độ hoàn toàn độc lập (Trực giao). Nhờ vậy, K-Means được chạy trong một không gian "Sạch nhiễu", đảm bảo độ chính xác đáng tin cậy.
 
 ### 13.3. Permutation Null Simulation: Bằng chứng thép cho K=5
 Để chứng minh việc chọn K=5 không phải là cảm tính qua việc "nhìn" đường Elbow, hệ thống áp dụng kỹ thuật **Mô phỏng Dữ liệu Rác (Null Model)**:
 *   Thuật toán "Xáo trộn ngẫu nhiên" (Permute) các cột dữ liệu để phá vỡ mọi quy luật hành vi của khách hàng, tạo ra một đám mây hỗn loạn.
 *   Sau đó cho K-Means chạy chia cụm trên đám mây rác này.
-*   **Kết quả so sánh:** Tại K=2 và K=3, khoảng cách (Gap) điểm Silhouette giữa Dữ liệu Thật và Dữ liệu Rác chỉ là 0.01~0.02 (Tức là chia cụm xong cũng không khác gì rác). Nhưng tại **K=5**, Gap vọt lên mức **0.10** — Tách biệt hoàn toàn khỏi sự ngẫu nhiên. Đây là bằng chứng định lượng tuyệt đối chứng minh cấu trúc 5 cụm là một quy luật có thật trong tệp khách hàng!
+*   **Kết quả so sánh:** Tại K=2 và K=3, khoảng cách (Gap) điểm Silhouette giữa Dữ liệu Thật và Dữ liệu Rác chỉ là 0.01~0.02 (Tức là chia cụm xong cũng không khác gì rác). Nhưng tại **K=5**, Gap vọt lên mức **0.10** — Tách biệt hoàn toàn khỏi sự ngẫu nhiên. Đây là bằng chứng định lượng đáng tin cậy chứng minh cấu trúc 5 cụm là một quy luật có thật trong tệp khách hàng!

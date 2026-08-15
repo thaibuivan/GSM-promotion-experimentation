@@ -16,19 +16,19 @@ Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng m
 - **Phương pháp:** Sử dụng Kiểm định Chi-Square ($X^2$) qua 5000 vòng lặp, kết hợp **Kiểm định Nhị phân (Binomial Test)** để đánh giá tỷ lệ lỗi.
 - **Ngưỡng tiêu chuẩn:** Số lần P-value < 0.05 phải tương đồng với mức kỳ vọng ngẫu nhiên (5%). Binomial P-value > 0.05.
 - **Kết quả đo lường:** Số lần cảnh báo SRM là **263/5000 (5.26%)**. Khoảng tin cậy hoàn toàn phù hợp với phương sai ngẫu nhiên (Binomial P-value = **0.3988**).
-- **Kết luận:** ĐẠT (PASS). Thuật toán Randomization hoạt động ổn định và công bằng tuyệt đối. Tỷ lệ phân bổ user 50/50 là hoàn hảo.
+- **Kết luận:** ĐẠT (PASS). Thuật toán Randomization hoạt động ổn định và công bằng đáng tin cậy. Tỷ lệ phân bổ user 50/50 là tương đối chính xác.
 
 ### 3.2. Kiểm tra Độ Cân bằng Đặc trưng (Covariate Balance — SMD)
 - **Phương pháp:** Được thực hiện trong bước Sanity Check của A/B Test Analysis. Thay vì dùng T-Test thông thường dễ báo lỗi khi cỡ mẫu lớn, dự án sử dụng chỉ số **SMD (Standardized Mean Difference)** để kiểm tra độ cân bằng của các biến hiệp phương sai (Tuổi, Lịch sử chuyến đi, Số ngày ngủ đông, Giá vé trung bình) trước thí nghiệm.
 - **Ngưỡng tiêu chuẩn:** Giá trị $|SMD| < 0.1$ cho tất cả các biến.
-- **Kết quả đo lường:** Hệ thống duy trì sự cân bằng đặc trưng tuyệt đối, toàn bộ các biến quan trọng đều có $|SMD| < 0.1$.
+- **Kết quả đo lường:** Hệ thống duy trì sự cân bằng đặc trưng đáng tin cậy, toàn bộ các biến quan trọng đều có $|SMD| < 0.1$.
 - **Kết luận:** ĐẠT (PASS). Hệ thống loại trừ thành công các rủi ro liên quan đến Thiên kiến chọn mẫu (Selection Bias).
 
 ### 3.3. Kiểm tra Tỷ lệ Dương tính giả (False Positive Rate - FPR)
 - **Phương pháp:** Đo lường tỷ lệ các vòng lặp A/A Test trả về P-value < 0.05 (FPR) và kiểm chứng bằng **KS-Test (Kolmogorov-Smirnov)** để xác nhận phân phối P-value là Uniform. *(Lưu ý: Bỏ qua Binomial Test thuần túy do đặc tính biến rời rạc của số chuyến đi).*
 - **Ngưỡng tiêu chuẩn:** FPR không có sự khác biệt ý nghĩa thống kê so với 5.0%. KS-Test P-value > 0.05.
 - **Kết quả đo lường:** Tỷ lệ False Positive thực tế đạt **5.08%** (254 lỗi / 5000 lần). KS-Test P-value = **0.5691**.
-- **Kết luận:** ĐẠT (PASS). Động cơ tính toán thống kê (Statistical Engine) hoạt động chuẩn xác, kiểm soát hoàn hảo tỷ lệ báo động giả.
+- **Kết luận:** ĐẠT (PASS). Động cơ tính toán thống kê (Statistical Engine) hoạt động chuẩn xác, kiểm soát tương đối chính xác tỷ lệ báo động giả.
 
 ## 4. Kết luận Tổng thể
 Không phát hiện randomization/statistical calibration issue đáng kể dưới các thiết lập mô phỏng đã kiểm tra. Pipeline có đủ độ tin cậy để chạy A/B Test trong môi trường synthetic. Để áp dụng vào dữ liệu GSM thật, cần thêm: kiểm tra exposure/logging, invariant metrics và guardrails thực tế vận hành.
@@ -79,7 +79,7 @@ Dưới đây là kết quả A/B Testing thực tế được bóc tách theo c
 | **Urban Regulars** | 8,424 | +1.00 | 3.18e-8 | **-40.7%** | ❌ **Dừng Voucher**. Hiệu ứng Cannibalization nặng nề. Đằng nào họ cũng đi xe mà không cần Voucher. |
 | **Rain Riders** | 2,592 | +0.86 | 0.010 | **-38.9%** | ❌ **Dừng Voucher**. Phụ thuộc thời tiết. Doanh thu tăng không bù nổi chi phí Voucher. |
 | **Airport Business** | 1,131 | +1.21 | 0.008 | **-18.0%** | ❌ **Dừng Voucher**. Kháng khuyến mãi. ATE có vẻ dương nhưng chi phí Voucher vượt xa doanh thu. |
-| **Suburban Card** | 2,792 | +1.04 | **6.57e-7** | **+20.7%** | ✅ **Target chính (Phase 1)**. Thanh toán thẻ 100% → triển khai ngay lập tức. |
+| **Suburban Card** | 2,792 | +1.04 | **6.57e-7** | **+20.7%** | ✅ **Target chính (Phase 1)**. Thanh toán thẻ 100% → xem xét thử nghiệm thực tế lập tức. |
 | **Suburban Cash** | 5,061 | +0.79 | **≈0** | **+24.7%** | 💡 **ROI cao nhất (Phase 2)**. Phát hiện mới từ PCA! Cần thiết kế cơ chế Cash Voucher trước khi roll-out. |
 
 
@@ -87,7 +87,7 @@ Dưới đây là kết quả A/B Testing thực tế được bóc tách theo c
 > Nếu ta chỉ chạy A/B Test đại trà (Mass Voucher) trên toàn bộ 20,000 user mà không phân cụm, **chiến dịch sẽ lỗ ròng -$116,338**.
 > 
 > Nhờ PCA làm sạch cụm và bóc tách A/B Test theo Persona, hệ thống phát hiện được 2 nhóm sinh lời:
-> - **Suburban Card** (Phase 1): ROI +20.7%, triển khai ngay, lợi nhuận +$13,993 từ 2,792 users.
+> - **Suburban Card** (Phase 1): ROI +20.7%, xem xét thử nghiệm thực tế, lợi nhuận +$13,993 từ 2,792 users.
 > - **Suburban Cash** (Phase 2): ROI +24.7% còn cao hơn! 5,061 users. Cần thêm bước tích hợp Cash Payment.
 > 
 > Bài học: **Bước nâng cấp PCA không chỉ tăng độ chính xác mà còn tiết lộ ra những insight mới (Suburban Cash) mà phương pháp cũ đã bỏ lỡ!**

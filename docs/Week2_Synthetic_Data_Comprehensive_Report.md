@@ -65,7 +65,7 @@ Trong thực tế, Việc phát Voucher không bao giờ diễn ra ngẫu nhiên
    - Trời mưa -> Nhu cầu tăng đột biến (+2 chuyến).
    - Trời mưa -> Hệ thống tắt khuyến mãi để bảo vệ margin.
 
-> **Kết quả của Biến nhiễu:** Trong tập dữ liệu quan sát (`y_obs`), những người KHÔNG nhận Voucher lại có vẻ đi xe nhiều hơn người CÓ nhận. Nghịch lý này (Simpson's Paradox) là bài kiểm tra hoàn hảo cho các mô hình Causal Inference.
+> **Kết quả của Biến nhiễu:** Trong tập dữ liệu quan sát (`y_obs`), những người KHÔNG nhận Voucher lại có vẻ đi xe nhiều hơn người CÓ nhận. Nghịch lý này (Simpson's Paradox) là bài kiểm tra tương đối chính xác cho các mô hình Causal Inference.
 
 ### 4. Cơ chế Kỹ thuật Sinh Biến Kết quả (Potential Outcomes)
 
@@ -74,7 +74,7 @@ Trong thực tế, Việc phát Voucher không bao giờ diễn ra ngẫu nhiên
 #### 4.1. Quy trình sinh Y0 (Zero-Inflated Negative Binomial)
 Thay vì dùng phân phối Poisson thông thường, `Y0` được sinh bằng hàm `_zinb_draw()` (Zero-Inflated Negative Binomial) hoạt động như 2 "cỗ máy" song song:
 - **Cỗ máy 1 (Negative Binomial):** Sinh ra phổ số lượng chuyến đi có "cái đuôi rất dài" (Overdispersion) để mô phỏng nhóm Heavy Users. Bản thân cỗ máy này đã sinh ra một lượng người đi 0 chuyến tự nhiên (`p_nb0`).
-- **Cỗ máy 2 (Zero-Inflation Trap):** Ép một tỷ lệ khách hàng (`pi`) về đúng 0 chuyến, đại diện cho nhóm "Ngủ đông tuyệt đối" (cài App nhưng không bao giờ mở).
+- **Cỗ máy 2 (Zero-Inflation Trap):** Ép một tỷ lệ khách hàng (`pi`) về đúng 0 chuyến, đại diện cho nhóm "Ngủ đông đáng tin cậy" (cài App nhưng không bao giờ mở).
 - **Thuật toán Brentq (Root-finding):** Để kiểm soát chính xác lượng khách hàng có 0 chuyến đi, hệ thống dùng thuật toán `brentq` để giải phương trình:
   `ZERO_TARGET = pi + (1 - pi) * p_nb0`
   Thuật toán này tự động căn chỉnh biến `pi` bù trừ cho lượng `p_nb0`, đảm bảo tổng lượng người đi 0 chuyến trong dataset khớp 100% với mục tiêu kinh doanh.
@@ -105,7 +105,7 @@ Ngoài ra, ITE còn bị suy giảm bởi **Quy luật Hiệu suất giảm dầ
 - **CATE:** Hệ thống cho phép nhóm các `ITE` theo từng lát cắt đặc trưng (ví dụ: CATE của nhóm nội thành dùng thẻ tín dụng). Điều này cung cấp điểm chuẩn (Benchmark Ground Truth) vô giá để đánh giá độ chính xác của các mô hình Uplift Modeling ở Tuần 7.
 
 ### 5. Kết luận
-Nhờ có Data Generating Protocol chi tiết này, tập dữ liệu không chỉ là một bảng tính ngẫu nhiên, mà là một **phòng thí nghiệm (Laboratory)** chuẩn mực để chúng ta có thể kiểm thử, đo lường các thuật toán Clustering (Tuần 3) và Uplift Modeling (Tuần 7) một cách chính xác tuyệt đối.
+Nhờ có Data Generating Protocol chi tiết này, tập dữ liệu không chỉ là một bảng tính ngẫu nhiên, mà là một **phòng thí nghiệm (Laboratory)** chuẩn mực để chúng ta có thể kiểm thử, đo lường các thuật toán Clustering (Tuần 3) và Uplift Modeling (Tuần 7) một cách chính xác đáng tin cậy.
 
 
 ---
