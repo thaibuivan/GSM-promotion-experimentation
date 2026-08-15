@@ -2,7 +2,7 @@
 *(Xây dựng hệ thống mô phỏng dữ liệu nhân quả, A/B Testing và Uplift Modeling cho bài toán đánh giá và phân bổ khuyến mãi trong dịch vụ gọi xe)*
 
 ## 🚀 Live Demo
-[**Mở Streamlit Dashboard (Promotion Experimentation Sandbox)**](https://promotion-experimentation-sandbox.streamlit.app)
+[**Mở Streamlit Dashboard (Promotion Experimentation Sandbox)**](https://gsm-promotion-experimentation.streamlit.app)
 *(Vui lòng đợi vài giây để Cloud tải dữ liệu giả lập ở lần truy cập đầu tiên).*
 
 ## 📌 Tổng quan Dự án
