@@ -33,7 +33,7 @@ Kết quả A/B Test trên synthetic data với assumptions HTE đã thiết k�
 ### B.3. Uplift Model Evaluation
 - R-Learner (XGBoost-based residual learner) cho profit tốt nhất ở top 30-50% population.
 - Profit Targeting (rank theo Expected Value_i = CATE_i × Margin − Voucher Cost) vượt trội Segment Targeting thuần.
-- Oracle Regret so với true ITE: [xem notebook Week5].
+- Oracle Regret so với Ground-Truth CATE: [xem notebook Week5].
 
 ---
 
@@ -47,7 +47,7 @@ Mức Voucher giả định 15% → Top 30-50% population → Expected Increment
 ---
 
 ## D. Conditions Required (Điều kiện để kết luận đúng)
-- Margin per incremental ride ≈ 0.75 × average fare (assumption hiện tại)
+- Margin per incremental ride ≈ 0.70 × average fare (assumption hiện tại)
 - Voucher cost = 15% of user's average revenue (assumption hiện tại)
 - Uplift model được calibrated đúng (predicted CATE ≈ observed uplift)
 - SUTVA: không có marketplace interference

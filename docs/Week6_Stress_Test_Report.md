@@ -1,4 +1,4 @@
-# BÁO CÁO KỸ THUẬT TUẦN 8: STRESS TEST & KIỂM ĐỊNH TÍNH VỮNG
+# BÁO CÁO KỸ THUẬT: STRESS TEST & KIỂM ĐỊNH TÍNH VỮNG
 
 ### 1. Mục tiêu
 Stress Test đóng vai trò là "Lá chắn thép" để kiểm tra tính bền vững (Robustness) của khung đo lường A/B Testing và mô hình thống kê trước khi mang ra áp dụng thực tế ở quy mô lớn, đối mặt với các điều kiện dữ liệu khắc nghiệt.
@@ -18,6 +18,6 @@ Stress Test đóng vai trò là "Lá chắn thép" để kiểm tra tính bền 
    - **Kết quả:** ATE đo được có sai số không đáng kể. Cơ chế ngẫu nhiên hóa (Randomization) của A/B Test đã tự động triệt tiêu các yếu tố nhiễu ở cả 2 nhóm.
 
 ### 3. Kết luận
-Khung đánh giá Causal Inference và A/B Testing của dự án đã vượt qua tất cả các bài Stress Test với độ tin cậy đáng tin cậy, sẵn sàng cho quá trình Deploy (Triển khai) trên diện rộng.
+Khung đánh giá Causal Inference và A/B Testing của dự án đã vượt qua tất cả các bài Stress Test. Mặc dù các Stress tests chưa phát hiện failure nghiêm trọng trong các scenarios đã kiểm tra, hệ thống hiện tại vẫn là một môi trường giả lập (Synthetic Sandbox). Quá trình Real-world Deployment thực tế vẫn cần phải tiến hành Randomized Production Validation (A/B Test thật) để khẳng định mức độ hiệu quả cuối cùng.
 
 ---

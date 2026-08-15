@@ -10,7 +10,7 @@ Bảng dưới đây đánh giá mức độ hội tụ giữa dữ liệu Synth
 | `airport_share` (Chuyến đi sân bay) | TLC / Giả định | ~5% - 10% | Cài đặt hệ số ngẫu nhiên 7% | PASS |
 | `age` (Độ tuổi) | Giả định | N/A | Mean 35, SD 10 | ASSUMPTION |
 | `income` (Thu nhập) | Giả định | N/A | Lệch phải, phản ánh sức mua | ASSUMPTION |
-| `true_ite` (Hiệu ứng Can thiệp thật) | Causal SCM | Mức ATE tổng thể dương | ATE tổng thể ~ 1.0 chuyến | PASS |
+| `ground_truth_cate` (Hiệu ứng Can thiệp thật) | Causal SCM | Mức ATE tổng thể dương | ATE tổng thể ~ 1.0 chuyến | PASS |
 | `voucher_cost` / `margin` | Giả định tài chính | N/A | Dựa trên config.json | ASSUMPTION |
 
 > **Tại sao bảng này quan trọng?**  

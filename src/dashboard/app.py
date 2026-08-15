@@ -114,7 +114,7 @@ with tab1:
     c1.metric("Clean Trips (NY TLC)", "3.04M", "Reference Data", delta_color="off")
     c2.metric("Synthetic Users", "20,000", "Simulated Population", delta_color="off")
     c3.metric("Ground Truth", "Y0 / Y1 / CATE", "Synthetic-only", delta_color="off", help="Các giá trị Causal Ground Truth (Sự thật nhân quả) chỉ tồn tại trong mô phỏng, dùng để chấm điểm mô hình.")
-    c4.metric("Calibration Status", "PASS", "Scorecard: 100%", delta_color="normal")
+    c4.metric("Calibration Status", "REVIEWED", "Empirical: PASS | Assumptions: DOCUMENTED", delta_color="off")
     
     st.markdown("---")
     st.markdown("#### 🔄 Luồng dữ liệu (Data Pipeline)")
@@ -167,7 +167,7 @@ with tab2:
     
     col_mde1, col_mde2 = st.columns(2)
     with col_mde1:
-        base_rides = st.number_input("Baseline (Số chuyến đi trung bình hiện tại/14 ngày)", value=2.0, min_value=0.1)
+        base_rides = st.number_input("Baseline (Số chuyến đi trung bình hiện tại/30 ngày)", value=2.0, min_value=0.1)
         std_dev = st.number_input("Standard Deviation (Độ lệch chuẩn)", value=1.5, min_value=0.1)
         mde_pct = st.slider("Minimum Detectable Effect (Kỳ vọng tăng % so với Baseline)", min_value=1, max_value=50, value=10)
         
@@ -219,9 +219,10 @@ with tab3:
             
     with col_top2:
         st.markdown("#### 2. A/A False Positive Calibration")
-        st.markdown("Kiểm định A/A (A/A Testing) được chạy 1,000 lần mô phỏng để đảm bảo tỷ lệ False Positive Rate (Type I Error) hội tụ.")
-        st.metric("A/A False Positive Rate", "4.8%", "Mục tiêu (Expected): 5.0%", delta_color="off")
-        st.success("🟢 PASS: Tỷ lệ dương tính giả (FPR) nằm trong khoảng tin cậy. Dữ liệu Synthetic Sandbox không có thiên lệch cấu trúc.")
+        st.markdown("Kiểm định A/A (A/A Testing) được chạy 5,000 lần mô phỏng để đảm bảo tỷ lệ False Positive Rate (Type I Error) hội tụ.")
+        st.metric("A/A False Positive Rate", "5.08%", "Mục tiêu (Expected): 5.0%", delta_color="off")
+        st.metric("SRM Alert Rate", "5.26%", "Mục tiêu (Expected): 5.0%", delta_color="off")
+        st.success("🟢 PASS: Tỷ lệ dương tính giả (FPR) nằm trong khoảng tin cậy. Không phát hiện calibration issue đáng kể trong các settings đã kiểm tra.")
 
     st.markdown("---")
     st.markdown("#### 3. Covariate Balance (SMD)")

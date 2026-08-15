@@ -236,7 +236,7 @@ for d in sorted(df_calib['decile'].unique()):
         'Decile': d,
         'Predicted_CATE': pred_uplift,
         'Observed_Uplift': obs_uplift,
-        'True_ITE': true_uplift
+        'Ground_Truth_CATE': true_uplift
     })
 
 calib_df = pd.DataFrame(calib_results)

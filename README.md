@@ -18,7 +18,7 @@ Câu hỏi kinh doanh trung tâm: *"Làm thế nào để từ dữ liệu mobil
 Dự án sử dụng phương pháp lai ghép (Hybrid Approach):
 1. **TLC NYC Yellow Taxi (Public mobility data):** Cung cấp tham số vật lý chuyến đi (giá cước, quãng đường, khung giờ). Đây là dữ liệu giao thông công khai từ NYC, được dùng để hiệu chỉnh tham số mô phỏng — không phải dữ liệu vận hành thực tế của GSM.
 2. **Kaggle Ride-Sharing (Community reference data):** Cung cấp tham chiếu cấu trúc người dùng và phân phối chuyến đi.
-3. **Synthetic Causal User-Level Data (Mô phỏng):** Dữ liệu nhân quả tổng hợp (Synthetic DGP) tuân theo Structural Causal Model với Y0/Y1/true ITE được thiết kế sẵn. Đây là nền tảng cho toàn bộ evaluation.
+3. **Synthetic Causal User-Level Data (Mô phỏng):** Dữ liệu nhân quả tổng hợp (Synthetic DGP) tuân theo Structural Causal Model với Y0/Y1/Ground-Truth CATE được thiết kế sẵn. Đây là nền tảng cho toàn bộ evaluation.
 
 ---
 
