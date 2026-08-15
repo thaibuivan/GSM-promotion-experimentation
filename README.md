@@ -1,9 +1,14 @@
 # Simulation-Based Promotion Experimentation: From Real-Data-Calibrated Causal Simulation to A/B Testing and Uplift-Based Policy Evaluation
 *(Xây dựng hệ thống mô phỏng dữ liệu nhân quả, A/B Testing và Uplift Modeling cho bài toán đánh giá và phân bổ khuyến mãi trong dịch vụ gọi xe)*
 
-## 🚀 Live Demo
-[**Mở Streamlit Dashboard (Promotion Experimentation Sandbox)**](https://gsm-promotion-experimentation.streamlit.app)
-*(Vui lòng đợi vài giây để Cloud tải dữ liệu giả lập ở lần truy cập đầu tiên).*
+## 🚀 Live Demo & Quick Navigation
+- [**Live Streamlit Dashboard**](https://gsm-promotion-experimentation.streamlit.app) *(Vui lòng đợi vài giây để Cloud tải dữ liệu giả lập ở lần truy cập đầu tiên).*
+- [**Tech Doc W4**](docs/TECHNICAL_DOCUMENTATION_W4.md)
+- [**Week 4 A/B Report**](docs/Week4_AA_AB_Testing_Report.md)
+- [**Decision Memo**](docs/Decision_Memo.md)
+
+## 📌 Current Source of Truth
+The current implementation is defined by `src/pipeline/main_pipeline.py`, `src/pipeline/policy_comparison_engine.py`, `src/dashboard/app.py`, `config.json`, and the active technical documentation. Weekly notebooks and reports are retained as development-history artifacts and may reflect earlier assumptions, schemas, metrics or model versions.
 
 ## 📌 Tổng quan Dự án
 Dự án này là một **Experimentation-Driven Promotion Sandbox**. Bắt đầu từ Data Quality & EDA trên dữ liệu mobility công khai, chuyển empirical patterns thành synthetic user-level causal data có Y0/Y1/Ground-Truth CATE và realized ITE. Sau đó, sử dụng A/B Testing để kiểm chứng incremental treatment effect, và mở rộng sang Uplift Modeling cùng business metrics (GMV, Burn) để đánh giá các targeting policies dưới controlled assumptions.
@@ -30,7 +35,7 @@ Dự án sử dụng phương pháp lai ghép (Hybrid Approach):
 - Thiết kế kịch bản A/B Testing cấp độ người dùng.
 
 ### Giai đoạn 2: Phân khúc Khách hàng & Phân tích Nhân quả (Tuần 3 & 4)
-- Sử dụng K-Means Clustering (K=5 với PCA) để gán nhãn Persona. K-Means phục vụ **giải thích nghiệp vụ và reporting**, không phải engine nhắm mục tiêu cuối cùng.
+- Thiết lập các Behavioral Personas. Khởi điểm từ exploratory K-Means, nhưng hiện tại đã được cố định bằng các rules ổn định để phục vụ giải thích nghiệp vụ và reporting, không trực tiếp dùng K-Means làm engine nhắm mục tiêu cuối cùng.
 - A/A Testing (5000 lần Monte Carlo): Xác minh không phát hiện calibration issue đáng kể dưới các settings đã thử.
 - A/B Testing với OLS HC1 covariate adjustment để đo ATE và ROI theo persona.
 - Kết quả: Trong sandbox với assumptions hiện tại, segment-targeting cho policy value tốt hơn mass-targeting.

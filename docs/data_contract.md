@@ -1,8 +1,10 @@
-# Data Contract: GSM Promotion Experimentation
+# Prototype Data Contract — Synthetic Experimentation Sandbox
 
 **Version:** 1.0
-**Owner:** Data Science Team
-**Consumers:** Data Engineering, Marketing Operations
+
+## Illustrative Production Mapping
+- **Owner:** Data Science Team
+- **Consumers:** Data Engineering, Marketing Operations
 
 ## 1. Mục đích (Purpose)
 Bản hợp đồng dữ liệu này quy định rõ schema, nguồn cấp, và ranh giới thời gian (Time Cutoff) của các trường dữ liệu được phép sử dụng trong dự án `GSM-promotion-experimentation`. Mục tiêu tối thượng là **chống rò rỉ dữ liệu (Data Leakage)** giữa thời điểm trước (Pre-treatment) và sau (Post-treatment) khi chạy chiến dịch.
@@ -12,7 +14,7 @@ Bất kỳ mô hình Machine Learning nào (K-Means, X-Learner) cũng phải đ�
 
 - **T < 0 (Historical Window):** Khoảng thời gian thu thập Feature. Ví dụ: Lịch sử đi lại 90 ngày trước chiến dịch.
 - **T = 0 (Randomization & Assignment):** Thời điểm chia nhóm A/B và phát Voucher.
-- **T > 0 (Outcome Window):** Khoảng thời gian đo lường hành vi (14 ngày).
+- **T > 0 (Outcome Window):** Khoảng thời gian đo lường hành vi (30 ngày).
 
 > [!WARNING]
 > Tuyệt đối KHÔNG sử dụng bất kỳ hành vi nào sinh ra ở `T > 0` (như `redemption_flag`, `post_treatment_rides`) làm Feature đầu vào để dự đoán CATE.
@@ -38,7 +40,7 @@ Bất kỳ mô hình Machine Learning nào (K-Means, X-Learner) cũng phải đ�
 | :--- | :--- | :--- | :--- | :--- |
 | `treatment_rand` | Boolean | Cờ nhận Voucher (1=Có, 0=Không) | AB Testing Platform | T=0 |
 | `exposure_flag` | Boolean | KH đã mở app và nhìn thấy Voucher | App Telemetry | T>0 |
-| `Y_rand` | Float | Tổng số chuyến đi trong 14 ngày tới | Ride History (T>0) | Outcome Metric, >=0 |
+| `Y_rand` | Float | Tổng số chuyến đi trong 30 ngày tới | Ride History (T>0) | Outcome Metric, >=0 |
 | `voucher_cost` | Float | Chi phí thực tế công ty phải trả | Billing (T>0) | Dựa trên config |
 | `margin_per_ride` | Float | Lợi nhuận gộp sinh ra | Billing (T>0) | Dựa trên config |
 

@@ -1,3 +1,6 @@
+> **Historical Week 2 Snapshot**  
+> This report reflects the synthetic DGP version used during Week 2. The current source of truth is `src/pipeline/main_pipeline.py`. Some variable names, outcome horizons and causal definitions below belong to an earlier development version.
+
 # Báo cáo Toàn diện: Phân tích Cấu trúc Nhân quả & Sinh dữ liệu mô phỏng (Tuần 2)
 
 ## Phần I: Báo cáo Kỹ thuật Tổng quan

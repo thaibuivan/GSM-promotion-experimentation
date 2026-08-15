@@ -311,8 +311,8 @@ with tab5:
     st.subheader("🎯 Nghịch lý Lợi nhuận (Heterogeneous Treatment Response)")
     st.markdown("Thay vì nhìn vào ATE trung bình, hãy phân tích phản ứng khác biệt của từng nhóm khách hàng (Heterogeneity) đối với cùng một Voucher. Điều này giúp chúng ta tránh rủi ro 'ăn thịt doanh thu' (Cannibalization).")
     
-    with st.expander("🎯 Click để xem Chân dung 5 Phân khúc Khách hàng (K-Means Profiling)", expanded=False):
-        st.markdown("Thuật toán K-Means đã gom cụm khách hàng dựa trên hành vi lịch sử. Dưới đây là đặc trưng trung bình của từng nhóm:")
+    with st.expander("🎯 Click để xem Chân dung 5 Phân khúc Khách hàng (Behavioral Persona Profiling)", expanded=False):
+        st.markdown("Khách hàng được phân loại vào các Behavioral Personas dựa trên hành vi lịch sử. Dưới đây là đặc trưng trung bình của từng nhóm:")
         
         # K-Means Heatmap Table
         cluster_features = ['age', 'monthly_rides_history', 'recency_days', 'avg_fare_per_trip']
@@ -420,7 +420,7 @@ with tab5:
             fig_qini.update_yaxes(title="Cumulative Incremental Rides (Qini)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
             st.plotly_chart(fig_qini, use_container_width=True)
             
-            st.info("💡 **Góc nhìn Tích lũy:** Đường Qini (Xanh dương) nằm cong lên trên đường Random (Xám) chứng tỏ AI (R-Learner) đang hoạt động tốt và tạo ra giá trị gia tăng lớn hơn so với phát Voucher ngẫu nhiên.")
+            st.info("💡 **Góc nhìn Tích lũy:** R-Learner shows positive ranking signal relative to random in the held-out synthetic test set, while CATE level calibration remains imperfect.")
         except Exception as e:
             st.warning(f"Chưa có dữ liệu Qini Curve. ({str(e)})")
 
@@ -605,16 +605,6 @@ with tab8:
     st.subheader("🛠️ Developer Tools")
     with st.expander("⚙️ Advanced / Developer Mode"):
         st.warning("⚠️ Khu vực này dành cho Developer chạy lại Data Pipeline. Business user không nên thao tác.")
-        if st.button("▶️ Chạy toàn bộ Data Pipeline", type="primary"):
-            import sys
-            pipeline_path = os.path.join(base_path, 'src', 'pipeline')
-            if pipeline_path not in sys.path:
-                sys.path.append(pipeline_path)
-            try:
-                from main_pipeline import run_pipeline
-                progress_bar = st.progress(0, text="Khởi tạo Pipeline...")
-                def st_progress_callback(pct, msg): progress_bar.progress(pct, text=f"[{pct}%] {msg}")
-                run_pipeline(n_users=20000, progress_callback=st_progress_callback)
-                st.success("✅ Đã hoàn tất Pipeline! Tải lại trang (F5) để Dashboard cập nhật dữ liệu.")
-            except Exception as e:
-                st.error(f"Lỗi khi chạy Pipeline: {e}")
+        st.info("🔒 Tính năng chạy lại Pipeline đã bị khóa trên phiên bản Public Demo để đảm bảo tính nhất quán của dữ liệu. Vui lòng clone repo và chạy local nếu muốn thử nghiệm.")
+        if st.button("▶️ Chạy toàn bộ Data Pipeline", type="primary", disabled=True):
+            pass

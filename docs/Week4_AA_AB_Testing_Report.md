@@ -22,7 +22,7 @@ Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng m
 - **Phương pháp:** Được thực hiện trong bước Sanity Check của A/B Test Analysis. Thay vì dùng T-Test thông thường dễ báo lỗi khi cỡ mẫu lớn, dự án sử dụng chỉ số **SMD (Standardized Mean Difference)** để kiểm tra độ cân bằng của các biến hiệp phương sai (Tuổi, Lịch sử chuyến đi, Số ngày ngủ đông, Giá vé trung bình) trước thí nghiệm.
 - **Ngưỡng tiêu chuẩn:** Giá trị $|SMD| < 0.1$ cho tất cả các biến.
 - **Kết quả đo lường:** Hệ thống duy trì sự cân bằng đặc trưng đáng tin cậy, toàn bộ các biến quan trọng đều có $|SMD| < 0.1$.
-- **Kết luận:** ĐẠT (PASS). Hệ thống loại trừ thành công các rủi ro liên quan đến Thiên kiến chọn mẫu (Selection Bias).
+- **Kết luận:** ĐẠT (PASS). |SMD| < 0.1 cho thấy không phát hiện material imbalance đáng kể trên các observed covariates được kiểm tra.
 
 ### 3.3. Kiểm tra Tỷ lệ Dương tính giả (False Positive Rate - FPR)
 - **Phương pháp:** Đo lường tỷ lệ các vòng lặp A/A Test trả về P-value < 0.05 (FPR) và kiểm chứng bằng **KS-Test (Kolmogorov-Smirnov)** để xác nhận phân phối P-value là Uniform. *(Lưu ý: Bỏ qua Binomial Test thuần túy do đặc tính biến rời rạc của số chuyến đi).*
@@ -42,7 +42,7 @@ Không phát hiện randomization/statistical calibration issue đáng kể dư�
 Thay vì sử dụng phương pháp T-Test truyền thống (có phương sai lớn, dễ dẫn đến khoảng tin cậy rộng và khó phát hiện sự khác biệt), dự án đã nâng cấp thuật toán đo lường ATE bằng **Mô hình Hồi quy OLS với Robust Standard Errors (HC1)**.
 
 - **Pre-treatment Covariate Adjustment:** Mô hình Hồi quy đưa thêm biến lịch sử chuyến đi (`monthly_rides_history`) vào làm Covariate (biến đã có trước treatment). Kỹ thuật này giúp giảm phương sai của số dư, tương tự về mục đích với CUPED — nhưng không triển khai đầy đủ CUPED formulation của Microsoft/Netflix.
-- **Robust Standard Errors (HC1):** Xử lý triệt để hiện tượng Phương sai sai số thay đổi (Heteroskedasticity), đảm bảo P-value tính ra là hoàn toàn chính xác và đáng tin cậy.
+- **Robust Standard Errors (HC1):** Xử lý triệt để hiện tượng Phương sai sai số thay đổi (Heteroskedasticity), cung cấp heteroskedasticity-robust standard errors, giúp inference bền vững hơn khi phương sai sai số không đồng nhất dưới các giả định hồi quy thông thường.
 
 - **Giả thuyết Không ($H_0$):** Hệ số của biến Treatment trong phương trình hồi quy bằng 0 (Voucher không có tác dụng).
 - **Giả thuyết Đối ($H_1$):** Hệ số của biến Treatment khác 0 (Voucher có tác động).
@@ -54,7 +54,7 @@ Hệ thống phân tích thực hiện hai phép đo lường thống kê độc
 ### 2.1. Sanity Checks (Kiểm tra Cân bằng Hệ thống)
 - **Mục tiêu:** Kiểm chứng thuật toán phân bổ ngẫu nhiên đã chia đều khách hàng vào các nhóm, đảm bảo tính đồng nhất (Comparability) trước khi phân tích kết quả.
 - **Giả thuyết Không ($H_0$):** Hai nhóm hoàn toàn cân bằng về các đặc tính (Độ chênh lệch = 0).
-- **Kết quả Kỳ vọng:** Mục tiêu ở bước này là **không thể bác bỏ $H_0$**. Do đó, yêu cầu **P-value > 0.05** để xác nhận hệ thống không gặp lỗi Mất cân bằng mẫu (Sample Ratio Mismatch - SRM) hoặc mất cân bằng biến hiệp phương sai (Covariate Imbalance).
+- **Kết quả Kỳ vọng:** Mục tiêu ở bước này là **không thể bác bỏ $H_0$**. Covariate balance được đánh giá chủ yếu bằng SMD. Không reject null hypothesis (P-value > 0.05) không đồng nghĩa với chứng minh hai nhóm tương đương hoàn toàn, nhưng nó củng cố kết luận không có lỗi SRM hoặc Covariate Imbalance.
 
 ### 2.2. Chỉ số Đánh giá Cốt lõi (Overall Evaluation Criterion - OEC)
 - **Mục tiêu:** Đo lường tác động nhân quả thực sự của sự can thiệp (Voucher) lên chỉ số mục tiêu (Số chuyến đi tăng thêm).
@@ -66,7 +66,7 @@ Bên cạnh ý nghĩa thống kê, ý nghĩa thực tiễn của chiến dịch 
 
 **Vũ khí Hạng nặng: Monte Carlo Stress Test**
 Để bảo vệ mô hình thống kê trước mọi sự chất vấn, dự án đã cấy một hệ thống Stress Test giả lập vòng lặp 1.000 lần Monte Carlo với các kịch bản Effect Size (0, 0.1, 0.5, 1.0).
-- **Kết quả:** Khi Voucher không có tác dụng (Scale = 0), tỷ lệ báo động giả luôn kiểm soát chặt ở mức ~5% (Type 1 Error = 0.502). Khi Voucher có tác dụng, độ chệch (Bias) của thuật toán OLS HC1 cực kỳ thấp (Bias < 0.002 ở mọi mức Scale). Điều này chứng minh công cụ đo lường của chúng ta "Miễn nhiễm" với các loại nhiễu ngẫu nhiên!
+- **Kết quả:** Khi Voucher không có tác dụng (Scale = 0), qua 5,000 simulations, tỷ lệ báo động giả luôn kiểm soát chặt ở mức ~5% (FPR ≈ 5.08%, SRM alert rate ≈ 5.26%). Khi Voucher có tác dụng, độ chệch (Bias) của thuật toán OLS HC1 cực kỳ thấp (Bias < 0.002 ở mọi mức Scale). Randomization giúp cân bằng exogenous noise theo kỳ vọng, nhưng noise vẫn làm tăng uncertainty của estimator.
 
 ---
 
