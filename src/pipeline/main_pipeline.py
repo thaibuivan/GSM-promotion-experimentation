@@ -335,7 +335,7 @@ def run_pipeline(n_users=N_USERS, progress_callback=None):
     # Doanh thu thang (dung Y_rand cho nhanh RCT)
     gross_revenue_30d = (Y_rand * avg_fare_per_trip).round(2)
 
-    # Chi phi voucher: giam 20%, cap 3 USD/chuyen, CHI ap dung cho T_rand=1
+    # Chi phi voucher: giam 15%, cap 3 USD/chuyen, CHI ap dung cho T_rand=1
     discount_per_trip = np.minimum(avg_fare_per_trip * VOUCHER_DISCOUNT_RATE, VOUCHER_CAP_PER_TRIP)
     discount_cost_30d = (t_rand * Y_rand * discount_per_trip).round(2)
 

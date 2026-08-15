@@ -19,8 +19,8 @@
 - **Randomization Unit:** `user_id`
 - **Assignment Ratio:**
   - **Group A (Holdout - 10%):** Không nhận Voucher. (Dùng để tính Incremental Baseline).
-  - **Group B (Challenger - 45%):** Áp dụng K-Means Segment Targeting (Chỉ phát cho nhóm Suburban).
-  - **Group C (Champion - 45%):** Áp dụng AI Profit Targeting (Chỉ phát nếu CATE dự đoán mang lại EV > 0).
+  - **Group B (Champion - 45%):** Áp dụng K-Means Segment Targeting (Chỉ phát cho nhóm Suburban).
+  - **Group C (Challenger - 45%):** Áp dụng AI Profit Targeting (Chỉ phát nếu CATE dự đoán mang lại EV > 0).
 
 ## 3. Cấu hình Chiến dịch (Parameters)
 - **Treatment:** Voucher giảm giá 15% (Max 50.000 VNĐ), áp dụng cho mọi chuyến đi.

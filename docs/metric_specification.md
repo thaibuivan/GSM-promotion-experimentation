@@ -11,7 +11,7 @@ Tài liệu này định nghĩa chính xác về mặt toán học (Mathematical
 - **Tử số (Numerator):** Tổng số chuyến đi hoàn thành trong 30 ngày của nhóm Treatment (Có nhận Voucher) trừ đi Tổng số chuyến đi của nhóm Control (Không nhận Voucher) với cùng quy mô mẫu.
 - **Mẫu số (Denominator):** Tổng số User hợp lệ (Eligible Users) trong nhóm.
 - **Tính toán Uplift (CATE):** $E[Y_i(1) - Y_i(0) | X_i]$
-- **Xử lý Outlier:** Loại bỏ Top 0.1% users có số chuyến đi > 50 chuyến/30 ngày (Nghi ngờ tài xế tự book cuốc).
+
 
 ---
 

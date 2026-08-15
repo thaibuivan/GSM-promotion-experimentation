@@ -203,10 +203,11 @@ with tab3:
         observed_treatment = len(df_treat)
         observed_control = len(df_ctrl)
         total = observed_treatment + observed_control
-        expected_t = total * ratio
-        expected_c = total * (1 - ratio)
-        st.metric("Tỷ lệ Nhóm Treatment", f"{observed_treatment/total*100:.1f}%", f"Mục tiêu (Designed): {ratio*100:.1f}%", delta_color="off")
-        st.metric("Tỷ lệ Nhóm Control", f"{observed_control/total*100:.1f}%", f"Mục tiêu (Designed): {(1-ratio)*100:.1f}%", delta_color="off")
+        actual_experiment_ratio = 0.50
+        expected_t = total * actual_experiment_ratio
+        expected_c = total * (1 - actual_experiment_ratio)
+        st.metric("Tỷ lệ Nhóm Treatment", f"{observed_treatment/total*100:.1f}%", f"Mục tiêu (Designed): {actual_experiment_ratio*100:.1f}%", delta_color="off")
+        st.metric("Tỷ lệ Nhóm Control", f"{observed_control/total*100:.1f}%", f"Mục tiêu (Designed): {(1-actual_experiment_ratio)*100:.1f}%", delta_color="off")
         
         # Chi-square test for SRM
         expected = [expected_t, expected_c]
@@ -267,6 +268,7 @@ with tab3:
 with tab4:
     st.subheader("📊 Kết quả A/B Test (Average Treatment Effect)")
     st.markdown("**Outcome Window:** 30 days | **Causal Question:** Hiệu ứng trung bình (ATE) của Voucher lên toàn bộ tập khách hàng là bao nhiêu?")
+    st.info("💡 **Methodology Note:** Kết quả hiển thị là **Unadjusted ATE (Welch t-test)**. Mô hình **OLS HC1 (Adjusted Estimator)** được sử dụng trong Technical Analysis (Week 4 Report) để thu hẹp phương sai.")
     
     avg_rev_treat = df_treat['gross_revenue_30d'].mean()
     avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
@@ -334,7 +336,6 @@ with tab5:
         }).background_gradient(cmap='YlGnBu', axis=0), use_container_width=True, hide_index=True)
         
         st.info("💡 **Gợi ý đọc bảng:** Airport Business có Giá trị cuốc cao đột biến nhưng Số cuốc/tháng rất thấp. Ngược lại, Rain Riders có Ngày rời mạng cao nhất, chứng tỏ họ rất ít khi dùng app (chỉ dùng khi trời mưa).")
-        st.info("💡 **Gợi ý đọc bảng:** Airport Business có Giá trị cuốc cao đột biến nhưng Số cuốc/tháng rất thấp. Ngược lại, Rain Riders có Ngày rời mạng cao nhất, chứng tỏ họ rất ít khi dùng app (chỉ dùng khi trời mưa).")
     
     st.markdown("#### 🔍 Bảng Kê Chi tiết Tài chính theo Phân khúc (Drill-down)")
     # Tính ROI cho từng nhóm
@@ -373,7 +374,7 @@ with tab5:
         # Sử dụng roi_df đã tính ở trên
         fig_prof = px.bar(roi_df.sort_values('Net Profit ($)'), x='Phân khúc (Persona)', y='Net Profit ($)', 
                           color='Net Profit ($)', color_continuous_scale=['#FF007F', '#00E5FF'],
-                          title="Ai đang làm công ty LỖ? (Net Profit theo Phân khúc)")
+                          title="Net Incremental Profit by Persona")
         fig_prof.update_layout(**chart_layout, coloraxis_showscale=False)
         fig_prof.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)', zeroline=True, zerolinecolor='white', zerolinewidth=2)
         st.plotly_chart(fig_prof, use_container_width=True)
@@ -472,7 +473,7 @@ with tab6:
             'Dự kiến GMV ($)', 'Burn ($)', 'Burn/GMV (%)', 
             'Inc GMV ($)', 'Burn/Inc GMV (%)', 
             'Inc Rides', 'CPIR ($)', 
-            'Lợi nhuận Dự đoán ($)', 'Lợi nhuận Thực tế ($)', 'Khoảng Rủi ro (95% CI)', 'ROI (%)'
+            'Lợi nhuận Dự đoán ($)', 'Ground-Truth Profit (Synthetic) ($)', 'Approx. Uncertainty Band (95%)', 'ROI (%)'
         ]
         st.dataframe(
             display_df.style
@@ -480,7 +481,7 @@ with tab6:
                 'Dự kiến GMV ($)': '${:,.0f}', 'Burn ($)': '${:,.0f}', 
                 'Inc GMV ($)': '${:,.0f}', 'CPIR ($)': '${:,.0f}',
                 'Lợi nhuận Dự đoán ($)': '${:,.0f}', 
-                'Lợi nhuận Thực tế ($)': '${:,.0f}', 
+                'Ground-Truth Profit (Synthetic) ($)': '${:,.0f}', 
                 'ROI (%)': '{:.1f}%', '% Users': '{:.1f}%',
                 'Burn/GMV (%)': '{:.1f}%', 'Burn/Inc GMV (%)': '{:.1f}%',
                 'Inc Rides': '{:,.0f}'
