@@ -1,6 +1,10 @@
 # Simulation-Based Promotion Experimentation: From Real-Data-Calibrated Causal Simulation to A/B Testing and Uplift-Based Policy Evaluation
 *(Xây dựng hệ thống mô phỏng dữ liệu nhân quả, A/B Testing và Uplift Modeling cho bài toán đánh giá và phân bổ khuyến mãi trong dịch vụ gọi xe)*
 
+## 🚀 Live Demo
+[**Mở Streamlit Dashboard (Promotion Experimentation Sandbox)**](https://promotion-experimentation-sandbox.streamlit.app)
+*(Vui lòng đợi vài giây để Cloud tải dữ liệu giả lập ở lần truy cập đầu tiên).*
+
 ## 📌 Tổng quan Dự án
 Dự án này là một **Experimentation-Driven Promotion Sandbox**. Bắt đầu từ Data Quality & EDA trên dữ liệu mobility công khai, chuyển empirical patterns thành synthetic user-level causal data có Y0/Y1/ITE ground truth. Sau đó, sử dụng A/B Testing để kiểm chứng incremental treatment effect, và mở rộng sang Uplift Modeling cùng business metrics (GMV, Burn) để đánh giá các targeting policies dưới controlled assumptions.
 

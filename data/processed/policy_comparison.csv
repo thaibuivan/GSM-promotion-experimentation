@@ -1,0 +1,8 @@
+Policy,N_Targeted,Pct_Targeted,Total_Voucher_Cost,Expected_Incremental_Profit,EV_Lower_95,EV_Upper_95,Est_ROI_pct,Expected_Incremental_Rides,Expected_GMV,Incremental_GMV,Burn,CPIR,Burn_per_GMV_pct,Burn_per_Inc_GMV_pct
+0. No Voucher,0,0.0,0.0,0.0,0.0,0.0,0.0,,,,,,,
+1. Mass Voucher (All Users),4000,100.0,,-76286.0,-79757.0,-72815.0,-58.0,3230.0,877375.0,79029.0,131606.0,41.0,15.0,166.5
+2. Segment Targeting (Suburban),1615,40.4,,-918.0,-2175.0,338.0,-2.7,1579.0,223057.0,46486.0,33459.0,21.0,15.0,72.0
+3. Uplift Targeting (Top 30% CATE),1200,30.0,,-33332.0,-34625.0,-32040.0,-66.6,1096.0,333436.0,23833.0,50015.0,46.0,15.0,209.9
+4. Profit Targeting (EV > 0),703,17.6,,4128.0,3601.0,4654.0,38.3,742.0,71931.0,21311.0,10790.0,15.0,15.0,50.6
+"5. Budget-Constrained ($50,000)",2540,63.5,,-12241.0,-13187.0,-11295.0,-24.5,2390.0,333195.0,53912.0,49979.0,21.0,15.0,92.7
+6. Oracle Policy (True ITE — Sandbox only),987,24.7,,7226.0,6527.0,7925.0,52.1,1046.0,92446.0,30133.0,13867.0,13.0,15.0,46.0

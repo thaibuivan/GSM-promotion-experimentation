@@ -10,3 +10,4 @@ statsmodels
 python-pptx
 jupyter
 jinja2
+scipy

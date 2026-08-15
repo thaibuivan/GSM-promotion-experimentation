@@ -34,3 +34,11 @@ data/*.parquet
 docs/images/
 venv/
 .venv/
+
+# Allow Streamlit demo assets
+!data/processed/segmented_simulation_data.csv
+!data/processed/qini_curve.csv
+!data/processed/policy_comparison.csv
+!data/processed/test_predictions.csv
+!data/processed/oracle_regret.json
+!data/processed/uplift_calibration.csv
