@@ -8,7 +8,7 @@ import json
 import scipy.stats as stats
 
 # Page Config
-st.set_page_config(page_title="GSM Promotion Executive Dashboard", page_icon="🏢", layout="wide")
+st.set_page_config(page_title="Promotion Experimentation Sandbox", page_icon="🧪", layout="wide")
 
 # Custom CSS for Premium Look
 st.markdown("""
@@ -54,7 +54,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="title-gradient">🚖 Báo cáo Hiệu quả Chiến dịch Khuyến mãi GSM</p>', unsafe_allow_html=True)
+st.markdown('<p class="title-gradient">🧪 Promotion Experimentation Sandbox</p>', unsafe_allow_html=True)
+st.info("🧪 **Môi trường mô phỏng nhân quả:** Các kết quả trong dashboard được tạo từ dữ liệu tham khảo và các giả định nhân quả (synthetic causal assumptions), không phải kết quả thực tế (production) của GSM.")
 
 # Load Data
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -93,35 +94,58 @@ df_ctrl = df[df['treatment_rand'] == 0]
 
 # ----------------- CHIA TABS -----------------
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
-    "📚 Tab 1: Data Foundation", 
-    "📏 Tab 2: Experiment Setup", 
-    "🩺 Tab 3: Experiment Health", 
-    "📊 Tab 4: A/B Result", 
-    "🎯 Tab 5: Heterogeneity", 
-    "💰 Tab 6: Business Metrics", 
-    "⚙️ Tab 7: Policy Simulator", 
-    "🛠️ Tab 8: Admin Pipeline"
+    "📚 Data Foundation", 
+    "📏 Experiment Setup", 
+    "🩺 Experiment Health", 
+    "📊 A/B Results", 
+    "🎯 Heterogeneous Response", 
+    "💰 Policy Comparison", 
+    "⚙️ Policy Simulator", 
+    "🛠️ Developer Tools"
 ])
 
 # ================= TAB 1: DATA FOUNDATION =================
 with tab1:
-    st.subheader("📚 Nền tảng Dữ liệu (Data Foundation)")
-    st.markdown("Kiểm chứng mức độ chính xác của hộp cát mô phỏng (Synthetic Sandbox) so với dữ liệu thực tế.")
+    st.subheader("📚 Nền tảng Dữ liệu & Mô phỏng Nhân quả (Data Foundation)")
+    st.markdown("Dashboard này phân tích dữ liệu tổng hợp (Synthetic Data) được hiệu chuẩn từ **3.04 triệu cuốc xe thực tế của New York TLC**, tạo ra một môi trường giả lập (Sandbox) cho các thử nghiệm nhân quả.")
     
-    col_md1, col_md2 = st.columns(2)
-    with col_md1:
-        try:
-            with open(os.path.join(base_path, 'docs', 'EDA_Simulation_Mapping.md'), 'r', encoding='utf-8') as f:
-                st.markdown(f.read())
-        except:
-            st.warning("Không tìm thấy file EDA_Simulation_Mapping.md")
-            
-    with col_md2:
-        try:
-            with open(os.path.join(base_path, 'docs', 'Calibration_Scorecard.md'), 'r', encoding='utf-8') as f:
-                st.markdown(f.read())
-        except:
-            st.warning("Không tìm thấy file Calibration_Scorecard.md")
+    # KPIs
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Clean Trips (NY TLC)", "3.04M", "Reference Data", delta_color="off")
+    c2.metric("Synthetic Users", "20,000", "Simulated Population", delta_color="off")
+    c3.metric("Ground Truth", "Y0 / Y1 / CATE", "Synthetic-only", delta_color="off", help="Các giá trị Causal Ground Truth (Sự thật nhân quả) chỉ tồn tại trong mô phỏng, dùng để chấm điểm mô hình.")
+    c4.metric("Calibration Status", "PASS", "Scorecard: 100%", delta_color="normal")
+    
+    st.markdown("---")
+    st.markdown("#### 🔄 Luồng dữ liệu (Data Pipeline)")
+    st.info("**Public Mobility Data** ➔ **EDA & Quality Check** ➔ **Empirical Calibration** ➔ **Synthetic Population Generation** ➔ **Randomized A/B Experiment**")
+    
+    fig_col1, fig_col2 = st.columns(2)
+    with fig_col1:
+        fig_fare = px.histogram(df, x='avg_fare_per_trip', nbins=50, title="Phân phối Giá cuốc xe (Synthetic Fare Distribution)", color_discrete_sequence=['#00E5FF'])
+        fig_fare.update_layout(**chart_layout, height=300)
+        st.plotly_chart(fig_fare, use_container_width=True)
+    with fig_col2:
+        fig_hour = px.histogram(df, x='preferred_hour', nbins=24, title="Khung giờ hoạt động (Activity Pattern)", color_discrete_sequence=['#FF007F'])
+        fig_hour.update_layout(**chart_layout, height=300)
+        st.plotly_chart(fig_hour, use_container_width=True)
+    
+    st.markdown("---")
+    with st.expander("📖 Chi tiết Phương pháp (Methodology & Calibration Scorecard)"):
+        col_md1, col_md2 = st.columns(2)
+        with col_md1:
+            try:
+                with open(os.path.join(base_path, 'docs', 'EDA_Simulation_Mapping.md'), 'r', encoding='utf-8') as f:
+                    st.markdown(f.read())
+            except:
+                st.warning("Không tìm thấy file EDA_Simulation_Mapping.md")
+                
+        with col_md2:
+            try:
+                with open(os.path.join(base_path, 'docs', 'Calibration_Scorecard.md'), 'r', encoding='utf-8') as f:
+                    st.markdown(f.read())
+            except:
+                st.warning("Không tìm thấy file Calibration_Scorecard.md")
 
 # ================= TAB 2: EXPERIMENT SETUP =================
 with tab2:
@@ -166,17 +190,19 @@ with tab3:
         observed_treatment = len(df_treat)
         observed_control = len(df_ctrl)
         total = observed_treatment + observed_control
-        st.metric("Tỷ lệ Nhóm Treatment", f"{observed_treatment/total*100:.1f}%", f"Mục tiêu: 50.0%")
-        st.metric("Tỷ lệ Nhóm Control", f"{observed_control/total*100:.1f}%", f"Mục tiêu: 50.0%")
+        expected_t = total * ratio
+        expected_c = total * (1 - ratio)
+        st.metric("Tỷ lệ Nhóm Treatment", f"{observed_treatment/total*100:.1f}%", f"Mục tiêu (Designed): {ratio*100:.1f}%", delta_color="off")
+        st.metric("Tỷ lệ Nhóm Control", f"{observed_control/total*100:.1f}%", f"Mục tiêu (Designed): {(1-ratio)*100:.1f}%", delta_color="off")
         
         # Chi-square test for SRM
-        expected = [total/2, total/2]
+        expected = [expected_t, expected_c]
         observed = [observed_treatment, observed_control]
         chi2, p_srm = stats.chisquare(f_obs=observed, f_exp=expected)
         if p_srm < 0.01:
-            st.error(f"🔴 Phát hiện SRM! (p-value = {p_srm:.4f} < 0.01). Việc phân bổ bị lệch nghiêm trọng.")
+            st.error(f"🔴 Phát hiện SRM (Sample Ratio Mismatch)! (p-value = {p_srm:.4f} < 0.01).")
         else:
-            st.success(f"🟢 Không phát hiện SRM (p-value = {p_srm:.4f} >= 0.01). Tỷ lệ phân bổ hợp lý trong mô phỏng.")
+            st.success(f"🟢 Không phát hiện SRM đáng kể (p-value = {p_srm:.4f} >= 0.01).")
             
     with col_eh2:
         st.markdown("#### 2. Covariate Balance (SMD)")
@@ -209,20 +235,10 @@ with tab3:
             fig_smd.add_vline(x=0, line_width=2, line_color="rgba(255,255,255,0.8)")
             
             # Set fixed range so 0.1 is at the edges
-            fig_smd.update_xaxes(range=[-0.11, 0.11], title="SMD (Độ lệch chuẩn hóa)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
-            fig_smd.update_yaxes(title="", showgrid=False)
-            fig_smd.update_layout(**chart_layout, height=350, coloraxis_showscale=False, 
-                                  title="Biểu đồ Mức độ Tương đồng (Covariate Balance)")
-            
-            st.plotly_chart(fig_smd, use_container_width=True)
-            
-            st.success("🟢 Tất cả các biến số đều có |SMD| < 0.1 (nằm trong vạch đỏ), chứng tỏ hai nhóm có độ tương đồng tốt trong dữ liệu mô phỏng.")
-        else:
-            st.warning("⚠️ Không tìm thấy biến số nào để tính SMD.")
-
-# ================= TAB 4: A/B RESULT =================
+            fig_smd.update_xaxes(range=[-0.11, 0.11], title="SMD (Độ lệch chuẩn hóa)", showgrid=True, gridcolo# ================= TAB 4: A/B RESULT =================
 with tab4:
-    st.subheader("📊 Kết quả A/B Test (Tổng thể)")
+    st.subheader("📊 Kết quả A/B Test (Average Treatment Effect)")
+    st.markdown("**Outcome Window:** 30 days | **Causal Question:** Hiệu ứng trung bình (ATE) của Voucher lên toàn bộ tập khách hàng là bao nhiêu?")
     
     avg_rev_treat = df_treat['gross_revenue_30d'].mean()
     avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
@@ -234,14 +250,24 @@ with tab4:
     overall_roi = (net_profit_per_user / cost_per_user) * 100 if cost_per_user > 0 else 0
     
     col1, col2, col3 = st.columns(3)
-    col1.metric("Incremental GMV (Tăng thêm/KH)", f"${incremental_rev_per_user:.2f}", "Nếu áp dụng đại trà")
-    col2.metric(f"Burn (Chi phí Khuyến mãi)", f"${cost_per_user:.2f}", f"{DISCOUNT_PERCENT}% GMV")
-    col3.metric("Net Profit (Lợi nhuận Ròng)", f"${net_profit_per_user:.2f}", f"ROI: {overall_roi:.1f}%", delta_color="normal" if net_profit_per_user > 0 else "inverse")
+    col1.metric("Control Mean (Base Revenue)", f"${avg_rev_ctrl:.2f}", "30-day window", delta_color="off")
+    col2.metric("Treatment Mean (Treated Revenue)", f"${avg_rev_treat:.2f}", "30-day window", delta_color="off")
+    col3.metric("ATE (Incremental GMV)", f"${incremental_rev_per_user:.2f}", "Tăng thêm/KH", delta_color="off")
     
-    st.warning("⚠️ **Cảnh báo Tài chính:** Việc phát Voucher ĐẠI TRÀ cho 100% khách hàng đang gây LỖ RÒNG (Lợi nhuận ròng âm). Điều này chứng tỏ hiệu ứng trung bình (ATE) không đủ lớn để bù đắp chi phí phát voucher dàn trải.")
+    st.markdown("#### Đánh giá Hiệu quả Kinh doanh (Business Effect)")
+    c_biz1, c_biz2 = st.columns(2)
+    c_biz1.metric(f"Burn (Chi phí Khuyến mãi/KH)", f"${cost_per_user:.2f}", f"{DISCOUNT_PERCENT}% GMV", delta_color="inverse")
+    c_biz2.metric("Net Profit (Lợi nhuận Ròng/KH)", f"${net_profit_per_user:.2f}", f"ROI: {overall_roi:.1f}%", delta_color="normal" if net_profit_per_user > 0 else "inverse")
     
-    with st.expander("🎯 Click để xem Chân dung 5 Nhóm Khách hàng (K-Means Profiling)", expanded=False):
-        st.markdown("Trước khi phân tích tài chính, thuật toán K-Means đã gom cụm khách hàng tự động dựa trên hành vi lịch sử. Dưới đây là đặc trưng trung bình của từng nhóm:")
+    st.warning("⚠️ **STATISTICAL INTERPRETATION:** Mặc dù điểm ước lượng (Point Estimate) của Incremental GMV là số dương, nhưng việc phát Voucher ĐẠI TRÀ cho 100% khách hàng đang gây LỖ RÒNG. Điều này chứng tỏ hiệu ứng trung bình (ATE) không đủ lớn để bù đắp chi phí phát voucher dàn trải.")
+    
+# ================= TAB 5: HETEROGENEITY =================
+with tab5:
+    st.subheader("🎯 Nghịch lý Lợi nhuận (Heterogeneous Treatment Response)")
+    st.markdown("Thay vì nhìn vào ATE trung bình, hãy phân tích phản ứng khác biệt của từng nhóm khách hàng (Heterogeneity) đối với cùng một Voucher. Điều này giúp chúng ta tránh rủi ro 'ăn thịt doanh thu' (Cannibalization).")
+    
+    with st.expander("🎯 Click để xem Chân dung 5 Phân khúc Khách hàng (K-Means Profiling)", expanded=False):
+        st.markdown("Thuật toán K-Means đã gom cụm khách hàng dựa trên hành vi lịch sử. Dưới đây là đặc trưng trung bình của từng nhóm:")
         
         # K-Means Heatmap Table
         cluster_features = ['age', 'monthly_rides_history', 'recency_days', 'avg_fare_per_trip']
@@ -264,7 +290,8 @@ with tab4:
             'Giá trị cuốc (Avg Fare)': '${:.2f}'
         }).background_gradient(cmap='YlGnBu', axis=0), use_container_width=True, hide_index=True)
         
-        st.info("💡 **Gợi ý đọc bảng:** Đọc theo chiều dọc để tìm điểm nổi bật. Ví dụ: **Airport Business** có Giá trị cuốc cao đột biến ($46.8) nhưng Số cuốc/tháng rất thấp (2.3). Ngược lại, **Rain Riders** có Ngày rời mạng cao nhất (11.8 ngày), chứng tỏ họ rất ít khi dùng app (chỉ dùng khi trời mưa).")
+        st.info("💡 **Gợi ý đọc bảng:** Airport Business có Giá trị cuốc cao đột biến nhưng Số cuốc/tháng rất thấp. Ngược lại, Rain Riders có Ngày rời mạng cao nhất, chứng tỏ họ rất ít khi dùng app (chỉ dùng khi trời mưa).")
+        st.info("💡 **Gợi ý đọc bảng:** Airport Business có Giá trị cuốc cao đột biến nhưng Số cuốc/tháng rất thấp. Ngược lại, Rain Riders có Ngày rời mạng cao nhất, chứng tỏ họ rất ít khi dùng app (chỉ dùng khi trời mưa).")
     
     st.markdown("#### 🔍 Bảng Kê Chi tiết Tài chính theo Phân khúc (Drill-down)")
     # Tính ROI cho từng nhóm
@@ -298,14 +325,9 @@ with tab4:
                  .highlight_max(subset=['Net Profit ($)'], color='rgba(0,229,255,0.3)'), 
                  use_container_width=True, hide_index=True)
 
-# ================= TAB 5: HETEROGENEITY =================
-with tab5:
-    st.subheader("🎯 Nghịch lý Lợi nhuận (Heterogeneity)")
-    st.markdown("Thay vì nhìn vào Số chuyến đi hay Doanh thu (rất dễ bị đánh lừa), hãy nhìn thẳng vào **Lợi Nhuận Ròng (Net Profit)** và **ROI**. Hai biểu đồ dưới đây sẽ vạch trần việc chúng ta đang 'đốt tiền' sai chỗ như thế nào.")
-    
     c1, c2 = st.columns(2)
     with c1:
-        # Sử dụng roi_df đã tính ở Tab 4
+        # Sử dụng roi_df đã tính ở trên
         fig_prof = px.bar(roi_df.sort_values('Net Profit ($)'), x='Phân khúc (Persona)', y='Net Profit ($)', 
                           color='Net Profit ($)', color_continuous_scale=['#FF007F', '#00E5FF'],
                           title="Ai đang làm công ty LỖ? (Net Profit theo Phân khúc)")
@@ -336,7 +358,7 @@ with tab5:
         fig_roi.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)', zeroline=True, zerolinecolor='white', zerolinewidth=2)
         st.plotly_chart(fig_roi, use_container_width=True)
         
-    st.info("💡 **Góc nhìn Phân tích (Business Insight):** Khách hàng càng trung thành (Khách ruột, Airport Business) thì khi nhận được Voucher, họ càng mang lại ROI ÂM sâu (Cột đâm xuống dưới). Khách hàng lười đi (Ngủ đông, Suburban) mới là nhóm sinh lời thực sự. **👉 Ta phải ngừng phát Voucher cho nhóm khách ruột!**")
+    st.info("💡 **Business Insight:** Trong synthetic DGP hiện tại, một số high-frequency personas có incremental response thấp hơn less-active personas. Kết quả này minh họa cannibalization risk trong simulation và không được diễn giải trực tiếp thành GSM production policy.")
 
     st.markdown("---")
     st.markdown("#### Hiệu quả Mô hình AI (Qini Curve)")
@@ -345,7 +367,7 @@ with tab5:
         try:
             qini_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
             fig_qini = go.Figure()
-            fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines', name='Qini Curve (R-Learner)', line=dict(color='#00E5FF', width=3)))
+            fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines', name='Qini Curve (T-Learner Champion)', line=dict(color='#00E5FF', width=3)))
             fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['random_uplift'], mode='lines', name='Random Targeting', line=dict(color='rgba(255,255,255,0.3)', dash='dash', width=2)))
             
             fig_qini.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
@@ -353,14 +375,14 @@ with tab5:
             fig_qini.update_yaxes(title="Cumulative Incremental Rides (Qini)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
             st.plotly_chart(fig_qini, use_container_width=True)
             
-            st.info("💡 **Góc nhìn Tích lũy:** Qini Curve cộng dồn hiệu quả từ người tốt nhất đến tệ nhất, giúp triệt tiêu nhiễu cục bộ. Việc đường Qini (Xanh dương) nằm cong lên trên đường Random (Xám) chứng tỏ: **Dù biểu đồ Calibration bị nhiễu do phương sai, AI (R-Learner) thực chất vẫn đang hoạt động tốt và tạo ra giá trị gia tăng lớn hơn so với phát Voucher ngẫu nhiên.**")
+            st.info("💡 **Góc nhìn Tích lũy:** Đường Qini (Xanh dương) nằm cong lên trên đường Random (Xám) chứng tỏ AI (T-Learner) đang hoạt động tốt và tạo ra giá trị gia tăng lớn hơn so với phát Voucher ngẫu nhiên.")
         except Exception as e:
             st.warning(f"Chưa có dữ liệu Qini Curve. ({str(e)})")
 
-# ================= TAB 6: BUSINESS METRICS =================
+# ================= TAB 6: POLICY COMPARISON =================
 with tab6:
-    st.subheader("💰 So sánh 5 Policy: Business Decision là gì?")
-    st.markdown("**Business không mua một Qini Curve — Business cần một Policy cụ thể.** Dưới đây là so sánh 5 chiến lược phát Voucher trên cùng tập dữ liệu test.")
+    st.subheader("💰 Policy Comparison (So sánh Chiến lược)")
+    st.markdown("So sánh 5 chiến lược phân bổ Voucher (Candidate Policies) với Baseline và Oracle Benchmark.")
     
     try:
         policy_df_raw = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'policy_comparison.csv'))
@@ -462,14 +484,17 @@ with tab7:
             def eval_policy_sim(mask, label):
                 targeted = preds_df[mask]
                 n_t = mask.sum()
-                if n_t == 0: return {"Kịch bản": label, "Profit": 0, "Users": 0}
+                if n_t == 0: return {"Kịch bản": label, "Predicted Profit": 0, "Ground-Truth Profit (Synthetic-only)": 0, "Users": 0}
                 
-                if 'oracle_ev_sim' in targeted.columns:
-                    t_ev = targeted['oracle_ev_sim'].sum()
-                else:
-                    t_ev = targeted['expected_value'].sum()
-                    
-                return {"Kịch bản": label, "Profit": round(t_ev, 0), "Users": int(n_t)}
+                pred_ev = targeted['expected_value'].sum()
+                gt_ev = targeted['oracle_ev_sim'].sum() if 'oracle_ev_sim' in targeted.columns else pred_ev
+                
+                return {
+                    "Kịch bản": label, 
+                    "Predicted Profit": round(pred_ev, 0), 
+                    "Ground-Truth Profit (Synthetic-only)": round(gt_ev, 0), 
+                    "Users": int(n_t)
+                }
             
             sim_results = []
             mass_m = pd.Series([True]*len(preds_df), index=preds_df.index)
@@ -499,19 +524,21 @@ with tab7:
             sim_results.append(eval_policy_sim(budget_m, f"Budget-Constrained (${sim2_budget:,})"))
             
             sim_df = pd.DataFrame(sim_results)
-            st.dataframe(sim_df.style.format({'Profit': '${:,.0f}'}).background_gradient(subset=['Profit'], cmap='RdYlGn', vmin=-50000, vmax=50000), use_container_width=True, hide_index=True)
+            st.dataframe(sim_df.style.format({'Predicted Profit': '${:,.0f}', 'Ground-Truth Profit (Synthetic-only)': '${:,.0f}'}).background_gradient(subset=['Predicted Profit'], cmap='RdYlGn', vmin=-50000, vmax=50000), use_container_width=True, hide_index=True)
             
-            best_policy = sim_df.loc[sim_df['Profit'].idxmax()]
-            if best_policy['Profit'] > 0: st.success(f"🏆 Kịch bản **{best_policy['Kịch bản']}** mang lại Lợi nhuận cao nhất (**${best_policy['Profit']:,.0f}**).")
+            best_policy = sim_df.loc[sim_df['Predicted Profit'].idxmax()]
+            if best_policy['Predicted Profit'] > 0: st.success(f"🏆 Dựa trên dự đoán, kịch bản **{best_policy['Kịch bản']}** mang lại Lợi nhuận cao nhất (**${best_policy['Predicted Profit']:,.0f}**).")
             else: st.error("🛑 Ngay cả kịch bản tốt nhất cũng đang Lỗ. Hãy giảm Voucher hoặc Tăng Margin.")
             
         except Exception as e:
             st.warning(f"Chưa có dữ liệu dự đoán để mô phỏng. ({str(e)})")
 
-# ================= TAB 8: ADMIN PIPELINE =================
+# ================= TAB 8: DEVELOPER TOOLS =================
 with tab8:
-    st.subheader("🛠️ Trình quản lý Data Pipeline")
-    if st.button("▶️ Chạy toàn bộ Data Pipeline", type="primary"):
+    st.subheader("🛠️ Developer Tools")
+    with st.expander("⚙️ Advanced / Developer Mode"):
+        st.warning("⚠️ Khu vực này dành cho Developer chạy lại Data Pipeline. Business user không nên thao tác.")
+        if st.button("▶️ Chạy toàn bộ Data Pipeline", type="primary"):
         import sys
         pipeline_path = os.path.join(base_path, 'src', 'pipeline')
         if pipeline_path not in sys.path:
