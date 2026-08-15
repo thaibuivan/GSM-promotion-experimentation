@@ -267,23 +267,38 @@ with tab4:
     avg_rev_treat = df_treat['gross_revenue_30d'].mean()
     avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
     
+    # Statistical ATE (Incremental Rides)
+    import scipy.stats as stats
+    t_stat, p_val = stats.ttest_ind(df_treat['Y_rand'], df_ctrl['Y_rand'], equal_var=False)
+    ate_rides = df_treat['Y_rand'].mean() - df_ctrl['Y_rand'].mean()
+    se = np.sqrt(df_treat['Y_rand'].var()/len(df_treat) + df_ctrl['Y_rand'].var()/len(df_ctrl))
+    ci_lower = ate_rides - 1.96 * se
+    ci_upper = ate_rides + 1.96 * se
+    
+    st.markdown("#### 1. Đánh giá Thống kê (Statistical Causal Effect)")
+    c_stat1, c_stat2, c_stat3 = st.columns(3)
+    c_stat1.metric("ATE (Incremental Rides)", f"{ate_rides:.2f} cuốc", f"p-value: {p_val:.4f}", delta_color="normal" if p_val < 0.05 else "off")
+    c_stat2.metric("Khoảng tin cậy 95% (CI)", f"[{ci_lower:.2f}, {ci_upper:.2f}]", "Số chuyến đi tăng thêm")
+    c_stat3.metric("Ý nghĩa Thống kê", "Significant" if p_val < 0.05 else "Not Significant", "Mức ý nghĩa 5%")
+    
+    # Business Effect
     incremental_rev_per_user = avg_rev_treat - avg_rev_ctrl
     gross_profit_per_user = incremental_rev_per_user * (MARGIN_PERCENT / 100.0)
     cost_per_user = (DISCOUNT_PERCENT / 100.0) * avg_rev_treat
     net_profit_per_user = gross_profit_per_user - cost_per_user
     overall_roi = (net_profit_per_user / cost_per_user) * 100 if cost_per_user > 0 else 0
     
+    st.markdown("#### 2. Phân dịch Kinh doanh (Business Translation)")
     col1, col2, col3 = st.columns(3)
     col1.metric("Control Mean (Base Revenue)", f"${avg_rev_ctrl:.2f}", "30-day window", delta_color="off")
     col2.metric("Treatment Mean (Treated Revenue)", f"${avg_rev_treat:.2f}", "30-day window", delta_color="off")
     col3.metric("ATE (Incremental GMV)", f"${incremental_rev_per_user:.2f}", "Tăng thêm/KH", delta_color="off")
     
-    st.markdown("#### Đánh giá Hiệu quả Kinh doanh (Business Effect)")
     c_biz1, c_biz2 = st.columns(2)
     c_biz1.metric(f"Burn (Chi phí Khuyến mãi/KH)", f"${cost_per_user:.2f}", f"{DISCOUNT_PERCENT}% GMV", delta_color="inverse")
     c_biz2.metric("Net Profit (Lợi nhuận Ròng/KH)", f"${net_profit_per_user:.2f}", f"ROI: {overall_roi:.1f}%", delta_color="normal" if net_profit_per_user > 0 else "inverse")
     
-    st.warning("⚠️ **STATISTICAL INTERPRETATION:** Mặc dù điểm ước lượng (Point Estimate) của Incremental GMV là số dương, nhưng việc phát Voucher ĐẠI TRÀ cho 100% khách hàng đang gây LỖ RÒNG. Điều này chứng tỏ hiệu ứng trung bình (ATE) không đủ lớn để bù đắp chi phí phát voucher dàn trải.")
+    st.warning("⚠️ **BUSINESS INTERPRETATION:** Mặc dù điểm ước lượng (Point Estimate) của Incremental Rides và GMV là số dương (Thống kê có ý nghĩa), nhưng việc phát Voucher ĐẠI TRÀ cho 100% khách hàng đang gây LỖ RÒNG. Điều này chứng tỏ hiệu ứng trung bình (ATE) không đủ lớn để bù đắp chi phí phát voucher dàn trải.")
     
 # ================= TAB 5: HETEROGENEITY =================
 with tab5:
@@ -391,7 +406,7 @@ with tab5:
         try:
             qini_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
             fig_qini = go.Figure()
-            fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines', name='Qini Curve (T-Learner Champion)', line=dict(color='#00E5FF', width=3)))
+            fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines', name='Qini Curve (R-Learner Champion)', line=dict(color='#00E5FF', width=3)))
             fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['random_uplift'], mode='lines', name='Random Targeting', line=dict(color='rgba(255,255,255,0.3)', dash='dash', width=2)))
             
             fig_qini.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
@@ -399,7 +414,7 @@ with tab5:
             fig_qini.update_yaxes(title="Cumulative Incremental Rides (Qini)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
             st.plotly_chart(fig_qini, use_container_width=True)
             
-            st.info("💡 **Góc nhìn Tích lũy:** Đường Qini (Xanh dương) nằm cong lên trên đường Random (Xám) chứng tỏ AI (T-Learner) đang hoạt động tốt và tạo ra giá trị gia tăng lớn hơn so với phát Voucher ngẫu nhiên.")
+            st.info("💡 **Góc nhìn Tích lũy:** Đường Qini (Xanh dương) nằm cong lên trên đường Random (Xám) chứng tỏ AI (R-Learner) đang hoạt động tốt và tạo ra giá trị gia tăng lớn hơn so với phát Voucher ngẫu nhiên.")
         except Exception as e:
             st.warning(f"Chưa có dữ liệu Qini Curve. ({str(e)})")
 
@@ -418,7 +433,7 @@ with tab6:
             '3. Uplift Targeting (Top 30% CATE)': '#AAAAFF',
             '4. Profit Targeting (EV > 0)': '#00E5FF',
             '5. Budget-Constrained ($50,000)': '#FFD700',
-            '6. Oracle Policy (True ITE — Sandbox only)': '#00FF88',
+            '6. Oracle Policy (Synthetic-only)': '#00FF88',
         }
         
         fig_policy = go.Figure()
@@ -541,7 +556,10 @@ with tab7:
                 prof_m = preds_df['expected_value'] > thresh
             sim_results.append(eval_policy_sim(prof_m, "Profit Targeting (EV > 0)"))
             
-            df_sorted = preds_df.sort_values('expected_value', ascending=False).copy()
+            prof_df_sim = preds_df[preds_df['expected_value'] > 0].copy()
+            df_sorted = prof_df_sim.sort_values('expected_value', ascending=False)
+            max_t = int(len(preds_df) * (sim2_max_target / 100))
+            df_sorted = df_sorted.head(max_t).copy()
             df_sorted['cum_cost'] = (df_sorted['pred_rides_treated'] * df_sorted['voucher_cost']).cumsum()
             budget_m_idx = df_sorted[df_sorted['cum_cost'] <= sim2_budget].index
             budget_m = preds_df.index.isin(budget_m_idx)

@@ -190,7 +190,8 @@ profit_mask = df_test['expected_value'] > 0
 results.append(evaluate_policy(profit_mask, df_test, "4. Profit Targeting (EV > 0)"))
 
 # Policy 5: Budget-Constrained Profit Targeting
-df_sorted_ev = df_test.sort_values('expected_value', ascending=False).copy()
+prof_df = df_test[df_test['expected_value'] > 0].copy()
+df_sorted_ev = prof_df.sort_values('expected_value', ascending=False)
 df_sorted_ev['cumulative_cost'] = (df_sorted_ev['pred_rides_treated'] * df_sorted_ev['voucher_cost']).cumsum()
 budget_mask_idx = df_sorted_ev[df_sorted_ev['cumulative_cost'] <= CAMPAIGN_BUDGET].index
 budget_mask = df_test.index.isin(budget_mask_idx)
@@ -199,7 +200,7 @@ results.append(evaluate_policy(budget_mask, df_test, f"5. Budget-Constrained (${
 # Oracle Policy (using cate_true if available)
 if 'cate_true' in df_test.columns:
     oracle_mask = df_test['oracle_ev'] > 0
-    results.append(evaluate_policy(oracle_mask, df_test, "6. Oracle Policy (True ITE — Sandbox only)"))
+    results.append(evaluate_policy(oracle_mask, df_test, "6. Oracle Policy (Synthetic-only)"))
     
     # Save regret info for Dashboard
     profit_policy_ev = results[-3]["Expected_Incremental_Profit"] # index -3 is Profit Targeting
