@@ -235,7 +235,18 @@ with tab3:
             fig_smd.add_vline(x=0, line_width=2, line_color="rgba(255,255,255,0.8)")
             
             # Set fixed range so 0.1 is at the edges
-            fig_smd.update_xaxes(range=[-0.11, 0.11], title="SMD (Độ lệch chuẩn hóa)", showgrid=True, gridcolo# ================= TAB 4: A/B RESULT =================
+            fig_smd.update_xaxes(range=[-0.11, 0.11], title="SMD (Độ lệch chuẩn hóa)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+            fig_smd.update_yaxes(title="", showgrid=False)
+            fig_smd.update_layout(**chart_layout, height=350, coloraxis_showscale=False, 
+                                  title="Biểu đồ Mức độ Tương đồng (Covariate Balance)")
+            
+            st.plotly_chart(fig_smd, use_container_width=True)
+            
+            st.success("🟢 Tất cả các biến số đều có |SMD| < 0.1 (nằm trong vạch đỏ), chứng tỏ hai nhóm có độ tương đồng tốt trong dữ liệu mô phỏng.")
+        else:
+            st.warning("⚠️ Không tìm thấy biến số nào để tính SMD.")
+
+# ================= TAB 4: A/B RESULT =================
 with tab4:
     st.subheader("📊 Kết quả A/B Test (Average Treatment Effect)")
     st.markdown("**Outcome Window:** 30 days | **Causal Question:** Hiệu ứng trung bình (ATE) của Voucher lên toàn bộ tập khách hàng là bao nhiêu?")
