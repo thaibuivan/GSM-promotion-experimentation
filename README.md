@@ -3,6 +3,7 @@
 
 ## 🚀 Live Demo & Quick Navigation
 - [**Live Streamlit Dashboard**](https://gsm-promotion-experimentation.streamlit.app) *(Vui lòng đợi vài giây để Cloud tải dữ liệu giả lập ở lần truy cập đầu tiên).*
+- 📖 [**Dashboard User Guide (Hướng dẫn xem Dashboard)**](docs/Dashboard_User_Guide.md)
 - [**Tech Doc W4**](docs/TECHNICAL_DOCUMENTATION_W4.md)
 - [**Week 4 A/B Report**](docs/Week4_AA_AB_Testing_Report.md)
 - [**Decision Memo**](docs/Decision_Memo.md)
