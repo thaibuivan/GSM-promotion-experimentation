@@ -194,8 +194,8 @@ with tab3:
     st.subheader("🩺 Kiểm tra Sức khỏe Thí nghiệm (Experiment Health Gate)")
     st.markdown("Trước khi phân tích kết quả A/B Test, cần xác minh không có lỗi phân bổ ngẫu nhiên rõ rệt.")
     
-    col_eh1, col_eh2, col_eh3 = st.columns(3)
-    with col_eh1:
+    col_top1, col_top2 = st.columns(2)
+    with col_top1:
         st.markdown("#### 1. Sample Ratio Mismatch (SRM)")
         observed_treatment = len(df_treat)
         observed_control = len(df_ctrl)
@@ -214,52 +214,50 @@ with tab3:
         else:
             st.success(f"🟢 Không phát hiện SRM (p-value = {p_srm:.4f} >= 0.01).")
             
-    with col_eh2:
-        st.markdown("#### 2. Covariate Balance (SMD)")
-        st.markdown("Đo lường độ lệch chuẩn hóa (SMD) trước khi can thiệp.")
-        
-        # Calculate SMD dynamically instead of relying on a static image
-        covariates = ['age', 'monthly_rides_history', 'recency_days', 'is_urban', 'is_weekend_rider', 'is_airport_trip', 'is_rush_hour']
-        valid_covs = [c for c in covariates if c in df.columns]
-        
-        if valid_covs:
-            smd_data = []
-            for col in valid_covs:
-                mean_t = df_treat[col].mean()
-                mean_c = df_ctrl[col].mean()
-                var_t = df_treat[col].var()
-                var_c = df_ctrl[col].var()
-                std_pool = np.sqrt((var_t + var_c) / 2)
-                smd = (mean_t - mean_c) / std_pool if std_pool > 0 else 0
-                smd_data.append({'Biến số': col, 'SMD': smd})
-                
-            smd_df = pd.DataFrame(smd_data).sort_values(by='SMD', key=abs, ascending=True)
-            
-            # Revert to Bar Chart per user preference
-            fig_smd = px.bar(smd_df, y='Biến số', x='SMD', orientation='h', 
-                             color='SMD', color_continuous_scale=['#00E5FF', '#FF007F'])
-            
-            # Add vertical threshold lines
-            fig_smd.add_vline(x=0.1, line_dash="dash", line_color="#FF4B4B", line_width=2)
-            fig_smd.add_vline(x=-0.1, line_dash="dash", line_color="#FF4B4B", line_width=2)
-            fig_smd.add_vline(x=0, line_width=2, line_color="rgba(255,255,255,0.8)")
-            
-            # Set fixed range so 0.1 is at the edges
-            fig_smd.update_xaxes(range=[-0.11, 0.11], title="SMD", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
-            fig_smd.update_yaxes(title="", showgrid=False)
-            fig_smd.update_layout(**chart_layout, height=350, coloraxis_showscale=False)
-            
-            st.plotly_chart(fig_smd, use_container_width=True)
-            
-            st.success("🟢 |SMD| < 0.1 (Tương đồng tốt).")
-        else:
-            st.warning("⚠️ Không tìm thấy biến số nào để tính SMD.")
-
-    with col_eh3:
-        st.markdown("#### 3. A/A False Positive Calibration")
+    with col_top2:
+        st.markdown("#### 2. A/A False Positive Calibration")
         st.markdown("Kiểm định A/A (A/A Testing) được chạy 1,000 lần mô phỏng để đảm bảo tỷ lệ False Positive Rate (Type I Error) hội tụ.")
         st.metric("A/A False Positive Rate", "4.8%", "Mục tiêu (Expected): 5.0%", delta_color="off")
         st.success("🟢 PASS: Tỷ lệ dương tính giả (FPR) nằm trong khoảng tin cậy. Dữ liệu Synthetic Sandbox không có thiên lệch cấu trúc.")
+
+    st.markdown("---")
+    st.markdown("#### 3. Covariate Balance (SMD)")
+    st.markdown("Đo lường độ lệch chuẩn hóa (SMD) trước khi can thiệp. |SMD| < 0.1 cho thấy hai nhóm tương đồng.")
+    
+    # Calculate SMD dynamically instead of relying on a static image
+    covariates = ['age', 'monthly_rides_history', 'recency_days', 'is_urban', 'is_weekend_rider', 'is_airport_trip', 'is_rush_hour']
+    valid_covs = [c for c in covariates if c in df.columns]
+    
+    if valid_covs:
+        smd_data = []
+        for col in valid_covs:
+            mean_t = df_treat[col].mean()
+            mean_c = df_ctrl[col].mean()
+            var_t = df_treat[col].var()
+            var_c = df_ctrl[col].var()
+            std_pool = np.sqrt((var_t + var_c) / 2)
+            smd = (mean_t - mean_c) / std_pool if std_pool > 0 else 0
+            smd_data.append({'Biến số': col, 'SMD': smd})
+            
+        smd_df = pd.DataFrame(smd_data).sort_values(by='SMD', key=abs, ascending=True)
+        
+        # Revert to Bar Chart per user preference
+        fig_smd = px.bar(smd_df, y='Biến số', x='SMD', orientation='h', 
+                         color='SMD', color_continuous_scale=['#00E5FF', '#FF007F'])
+        
+        # Add vertical threshold lines
+        fig_smd.add_vline(x=0.1, line_dash="dash", line_color="#FF4B4B", line_width=2)
+        fig_smd.add_vline(x=-0.1, line_dash="dash", line_color="#FF4B4B", line_width=2)
+        fig_smd.add_vline(x=0, line_width=2, line_color="rgba(255,255,255,0.8)")
+        
+        # Set fixed range so 0.1 is at the edges
+        fig_smd.update_xaxes(range=[-0.11, 0.11], title="SMD", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+        fig_smd.update_yaxes(title="", showgrid=False)
+        fig_smd.update_layout(**chart_layout, height=350, coloraxis_showscale=False)
+        
+        st.plotly_chart(fig_smd, use_container_width=True)
+    else:
+        st.warning("⚠️ Không tìm thấy biến số nào để tính SMD.")
 
 # ================= TAB 4: A/B RESULT =================
 with tab4:
