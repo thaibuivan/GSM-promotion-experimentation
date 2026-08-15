@@ -42,7 +42,7 @@ Không phát hiện randomization/statistical calibration issue đáng kể dư�
 Thay vì sử dụng phương pháp T-Test truyền thống (có phương sai lớn, dễ dẫn đến khoảng tin cậy rộng và khó phát hiện sự khác biệt), dự án đã nâng cấp thuật toán đo lường ATE bằng **Mô hình Hồi quy OLS với Robust Standard Errors (HC1)**.
 
 - **Pre-treatment Covariate Adjustment:** Mô hình Hồi quy đưa thêm biến lịch sử chuyến đi (`monthly_rides_history`) vào làm Covariate (biến đã có trước treatment). Kỹ thuật này giúp giảm phương sai của số dư, tương tự về mục đích với CUPED — nhưng không triển khai đầy đủ CUPED formulation của Microsoft/Netflix.
-- **Robust Standard Errors (HC1):** Xử lý triệt để hiện tượng Phương sai sai số thay đổi (Heteroskedasticity), cung cấp heteroskedasticity-robust standard errors, giúp inference bền vững hơn khi phương sai sai số không đồng nhất dưới các giả định hồi quy thông thường.
+- **Robust Standard Errors (HC1):** HC1 cung cấp heteroskedasticity-robust standard errors, giúp inference bền vững hơn khi phương sai sai số không đồng nhất dưới các giả định hồi quy thông thường.
 
 - **Giả thuyết Không ($H_0$):** Hệ số của biến Treatment trong phương trình hồi quy bằng 0 (Voucher không có tác dụng).
 - **Giả thuyết Đối ($H_1$):** Hệ số của biến Treatment khác 0 (Voucher có tác động).
@@ -72,7 +72,7 @@ Bên cạnh ý nghĩa thống kê, ý nghĩa thực tiễn của chiến dịch 
 
 ## 4. Kết quả Thực thi A/B Test (Empirical Results)
 
-Dưới đây là kết quả A/B Testing thực tế được bóc tách theo các Behavioral Personas. Dữ liệu này chứng minh hoàn toàn cơ chế Nhân quả (HTE) đã được thiết lập đúng.
+Dưới đây là kết quả A/B Testing thực tế được bóc tách theo các Behavioral Personas. Kết quả minh họa treatment heterogeneity được thiết kế trong synthetic DGP.
 
 | Phân khúc Khách hàng (Persona) | N Users | ATE (Chuyến tăng thêm) | P-value | ROI | Kết luận Hành động |
 |---|---|---|---|---|---|
@@ -86,11 +86,9 @@ Dưới đây là kết quả A/B Testing thực tế được bóc tách theo c
 > **💡 Bài học Kinh doanh Cốt lõi:**
 > Nếu ta chỉ chạy A/B Test đại trà (Mass Voucher) trên toàn bộ 20,000 user mà không phân cụm, **chiến dịch sẽ lỗ ròng -$116,338**.
 > 
-> Nhờ PCA làm sạch cụm và bóc tách A/B Test theo Persona, hệ thống phát hiện được 2 nhóm sinh lời:
+> Behavioral personas hỗ trợ segment-level interpretation, giúp hệ thống phát hiện được 2 nhóm sinh lời:
 > - **Suburban Card**: ROI +20.7%, Candidate for further validation, lợi nhuận +$13,993 từ 2,792 users.
 > - **Suburban Cash**: ROI +24.7%, Candidate for further validation.
-> 
-> Bài học: **Bước nâng cấp PCA không chỉ tăng độ chính xác mà còn tiết lộ ra những insight mới (Suburban Cash) mà phương pháp cũ đã bỏ lỡ!**
 
 
 ---
