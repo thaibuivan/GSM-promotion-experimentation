@@ -1,8 +1,8 @@
-Policy,N_Targeted,Pct_Targeted,Total_Voucher_Cost,Expected_Incremental_Profit,EV_Lower_95,EV_Upper_95,Est_ROI_pct,Expected_Incremental_Rides,Expected_GMV,Incremental_GMV,Burn,CPIR,Burn_per_GMV_pct,Burn_per_Inc_GMV_pct
-0. No Voucher,0,0.0,0.0,0.0,0.0,0.0,0.0,,,,,,,
-1. Mass Voucher (All Users),4000,100.0,,-76286.0,-79757.0,-72815.0,-58.0,3230.0,877375.0,79029.0,131606.0,41.0,15.0,166.5
-2. Segment Targeting (Suburban),1615,40.4,,-918.0,-2175.0,338.0,-2.7,1579.0,223057.0,46486.0,33459.0,21.0,15.0,72.0
-3. Uplift Targeting (Top 30% CATE),1200,30.0,,-33332.0,-34625.0,-32040.0,-66.6,1096.0,333436.0,23833.0,50015.0,46.0,15.0,209.9
-4. Profit Targeting (EV > 0),703,17.6,,4128.0,3601.0,4654.0,38.3,742.0,71931.0,21311.0,10790.0,15.0,15.0,50.6
-"5. Budget-Constrained ($50,000)",703,17.6,,4128.0,3601.0,4654.0,38.3,742.0,71931.0,21311.0,10790.0,15.0,15.0,50.6
-6. Oracle Policy (Synthetic-only),987,24.7,,7226.0,6527.0,7925.0,52.1,1046.0,92446.0,30133.0,13867.0,13.0,15.0,46.0
+Policy,N_Targeted,Pct_Targeted,Total_Voucher_Cost,Predicted_Incremental_Profit,Ground_Truth_Incremental_Profit,EV_Lower_95,EV_Upper_95,Est_ROI_pct,Expected_Incremental_Rides,Expected_GMV,Incremental_GMV,Burn,CPIR,Burn_per_GMV_pct,Burn_per_Inc_GMV_pct
+0. No Voucher,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,,,,,,
+1. Mass Voucher (All Users),4000,100.0,,-65358.0,-76313.0,-68889.0,-61826.0,-49.5,3821.0,880888.0,95394.0,132133.0,35.0,15.0,138.5
+2. Segment Targeting (Suburban),1660,41.5,,-4286.0,-996.0,-5705.0,-2867.0,-12.1,1437.0,235198.0,44277.0,35280.0,25.0,15.0,79.7
+3. Uplift Targeting (Top 30% CATE),1200,30.0,,-10187.0,-25360.0,-11646.0,-8728.0,-23.6,2021.0,288064.0,47175.0,43210.0,21.0,15.0,91.6
+4. Profit Targeting (EV > 0),888,22.2,,7939.0,7060.0,7349.0,8529.0,54.1,1112.0,97775.0,32293.0,14666.0,13.0,15.0,45.4
+"5. Budget-Constrained ($50,000)",888,22.2,,7939.0,7060.0,7349.0,8529.0,54.1,1112.0,97775.0,32293.0,14666.0,13.0,15.0,45.4
+6. Oracle Policy (Synthetic-only),1002,25.0,,4971.0,10818.0,4184.0,5758.0,33.4,1017.0,99349.0,28391.0,14902.0,15.0,15.0,52.5

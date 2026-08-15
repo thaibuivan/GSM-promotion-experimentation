@@ -48,8 +48,14 @@ FARE_SUBURB_SIGMA = 0.55
 FARE_AIRPORT_MU   = 4.0    # exp(4.0) ~ 54.6 USD/trip
 FARE_AIRPORT_SIGMA= 0.3
 
-# Voucher mechanics: giam 20%, toi da 3 USD / chuyen
-VOUCHER_DISCOUNT_RATE = 0.20
+import json
+try:
+    with open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config.json'), 'r') as f:
+        _cfg = json.load(f)
+    VOUCHER_DISCOUNT_RATE = _cfg['economics'].get('voucher_rate', 0.15)
+except:
+    VOUCHER_DISCOUNT_RATE = 0.15
+
 VOUCHER_CAP_PER_TRIP  = 3.0
 
 # Demographics
@@ -334,14 +340,37 @@ def run_pipeline(n_users=N_USERS, progress_callback=None):
     discount_cost_30d = (t_rand * Y_rand * discount_per_trip).round(2)
 
     # Doanh thu thuan
-    net_contribution  = (gross_revenue_30d - discount_cost_30d).round(2)
+    try:
+        MARGIN_RATE = _cfg['economics'].get('margin_rate', 0.70)
+    except:
+        MARGIN_RATE = 0.70
+    net_contribution  = (gross_revenue_30d * MARGIN_RATE - discount_cost_30d).round(2)
 
     if progress_callback: progress_callback(75, "Dang huan luyen mo hinh K-Means 5 Cum...")
 
     # ----------------------------------------------------------
     # BLOCK 6: Build DataFrame + Segmentation
     # ----------------------------------------------------------
+    persona = np.full(n_users, "Urban Regulars", dtype=object)
+    
+    # 1. Suburban Cash
+    mask_sub_cash = (is_urban == 0) & (payment_type == 2)
+    persona[mask_sub_cash] = "Suburban Cash"
+    
+    # 2. Suburban Card
+    mask_sub_card = (is_urban == 0) & (payment_type == 1)
+    persona[mask_sub_card] = "Suburban Card"
+    
+    # 3. Rain Riders
+    mask_rain = (is_urban == 1) & (is_rain_rider == 1)
+    persona[mask_rain] = "Rain Riders"
+    
+    # 4. Airport Business
+    mask_airport = (is_urban == 1) & (is_airport_trip == 1) & ~mask_rain
+    persona[mask_airport] = "Airport Business"
+    
     df = pd.DataFrame({
+        'persona'              : persona,
         'user_id'              : range(1, n_users + 1),
         'age'                  : age,
         'is_urban'             : is_urban,

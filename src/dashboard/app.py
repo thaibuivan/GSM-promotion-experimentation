@@ -120,24 +120,27 @@ with tab1:
     st.markdown("#### 🔄 Luồng dữ liệu (Data Pipeline)")
     st.info("**Public Mobility Data** ➔ **EDA & Quality Check** ➔ **Empirical Calibration** ➔ **Synthetic Population Generation** ➔ **Randomized A/B Experiment**")
     
+    # Pre-compute Reference distributions
+    x_fare = np.linspace(df['avg_fare_per_trip'].min(), df['avg_fare_per_trip'].max(), 100)
+    y_fare_real = stats.lognorm.pdf(x_fare, s=0.5, scale=np.exp(np.log(15)))
+    x_hour = np.linspace(0, 23, 100)
+    y_hour_real = (stats.norm.pdf(x_hour, loc=8, scale=2) + stats.norm.pdf(x_hour, loc=18, scale=3)) * 0.5
+    
     fig_col1, fig_col2 = st.columns(2)
     with fig_col1:
+        st.markdown("#### 1. Phân phối Cước phí: Calibration Reference vs Synthetic")
         fig_fare = go.Figure()
-        fig_fare.add_trace(go.Histogram(x=df['avg_fare_per_trip'], nbinsx=50, name='Synthetic Data', marker_color='#00E5FF', opacity=0.7))
-        # Overlay a log-normal curve as 'Real TLC' reference
-        x_fare = np.linspace(df['avg_fare_per_trip'].min(), df['avg_fare_per_trip'].max(), 100)
-        y_fare = stats.lognorm.pdf(x_fare, s=0.5, scale=np.exp(np.log(15))) * len(df) * (df['avg_fare_per_trip'].max() - df['avg_fare_per_trip'].min()) / 50
-        fig_fare.add_trace(go.Scatter(x=x_fare, y=y_fare, mode='lines', name='Real TLC (Reference)', line=dict(color='white', width=2, dash='dash')))
-        fig_fare.update_layout(**chart_layout, height=300, title="Phân phối Cước phí: Real TLC vs Synthetic", barmode='overlay')
+        fig_fare.add_trace(go.Histogram(x=df['avg_fare_per_trip'], nbinsx=50, histnorm='probability density', name='Synthetic Sandbox', marker_color='#00E5FF', opacity=0.7))
+        fig_fare.add_trace(go.Scatter(x=x_fare, y=y_fare_real, mode='lines', name='EDA-Calibrated Reference Curve', line=dict(color='white', width=2, dash='dot')))
+        fig_fare.update_layout(**chart_layout, height=300, title="Phân phối Cước phí: Calibration Reference vs Synthetic", barmode='overlay')
         st.plotly_chart(fig_fare, use_container_width=True)
     with fig_col2:
+        st.info("💡 **Lưu ý:** EDA-Calibrated Reference Curve được thiết lập dựa trên tham số phân tích EDA, không phải dữ liệu thô trực tiếp.")
+        st.markdown("#### 2. Phân phối Giờ cao điểm: Calibration Reference vs Synthetic")
         fig_hour = go.Figure()
-        fig_hour.add_trace(go.Histogram(x=df['preferred_hour'], nbinsx=24, name='Synthetic Data', marker_color='#FF007F', opacity=0.7))
-        # Bimodal overlay for hour
-        x_hour = np.linspace(0, 23, 100)
-        y_hour = (stats.norm.pdf(x_hour, loc=8, scale=2) + stats.norm.pdf(x_hour, loc=18, scale=3)) * 0.5 * len(df) * 24 / 24
-        fig_hour.add_trace(go.Scatter(x=x_hour, y=y_hour, mode='lines', name='Real TLC (Reference)', line=dict(color='white', width=2, dash='dash')))
-        fig_hour.update_layout(**chart_layout, height=300, title="Khung giờ hoạt động: Real TLC vs Synthetic", barmode='overlay')
+        fig_hour.add_trace(go.Histogram(x=df['preferred_hour'], nbinsx=24, histnorm='probability density', name='Synthetic Sandbox', marker_color='#FF007F', opacity=0.7))
+        fig_hour.add_trace(go.Scatter(x=x_hour, y=y_hour_real, mode='lines', name='EDA-Calibrated Reference Curve', line=dict(color='white', width=2, dash='dot')))
+        fig_hour.update_layout(**chart_layout, height=300, title="Khung giờ hoạt động: Calibration Reference vs Synthetic", barmode='overlay')
         st.plotly_chart(fig_hour, use_container_width=True)
     
     st.markdown("---")
@@ -384,8 +387,9 @@ with tab5:
                 rev_c = c['gross_revenue_30d'].mean()
                 rev_t = t['gross_revenue_30d'].mean()
                 d_rev = rev_t - rev_c
+                gross_profit = d_rev * (MARGIN_PERCENT / 100.0)
                 cost = (DISCOUNT_PERCENT / 100.0) * rev_t
-                roi = (d_rev - cost) / cost * 100 if cost > 0 else 0
+                roi = (gross_profit - cost) / cost * 100 if cost > 0 else 0
                 recency_roi.append({'Nhóm Recency': b, 'ROI (%)': roi})
                 
         recency_roi_df = pd.DataFrame(recency_roi).sort_values('Nhóm Recency')
@@ -439,15 +443,16 @@ with tab6:
         fig_policy = go.Figure()
         for _, row in policy_df_raw.iterrows():
             color = policy_colors.get(row['Policy'], '#FFFFFF')
-            error_val = row.get('EV_Upper_95', row['Expected_Incremental_Profit']) - row['Expected_Incremental_Profit']
+            y_val = row['Ground_Truth_Incremental_Profit'] if 'Oracle' in row['Policy'] else row['Predicted_Incremental_Profit']
+            error_val = row.get('EV_Upper_95', y_val) - y_val
             
             fig_policy.add_trace(go.Bar(
                 x=[row['Policy'].split('.',1)[1].strip() if '.' in row['Policy'] else row['Policy']],
-                y=[row['Expected_Incremental_Profit']],
+                y=[y_val],
                 name=row['Policy'],
                 marker_color=color,
                 error_y=dict(type='data', array=[error_val], visible=True, color='rgba(255,255,255,0.7)', thickness=1.5, width=4),
-                text=[f"${row['Expected_Incremental_Profit']:,.0f}\n({row['Pct_Targeted']:.0f}% users)"],
+                text=[f"${y_val:,.0f}\n({row['Pct_Targeted']:.0f}% users)"],
                 textposition='outside'
             ))
         
@@ -460,25 +465,26 @@ with tab6:
         
         display_df = policy_df_raw.copy()
         display_df['Khoảng Rủi ro (95% CI)'] = display_df.apply(lambda r: f"[{r.get('EV_Lower_95', 0):,.0f} ~ {r.get('EV_Upper_95', 0):,.0f}]", axis=1)
-        display_df = display_df[['Policy', 'N_Targeted', 'Pct_Targeted', 'Expected_GMV', 'Burn', 'Burn_per_GMV_pct', 'Incremental_GMV', 'Burn_per_Inc_GMV_pct', 'Expected_Incremental_Rides', 'CPIR', 'Expected_Incremental_Profit', 'Khoảng Rủi ro (95% CI)', 'Est_ROI_pct']]
+        display_df = display_df[['Policy', 'N_Targeted', 'Pct_Targeted', 'Expected_GMV', 'Burn', 'Burn_per_GMV_pct', 'Incremental_GMV', 'Burn_per_Inc_GMV_pct', 'Expected_Incremental_Rides', 'CPIR', 'Predicted_Incremental_Profit', 'Ground_Truth_Incremental_Profit', 'Khoảng Rủi ro (95% CI)', 'Est_ROI_pct']]
         display_df.columns = [
             'Policy', 'N Users Target', '% Users', 
             'Dự kiến GMV ($)', 'Burn ($)', 'Burn/GMV (%)', 
             'Inc GMV ($)', 'Burn/Inc GMV (%)', 
             'Inc Rides', 'CPIR ($)', 
-            'Lợi nhuận Kỳ vọng ($)', 'Khoảng Rủi ro (95% CI)', 'ROI (%)'
+            'Lợi nhuận Dự đoán ($)', 'Lợi nhuận Thực tế ($)', 'Khoảng Rủi ro (95% CI)', 'ROI (%)'
         ]
         st.dataframe(
             display_df.style
             .format({
                 'Dự kiến GMV ($)': '${:,.0f}', 'Burn ($)': '${:,.0f}', 
                 'Inc GMV ($)': '${:,.0f}', 'CPIR ($)': '${:,.0f}',
-                'Lợi nhuận Kỳ vọng ($)': '${:,.0f}', 
+                'Lợi nhuận Dự đoán ($)': '${:,.0f}', 
+                'Lợi nhuận Thực tế ($)': '${:,.0f}', 
                 'ROI (%)': '{:.1f}%', '% Users': '{:.1f}%',
                 'Burn/GMV (%)': '{:.1f}%', 'Burn/Inc GMV (%)': '{:.1f}%',
                 'Inc Rides': '{:,.0f}'
             })
-            .background_gradient(subset=['Lợi nhuận Kỳ vọng ($)'], cmap='RdYlGn', vmin=-80000, vmax=15000),
+            .background_gradient(subset=['Lợi nhuận Dự đoán ($)'], cmap='RdYlGn', vmin=-80000, vmax=15000),
             use_container_width=True, hide_index=True
         )
         
@@ -492,7 +498,7 @@ with tab6:
         except:
             pass
 
-        st.info(f"**📊 Kết luận trong Sandbox:** Profit Targeting cho lợi nhuận **{profit_row['Expected_Incremental_Profit']:,.0f} USD**, trong khi Mass Voucher gây lỗ **{abs(mass_row['Expected_Incremental_Profit']):,.0f} USD**. {regret_str}")
+        st.info(f"**📊 Kết luận trong Sandbox:** Profit Targeting cho lợi nhuận dự đoán **{profit_row['Predicted_Incremental_Profit']:,.0f} USD**, trong khi Mass Voucher gây lỗ dự đoán **{abs(mass_row['Predicted_Incremental_Profit']):,.0f} USD**. {regret_str}")
         
     except Exception as e:
         st.warning(f"Nhấn 'Chạy Pipeline' ở tab Admin để tạo dữ liệu Policy Comparison. ({str(e)})")

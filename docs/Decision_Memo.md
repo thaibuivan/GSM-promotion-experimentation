@@ -31,7 +31,7 @@ Kết quả A/B Test trên synthetic data với assumptions HTE đã thiết k�
 | **Suburban Cash** | 5,061 | +0.79 | **+24.7%** | Phù hợp assumptions — ROI dương trong sandbox |
 
 ### B.3. Uplift Model Evaluation
-- T-Learner (XGBoost) cho profit tốt nhất ở top 30-50% population.
+- R-Learner (XGBoost-based residual learner) cho profit tốt nhất ở top 30-50% population.
 - Profit Targeting (rank theo Expected Value_i = CATE_i × Margin − Voucher Cost) vượt trội Segment Targeting thuần.
 - Oracle Regret so với true ITE: [xem notebook Week5].
 

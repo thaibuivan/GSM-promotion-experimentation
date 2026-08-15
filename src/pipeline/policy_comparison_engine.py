@@ -31,7 +31,7 @@ MARGIN_RATE  = config['economics']['margin_rate']
 CAMPAIGN_BUDGET = config['economics']['budget_limit']
 
 features = ['age', 'is_urban', 'preferred_hour', 'is_rush_hour', 'is_airport_trip',
-            'is_rain_rider', 'is_weekend_rider', 'is_credit_card', 'passenger_count',
+            'is_rain_rider', 'is_weekend_rider', 'payment_type', 'passenger_count',
             'monthly_rides_history', 'recency_days']
 
 X = df[features]
@@ -99,35 +99,21 @@ def evaluate_policy(target_mask, df_eval, label):
         return {"Policy": label, "N_Targeted": 0, "Pct_Targeted": 0.0,
                 "Expected_Incremental_Rides": 0, "Expected_GMV": 0, "Incremental_GMV": 0,
                 "Burn": 0, "CPIR": 0, "Burn_per_GMV_pct": 0, "Burn_per_Inc_GMV_pct": 0,
-                "Expected_Incremental_Profit": 0,
+                "Predicted_Incremental_Profit": 0,
+                "Ground_Truth_Incremental_Profit": 0,
                 "EV_Lower_95": 0, "EV_Upper_95": 0,
                 "Est_ROI_pct": 0}
 
-    # Among targeted: use Oracle (Ground Truth) if available, otherwise model proxy
-    if 'oracle_ev' in df_eval.columns:
-        total_ev = targeted['oracle_ev'].sum()
-        total_inc_rides = targeted['cate_true'].sum()
-        total_inc_gmv = (targeted['cate_true'] * targeted['avg_fare']).sum()
-        if n_targeted > 1:
-            std_ev = targeted['oracle_ev'].std()
-            moe = 1.96 * std_ev * np.sqrt(n_targeted)
-        else:
-            moe = 0
-    else:
-        total_ev = targeted['expected_value'].sum()
-        total_inc_rides = targeted['cate_pred'].sum()
-        total_inc_gmv = (targeted['cate_pred'] * targeted['avg_fare']).sum()
-        if n_targeted > 1:
-            std_ev = targeted['expected_value'].std()
-            moe = 1.96 * std_ev * np.sqrt(n_targeted)
-        else:
-            moe = 0
-
-    total_burn = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
+    predicted_ev = targeted['expected_value'].sum()
+    ground_truth_ev = targeted['oracle_ev'].sum() if 'oracle_ev' in df_eval.columns else predicted_ev
     
+    total_inc_rides = targeted['cate_pred'].sum()
+    total_inc_gmv = (targeted['cate_pred'] * targeted['avg_fare']).sum()
+    
+    total_burn = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
     total_gmv = (targeted['pred_rides_treated'] * targeted['avg_fare']).sum()
     
-    roi = (total_ev / total_burn * 100) if total_burn > 0 else 0
+    roi = (predicted_ev / total_burn * 100) if total_burn > 0 else 0
     cpir = (total_burn / total_inc_rides) if total_inc_rides > 0 else 0
     burn_per_gmv = (total_burn / total_gmv * 100) if total_gmv > 0 else 0
     burn_per_inc_gmv = (total_burn / total_inc_gmv * 100) if total_inc_gmv > 0 else 0
@@ -149,9 +135,10 @@ def evaluate_policy(target_mask, df_eval, label):
         "CPIR": round(cpir, 0),
         "Burn_per_GMV_pct": round(burn_per_gmv, 1),
         "Burn_per_Inc_GMV_pct": round(burn_per_inc_gmv, 1),
-        "Expected_Incremental_Profit": round(total_ev, 0),
-        "EV_Lower_95": round(total_ev - moe, 0),
-        "EV_Upper_95": round(total_ev + moe, 0),
+        "Predicted_Incremental_Profit": round(predicted_ev, 0),
+        "Ground_Truth_Incremental_Profit": round(ground_truth_ev, 0),
+        "EV_Lower_95": round(predicted_ev - moe, 0),
+        "EV_Upper_95": round(predicted_ev + moe, 0),
         "Est_ROI_pct": round(roi, 1)
     }
 
@@ -166,7 +153,8 @@ results.append({
     "N_Targeted": 0,
     "Pct_Targeted": 0.0,
     "Total_Voucher_Cost": 0,
-    "Expected_Incremental_Profit": 0,
+    "Predicted_Incremental_Profit": 0,
+    "Ground_Truth_Incremental_Profit": 0,
     "EV_Lower_95": 0,
     "EV_Upper_95": 0,
     "Est_ROI_pct": 0.0
@@ -203,8 +191,8 @@ if 'cate_true' in df_test.columns:
     results.append(evaluate_policy(oracle_mask, df_test, "6. Oracle Policy (Synthetic-only)"))
     
     # Save regret info for Dashboard
-    profit_policy_ev = results[-3]["Expected_Incremental_Profit"] # index -3 is Profit Targeting
-    oracle_ev_sum = results[-1]["Expected_Incremental_Profit"]
+    profit_policy_ev = results[-3]["Ground_Truth_Incremental_Profit"] # index -3 is Profit Targeting
+    oracle_ev_sum = results[-1]["Ground_Truth_Incremental_Profit"]
     regret = oracle_ev_sum - profit_policy_ev
     regret_pct = (regret / oracle_ev_sum * 100) if oracle_ev_sum > 0 else 0
 

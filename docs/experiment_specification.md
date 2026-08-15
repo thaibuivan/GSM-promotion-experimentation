@@ -8,7 +8,7 @@
 
 ## 1. Thông tin Chung (Overview)
 - **Experiment Name:** `GSM_PROMO_AI_VS_KMEANS_2026`
-- **Business Question:** Việc áp dụng mô hình Causal ML (T-Learner) để chọn lọc khách hàng phát Voucher có mang lại Lợi nhuận tăng thêm (Incremental Profit) cao hơn so với chiến lược nhắm mục tiêu theo cụm tĩnh (K-Means) hiện tại hay không?
+- **Business Question:** Việc áp dụng mô hình Causal ML (R-Learner) để chọn lọc khách hàng phát Voucher có mang lại Lợi nhuận tăng thêm (Incremental Profit) cao hơn so với chiến lược nhắm mục tiêu theo cụm tĩnh (K-Means) hiện tại hay không?
 - **Hypothesis:** Mô hình AI Profit Targeting sẽ giảm thiểu chi phí "ăn thịt doanh thu" (Cannibalization) từ những khách hàng Sure Things, từ đó tăng ROI của chiến dịch lên ít nhất 15% so với nhóm K-Means.
 
 ## 2. Thiết kế Thử nghiệm (Experiment Design)
@@ -25,7 +25,7 @@
 ## 3. Cấu hình Chiến dịch (Parameters)
 - **Treatment:** Voucher giảm giá 15% (Max 50.000 VNĐ), áp dụng cho mọi chuyến đi.
 - **Exposure Window:** Khách hàng phải đăng nhập vào App và thấy Popup Voucher thì mới tính là Exposed. Phân tích chính sẽ dùng Intention-to-Treat (ITT).
-- **Outcome Window:** 14 ngày kể từ khi được phân bổ vào nhóm (T=0 đến T+14).
+- **Outcome Window:** 30 ngày kể từ khi được phân bổ vào nhóm (T=0 đến T+30).
 
 ## 4. Chỉ số Đo lường (Metrics)
 - **Primary Metric:** `expected_incremental_profit` (Lợi nhuận gộp tăng thêm trừ đi Chi phí Voucher trên mỗi User).
