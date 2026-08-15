@@ -7,6 +7,8 @@
 > **Purpose:** Mô tả thành phẩm kỹ thuật đã hoàn thành trong 4 tuần đầu, cách các thành phần nối với nhau, các output đã có, cách demo, và giới hạn hiện tại.
 >
 > **Scope boundary:** Đây là một **simulation-based experimentation sandbox**. Dữ liệu treatment/outcome và các kết quả causal là dữ liệu mô phỏng, không phải kết quả production của GSM/Xanh SM.
+> 
+> **Methodology Update:** At the Week 4 snapshot, some artifacts used inconsistent analysis horizons. This was standardized to a 30-day primary outcome window in subsequent project iterations.
 
 ---
 

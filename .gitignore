@@ -1,39 +1,16 @@
-# Data files
-data/
-*.parquet
-*.csv
-*.xlsx
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Python
+venv/
+.venv/
 __pycache__/
 *.pyc
-
-# Ignore data files
-# Data files
-data/
+.ipynb_checkpoints/
+.env
+data/raw/
 *.parquet
 *.csv
-*.xlsx
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Python
-__pycache__/
-*.pyc
-
-# Ignore data files
-data/*.csv
-data/*.parquet
 
 # Temporary files and extracted images
 ~$*.pptx
 docs/images/
-venv/
-.venv/
 
 # Allow Streamlit demo assets
 !data/processed/segmented_simulation_data.csv

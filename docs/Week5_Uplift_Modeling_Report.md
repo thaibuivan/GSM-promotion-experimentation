@@ -5,7 +5,7 @@
 
 ### 2. Phương pháp & Mô hình
 - **Thuật toán:** R-Learner (Residual Learner) kết hợp với XGBoost Regressor.
-- **Dữ liệu:** Chia tập Train (60%), Validation (20%) có sử dụng Early Stopping (chống Overfitting), và Test (20%).
+- **Dữ liệu:** Chia tập Train (60%), Validation (20%), Test (20%); Test set được giữ riêng cho final evaluation. Validation split được reserved cho model selection/tuning.
 - **Chỉ số CATE (Conditional Average Treatment Effect):** R-Learner không tính CATE bằng cách lấy mô hình Treatment trừ đi mô hình Control (T-Learner), mà trực tiếp dự đoán hiệu ứng nhân quả (Causal Effect) thông qua việc residualize cả kết quả (Outcome) và biến can thiệp (Treatment), giúp khử nhiễu (Base Outcome Bias) tốt hơn.
 
 ### 3. Đánh giá Mô hình (Model Evaluation)

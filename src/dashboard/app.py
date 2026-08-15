@@ -442,28 +442,46 @@ with tab6:
             '6. Oracle Policy (Synthetic-only)': '#00FF88',
         }
         
-        fig_policy = go.Figure()
+        fig_pred = go.Figure()
+        fig_truth = go.Figure()
+        
         for _, row in policy_df_raw.iterrows():
             color = policy_colors.get(row['Policy'], '#FFFFFF')
-            y_val = row['Ground_Truth_Incremental_Profit'] if 'Oracle' in row['Policy'] else row['Predicted_Incremental_Profit']
-            error_val = row.get('EV_Upper_95', y_val) - y_val
+            name = row['Policy'].split('.',1)[1].strip() if '.' in row['Policy'] else row['Policy']
             
-            fig_policy.add_trace(go.Bar(
-                x=[row['Policy'].split('.',1)[1].strip() if '.' in row['Policy'] else row['Policy']],
-                y=[y_val],
-                name=row['Policy'],
-                marker_color=color,
-                error_y=dict(type='data', array=[error_val], visible=True, color='rgba(255,255,255,0.7)', thickness=1.5, width=4),
-                text=[f"${y_val:,.0f}\n({row['Pct_Targeted']:.0f}% users)"],
-                textposition='outside'
+            # Chart A: Predicted Profit
+            if 'Oracle' not in row['Policy']:
+                pred_val = row['Predicted_Incremental_Profit']
+                error_val = row.get('EV_Upper_95', pred_val) - pred_val
+                fig_pred.add_trace(go.Bar(
+                    x=[name], y=[pred_val], name=row['Policy'], marker_color=color,
+                    error_y=dict(type='data', array=[error_val], visible=True, color='rgba(255,255,255,0.7)', thickness=1.5, width=4),
+                    text=[f"${pred_val:,.0f}\n({row['Pct_Targeted']:.0f}%)"], textposition='outside'
+                ))
+            
+            # Chart B: Synthetic Causal Benchmark
+            truth_val = row['Ground_Truth_Incremental_Profit']
+            fig_truth.add_trace(go.Bar(
+                x=[name], y=[truth_val], name=row['Policy'], marker_color=color,
+                text=[f"${truth_val:,.0f}\n({row['Pct_Targeted']:.0f}%)"], textposition='outside'
             ))
         
-        fig_policy.add_hline(y=0, line_width=2, line_dash='dash', line_color='white', opacity=0.5)
-        fig_policy.update_layout(**chart_layout, title="Lợi nhuận Kỳ vọng theo từng Policy (Test Set)",
-                                 height=420, showlegend=False, barmode='group')
-        fig_policy.update_yaxes(title="Expected Incremental Profit ($)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
-        fig_policy.update_xaxes(title="", tickangle=-20)
-        st.plotly_chart(fig_policy, use_container_width=True)
+        col_chart1, col_chart2 = st.columns(2)
+        with col_chart1:
+            fig_pred.add_hline(y=0, line_width=2, line_dash='dash', line_color='white', opacity=0.5)
+            fig_pred.update_layout(**chart_layout, title="Chart A: Decision-time View (Predicted Profit)",
+                                     height=420, showlegend=False, barmode='group')
+            fig_pred.update_yaxes(title="Predicted Incremental Profit ($)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+            fig_pred.update_xaxes(title="", tickangle=-20)
+            st.plotly_chart(fig_pred, use_container_width=True)
+            
+        with col_chart2:
+            fig_truth.add_hline(y=0, line_width=2, line_dash='dash', line_color='white', opacity=0.5)
+            fig_truth.update_layout(**chart_layout, title="Chart B: Synthetic Benchmark (Oracle Truth)",
+                                     height=420, showlegend=False, barmode='group')
+            fig_truth.update_yaxes(title="Synthetic Causal Benchmark Profit ($)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+            fig_truth.update_xaxes(title="", tickangle=-20)
+            st.plotly_chart(fig_truth, use_container_width=True)
         
         display_df = policy_df_raw.copy()
         display_df['Khoảng Rủi ro (95% CI)'] = display_df.apply(lambda r: f"[{r.get('EV_Lower_95', 0):,.0f} ~ {r.get('EV_Upper_95', 0):,.0f}]", axis=1)
@@ -473,7 +491,7 @@ with tab6:
             'Dự kiến GMV ($)', 'Burn ($)', 'Burn/GMV (%)', 
             'Inc GMV ($)', 'Burn/Inc GMV (%)', 
             'Inc Rides', 'CPIR ($)', 
-            'Lợi nhuận Dự đoán ($)', 'Ground-Truth Profit (Synthetic) ($)', 'Approx. Uncertainty Band (95%)', 'ROI (%)'
+            'Lợi nhuận Dự đoán ($)', 'Synthetic Causal Benchmark Profit ($)', 'Approx. Uncertainty Band (95%)', 'ROI (%)'
         ]
         st.dataframe(
             display_df.style
@@ -481,7 +499,7 @@ with tab6:
                 'Dự kiến GMV ($)': '${:,.0f}', 'Burn ($)': '${:,.0f}', 
                 'Inc GMV ($)': '${:,.0f}', 'CPIR ($)': '${:,.0f}',
                 'Lợi nhuận Dự đoán ($)': '${:,.0f}', 
-                'Ground-Truth Profit (Synthetic) ($)': '${:,.0f}', 
+                'Synthetic Causal Benchmark Profit ($)': '${:,.0f}', 
                 'ROI (%)': '{:.1f}%', '% Users': '{:.1f}%',
                 'Burn/GMV (%)': '{:.1f}%', 'Burn/Inc GMV (%)': '{:.1f}%',
                 'Inc Rides': '{:,.0f}'
@@ -545,7 +563,6 @@ with tab7:
             
             sim_results = []
             mass_m = pd.Series([True]*len(preds_df), index=preds_df.index)
-            if sim2_max_target < 100: mass_m.iloc[int(len(preds_df) * sim2_max_target / 100):] = False
             sim_results.append(eval_policy_sim(mass_m, "Mass Voucher"))
             
             # Segment Targeting
