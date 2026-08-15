@@ -16,7 +16,7 @@ Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng m
 - **Phương pháp:** Sử dụng Kiểm định Chi-Square ($X^2$) qua 5000 vòng lặp, kết hợp **Kiểm định Nhị phân (Binomial Test)** để đánh giá tỷ lệ lỗi.
 - **Ngưỡng tiêu chuẩn:** Số lần P-value < 0.05 phải tương đồng với mức kỳ vọng ngẫu nhiên (5%). Binomial P-value > 0.05.
 - **Kết quả đo lường:** Số lần cảnh báo SRM là **263/5000 (5.26%)**. Khoảng tin cậy hoàn toàn phù hợp với phương sai ngẫu nhiên (Binomial P-value = **0.3988**).
-- **Kết luận:** ĐẠT (PASS). Thuật toán Randomization hoạt động ổn định và công bằng đáng tin cậy. Tỷ lệ phân bổ user 50/50 là tương đối chính xác.
+- **Kết luận:** ĐẠT (PASS). Không phát hiện dấu hiệu bất thường đáng kể về randomization trong các simulation settings đã kiểm tra. Tỷ lệ phân bổ user 50/50 là tương đối chính xác.
 
 ### 3.2. Kiểm tra Độ Cân bằng Đặc trưng (Covariate Balance — SMD)
 - **Phương pháp:** Được thực hiện trong bước Sanity Check của A/B Test Analysis. Thay vì dùng T-Test thông thường dễ báo lỗi khi cỡ mẫu lớn, dự án sử dụng chỉ số **SMD (Standardized Mean Difference)** để kiểm tra độ cân bằng của các biến hiệp phương sai (Tuổi, Lịch sử chuyến đi, Số ngày ngủ đông, Giá vé trung bình) trước thí nghiệm.
@@ -28,7 +28,7 @@ Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng m
 - **Phương pháp:** Đo lường tỷ lệ các vòng lặp A/A Test trả về P-value < 0.05 (FPR) và kiểm chứng bằng **KS-Test (Kolmogorov-Smirnov)** để xác nhận phân phối P-value là Uniform. *(Lưu ý: Bỏ qua Binomial Test thuần túy do đặc tính biến rời rạc của số chuyến đi).*
 - **Ngưỡng tiêu chuẩn:** FPR không có sự khác biệt ý nghĩa thống kê so với 5.0%. KS-Test P-value > 0.05.
 - **Kết quả đo lường:** Tỷ lệ False Positive thực tế đạt **5.08%** (254 lỗi / 5000 lần). KS-Test P-value = **0.5691**.
-- **Kết luận:** ĐẠT (PASS). Động cơ tính toán thống kê (Statistical Engine) hoạt động chuẩn xác, kiểm soát tương đối chính xác tỷ lệ báo động giả.
+- **Kết luận:** ĐẠT (PASS). FPR quan sát được phù hợp với mức alpha 5% trong các simulation settings đã kiểm tra.
 
 ## 4. Kết luận Tổng thể
 Không phát hiện randomization/statistical calibration issue đáng kể dưới các thiết lập mô phỏng đã kiểm tra. Pipeline có đủ độ tin cậy để chạy A/B Test trong môi trường synthetic. Để áp dụng vào dữ liệu GSM thật, cần thêm: kiểm tra exposure/logging, invariant metrics và guardrails thực tế vận hành.
@@ -54,7 +54,7 @@ Hệ thống phân tích thực hiện hai phép đo lường thống kê độc
 ### 2.1. Sanity Checks (Kiểm tra Cân bằng Hệ thống)
 - **Mục tiêu:** Kiểm chứng thuật toán phân bổ ngẫu nhiên đã chia đều khách hàng vào các nhóm, đảm bảo tính đồng nhất (Comparability) trước khi phân tích kết quả.
 - **Giả thuyết Không ($H_0$):** Hai nhóm hoàn toàn cân bằng về các đặc tính (Độ chênh lệch = 0).
-- **Kết quả Kỳ vọng:** Mục tiêu ở bước này là **không thể bác bỏ $H_0$**. Covariate balance được đánh giá chủ yếu bằng SMD. Không reject null hypothesis (P-value > 0.05) không đồng nghĩa với chứng minh hai nhóm tương đương hoàn toàn, nhưng nó củng cố kết luận không có lỗi SRM hoặc Covariate Imbalance.
+- **Kết quả Kỳ vọng:** Mục tiêu ở bước này là **không thể bác bỏ $H_0$**. Covariate balance được đánh giá chủ yếu bằng SMD. Không reject null hypothesis (P-value > 0.05) không đồng nghĩa với chứng minh hai nhóm tương đương hoàn toàn, mà chỉ cho thấy không có bằng chứng thống kê để kết luận có lỗi SRM hoặc Covariate Imbalance.
 
 ### 2.2. Chỉ số Đánh giá Cốt lõi (Overall Evaluation Criterion - OEC)
 - **Mục tiêu:** Đo lường tác động nhân quả thực sự của sự can thiệp (Voucher) lên chỉ số mục tiêu (Số chuyến đi tăng thêm).
@@ -72,23 +72,23 @@ Bên cạnh ý nghĩa thống kê, ý nghĩa thực tiễn của chiến dịch 
 
 ## 4. Kết quả Thực thi A/B Test (Empirical Results)
 
-Dưới đây là kết quả A/B Testing thực tế được bóc tách theo các cụm khách hàng (Clusters) tìm được từ K-Means (Tuần 3). Dữ liệu này chứng minh hoàn toàn cơ chế Nhân quả (HTE) đã được thiết lập đúng.
+Dưới đây là kết quả A/B Testing thực tế được bóc tách theo các Behavioral Personas. Dữ liệu này chứng minh hoàn toàn cơ chế Nhân quả (HTE) đã được thiết lập đúng.
 
 | Phân khúc Khách hàng (Persona) | N Users | ATE (Chuyến tăng thêm) | P-value | ROI | Kết luận Hành động |
 |---|---|---|---|---|---|
-| **Urban Regulars** | 8,424 | +1.00 | 3.18e-8 | **-40.7%** | ❌ **Dừng Voucher**. Hiệu ứng Cannibalization nặng nề. Đằng nào họ cũng đi xe mà không cần Voucher. |
-| **Rain Riders** | 2,592 | +0.86 | 0.010 | **-38.9%** | ❌ **Dừng Voucher**. Phụ thuộc thời tiết. Doanh thu tăng không bù nổi chi phí Voucher. |
-| **Airport Business** | 1,131 | +1.21 | 0.008 | **-18.0%** | ❌ **Dừng Voucher**. Kháng khuyến mãi. ATE có vẻ dương nhưng chi phí Voucher vượt xa doanh thu. |
-| **Suburban Card** | 2,792 | +1.04 | **6.57e-7** | **+20.7%** | ✅ **Target chính (Phase 1)**. Thanh toán thẻ 100% → xem xét thử nghiệm thực tế lập tức. |
-| **Suburban Cash** | 5,061 | +0.79 | **≈0** | **+24.7%** | 💡 **ROI cao nhất (Phase 2)**. Phát hiện mới từ PCA! Cần thiết kế cơ chế Cash Voucher trước khi roll-out. |
+| **Urban Regulars** | 8,424 | +1.00 | 3.18e-8 | **-40.7%** | ❌ Negative economics under current synthetic assumptions. |
+| **Rain Riders** | 2,592 | +0.86 | 0.010 | **-38.9%** | ❌ Negative economics under current synthetic assumptions. |
+| **Airport Business** | 1,131 | +1.21 | 0.008 | **-18.0%** | ❌ Negative economics under current synthetic assumptions. |
+| **Suburban Card** | 2,792 | +1.04 | **6.57e-7** | **+20.7%** | ✅ Positive economics under current synthetic assumptions. Candidate for further validation. |
+| **Suburban Cash** | 5,061 | +0.79 | **≈0** | **+24.7%** | 💡 Positive economics under current synthetic assumptions. Candidate for further validation. |
 
 
 > **💡 Bài học Kinh doanh Cốt lõi:**
 > Nếu ta chỉ chạy A/B Test đại trà (Mass Voucher) trên toàn bộ 20,000 user mà không phân cụm, **chiến dịch sẽ lỗ ròng -$116,338**.
 > 
 > Nhờ PCA làm sạch cụm và bóc tách A/B Test theo Persona, hệ thống phát hiện được 2 nhóm sinh lời:
-> - **Suburban Card** (Phase 1): ROI +20.7%, xem xét thử nghiệm thực tế, lợi nhuận +$13,993 từ 2,792 users.
-> - **Suburban Cash** (Phase 2): ROI +24.7% còn cao hơn! 5,061 users. Cần thêm bước tích hợp Cash Payment.
+> - **Suburban Card**: ROI +20.7%, Candidate for further validation, lợi nhuận +$13,993 từ 2,792 users.
+> - **Suburban Cash**: ROI +24.7%, Candidate for further validation.
 > 
 > Bài học: **Bước nâng cấp PCA không chỉ tăng độ chính xác mà còn tiết lộ ra những insight mới (Suburban Cash) mà phương pháp cũ đã bỏ lỡ!**
 

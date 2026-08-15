@@ -550,7 +550,7 @@ with tab7:
             def eval_policy_sim(mask, label):
                 targeted = preds_df[mask]
                 n_t = mask.sum()
-                if n_t == 0: return {"Kịch bản": label, "Predicted Profit": 0, "Ground-Truth Profit (Synthetic-only)": 0, "Users": 0}
+                if n_t == 0: return {"Kịch bản": label, "Predicted Profit": 0, "Synthetic Causal Benchmark Profit": 0, "Users": 0}
                 
                 pred_ev = targeted['expected_value'].sum()
                 gt_ev = targeted['oracle_ev_sim'].sum() if 'oracle_ev_sim' in targeted.columns else pred_ev
@@ -558,7 +558,7 @@ with tab7:
                 return {
                     "Kịch bản": label, 
                     "Predicted Profit": round(pred_ev, 0), 
-                    "Ground-Truth Profit (Synthetic-only)": round(gt_ev, 0), 
+                    "Synthetic Causal Benchmark Profit": round(gt_ev, 0), 
                     "Users": int(n_t)
                 }
             
@@ -592,7 +592,7 @@ with tab7:
             sim_results.append(eval_policy_sim(budget_m, f"Budget-Constrained (${sim2_budget:,})"))
             
             sim_df = pd.DataFrame(sim_results)
-            st.dataframe(sim_df.style.format({'Predicted Profit': '${:,.0f}', 'Ground-Truth Profit (Synthetic-only)': '${:,.0f}'}).background_gradient(subset=['Predicted Profit'], cmap='RdYlGn', vmin=-50000, vmax=50000), use_container_width=True, hide_index=True)
+            st.dataframe(sim_df.style.format({'Predicted Profit': '${:,.0f}', 'Synthetic Causal Benchmark Profit': '${:,.0f}'}).background_gradient(subset=['Predicted Profit'], cmap='RdYlGn', vmin=-50000, vmax=50000), use_container_width=True, hide_index=True)
             
             best_policy = sim_df.loc[sim_df['Predicted Profit'].idxmax()]
             if best_policy['Predicted Profit'] > 0: st.success(f"🏆 Dựa trên dự đoán, kịch bản **{best_policy['Kịch bản']}** mang lại Lợi nhuận cao nhất (**${best_policy['Predicted Profit']:,.0f}**).")

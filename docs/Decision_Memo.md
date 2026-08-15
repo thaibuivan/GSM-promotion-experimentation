@@ -15,7 +15,7 @@ Với budget giới hạn và promotion economics giả định, policy nào t�
 ### B.1. Kiểm định Nền tảng A/B (A/A Trust Checks)
 Pipeline randomization đã được kiểm định qua 5.000 vòng lặp Monte Carlo:
 - **SRM Check:** Tỷ lệ cảnh báo 5.26% — nằm trong vùng phương sai ngẫu nhiên kỳ vọng (Binomial P-value = 0.3988). Không phát hiện mismatch đáng kể.
-- **Covariate Balance (SMD):** Tất cả biến kiểm soát có |SMD| < 0.1. Không phát hiện selection bias trong settings đã thử.
+- **Covariate Balance (SMD):** Tất cả biến kiểm soát có |SMD| < 0.1. Không phát hiện material imbalance trên các observed pre-treatment covariates trong settings đã thử.
 - **False Positive Rate:** 5.08% — phù hợp với ngưỡng lý thuyết α = 0.05.
 - **Kết luận:** Không phát hiện randomization/statistical calibration issue đáng kể dưới các thiết lập mô phỏng đã kiểm tra.
 
@@ -52,7 +52,7 @@ Mức Voucher giả định 15% → Lọc theo Expected Value > 0 → Predicted 
 ## D. Conditions Required (Điều kiện để kết luận đúng)
 - Margin per incremental ride ≈ 0.70 × average fare (assumption hiện tại)
 - Voucher cost = 15% of user's average revenue (assumption hiện tại)
-- Uplift model được calibrated đúng (predicted CATE ≈ observed uplift)
+- R-Learner có useful ranking signal trong held-out synthetic test set; CATE level calibration vẫn còn imperfect và cần được theo dõi.
 - SUTVA: không có marketplace interference
 - Eligible population có cùng DGP distribution như training data
 

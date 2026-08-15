@@ -416,6 +416,8 @@ Known Ground Truth
 
 # 14. WEEK 3 — User Segmentation
 
+> **Historical note:** Week 3 explored PCA + K-Means for behavioral structure discovery. The current final dashboard uses stable rule-based behavioral persona labels for reporting consistency.
+
 K-Means được dùng để tạo behavioral personas phục vụ:
 
 - business interpretation,
