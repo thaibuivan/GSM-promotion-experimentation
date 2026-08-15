@@ -247,7 +247,7 @@ with tab3:
             # Set fixed range so 0.1 is at the edges
             fig_smd.update_xaxes(range=[-0.11, 0.11], title="SMD", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
             fig_smd.update_yaxes(title="", showgrid=False)
-            fig_smd.update_layout(**chart_layout, height=350, coloraxis_showscale=False, margin=dict(l=0, r=0, t=10, b=0))
+            fig_smd.update_layout(**chart_layout, height=350, coloraxis_showscale=False)
             
             st.plotly_chart(fig_smd, use_container_width=True)
             
