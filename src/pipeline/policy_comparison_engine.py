@@ -19,6 +19,7 @@ print("=" * 60)
 # ─── 1. LOAD DATA ─────────────────────────────────────────
 print("\n[1/5] Loading data...")
 df = pd.read_csv(data_path)
+df['is_credit_card'] = (df['payment_type'] == 1).astype(int)
 print(f"  Total users: {len(df):,}")
 
 # Economics parameters from config
@@ -31,7 +32,7 @@ MARGIN_RATE  = config['economics']['margin_rate']
 CAMPAIGN_BUDGET = config['economics']['budget_limit']
 
 features = ['age', 'is_urban', 'preferred_hour', 'is_rush_hour', 'is_airport_trip',
-            'is_rain_rider', 'is_weekend_rider', 'payment_type', 'passenger_count',
+            'is_rain_rider', 'is_weekend_rider', 'is_credit_card', 'passenger_count',
             'monthly_rides_history', 'recency_days']
 
 X = df[features]
