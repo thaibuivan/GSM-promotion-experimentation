@@ -197,33 +197,33 @@ with tab1:
     with col_chart2:
         st.markdown("#### Phân rã Chi phí Trợ giá (Minh họa)")
         st.caption("Đây là mô phỏng phân rã trên sandbox, không phải ước lượng cannibalization chính thức trên production.")
-        avg_burn_organic = df_ctrl['discount_cost_30d'].mean()
-        avg_burn_total = df_treat['discount_cost_30d'].mean()
-        avg_burn_inc = avg_burn_total - avg_burn_organic
         
-        wasted_burn = avg_burn_organic * len(df_treat)
-        effective_burn = avg_burn_inc * len(df_treat)
-        total_burn = wasted_burn + effective_burn
+        # Lấy giá trị thực tế
+        total_voucher_burn = df_treat['discount_cost_30d'].sum()
+        
+        avg_margin_ctrl = df_ctrl['margin_30d'].mean()
+        avg_margin_treat = df_treat['margin_30d'].mean()
+        incremental_margin = (avg_margin_treat - avg_margin_ctrl) * len(df_treat)
         
         fig_bar = go.Figure()
         fig_bar.add_trace(go.Bar(
-            y=['Ngân sách Khuyến mãi'], x=[wasted_burn], 
-            name='Tổng Ngân sách Tiêu hao', orientation='h', marker_color='#FF4B4B',
-            text=f"${wasted_burn:,.0f}", textposition='inside'
+            y=['Ngân sách Khuyến mãi'], x=[incremental_margin], 
+            name='Lợi nhuận Biên', orientation='h', marker_color='#00CC96',
+            text=f"${incremental_margin:,.0f}", textposition='inside'
         ))
         fig_bar.add_trace(go.Bar(
-            y=['Ngân sách Khuyến mãi'], x=[effective_burn], 
-            name='Lợi nhuận Biên', orientation='h', marker_color='#00CC96',
-            text=f"${effective_burn:,.0f}", textposition='inside'
+            y=['Ngân sách Khuyến mãi'], x=[total_voucher_burn], 
+            name='Tổng Ngân sách Tiêu hao', orientation='h', marker_color='#FF4B4B',
+            text=f"${total_voucher_burn:,.0f}", textposition='inside'
         ))
         fig_bar.update_layout(
             plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
             font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20),
-            height=200, barmode='stack', 
+            height=200, barmode='group', 
             legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5))
         fig_bar.update_xaxes(title="Tổng chi phí Voucher ($)", showgrid=False)
         st.plotly_chart(fig_bar, use_container_width=True)
-        st.info(f"Khuyến mãi đại trà tạo ra lượng cuốc xe mới, nhưng tổng ngân sách tiêu hao có thể vượt quá lợi nhuận biên mang lại.")
+        st.info("Khuyến mãi đại trà tạo ra lượng cuốc xe mới, nhưng tổng ngân sách tiêu hao có thể vượt quá lợi nhuận biên mang lại.")
 
 # ================= TAB 2: CAUSAL EVIDENCE =================
 with tab2:
