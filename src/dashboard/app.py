@@ -175,7 +175,7 @@ with tab1:
     c3.metric("Lợi nhuận Ròng", f"${total_net_profit:,.0f}")
     c4.metric("ROI Tổng thể", f"{overall_roi:.1f}%")
     
-    st.error(f"**Kết luận:** Mass Voucher tạo incremental demand nhưng economics ÂM dưới assumptions hiện tại. No candidate campaign is profitable if deployed to all.")
+    st.error("**Kết luận:** Mass Voucher tạo incremental demand nhưng economics âm dưới assumptions hiện tại. Mass deployment không phải candidate policy phù hợp.")
 
     col_chart1, col_chart2 = st.columns(2)
     with col_chart1:
@@ -198,32 +198,34 @@ with tab1:
         st.markdown("#### Phân rã Chi phí Trợ giá (Minh họa)")
         st.caption("Đây là mô phỏng phân rã trên sandbox, không phải ước lượng cannibalization chính thức trên production.")
         
-        # Lấy giá trị thực tế
-        total_voucher_burn = df_treat['discount_cost_30d'].sum()
+        organic_cost_per_ride = calc_cost(df_ctrl['avg_fare_per_trip'], DISCOUNT_PERCENT)
+        avg_burn_organic = (df_ctrl['Y_rand'] * organic_cost_per_ride).mean()
+        avg_burn_total = df_treat['discount_cost_30d'].mean()
+        avg_burn_inc = max(avg_burn_total - avg_burn_organic, 0)
         
-        avg_margin_ctrl = df_ctrl['margin_30d'].mean()
-        avg_margin_treat = df_treat['margin_30d'].mean()
-        incremental_margin = (avg_margin_treat - avg_margin_ctrl) * len(df_treat)
+        wasted_burn = avg_burn_organic * total_users
+        effective_burn = avg_burn_inc * total_users
+        total_burn = wasted_burn + effective_burn
         
         fig_bar = go.Figure()
         fig_bar.add_trace(go.Bar(
-            y=['Ngân sách Khuyến mãi'], x=[incremental_margin], 
-            name='Lợi nhuận Biên', orientation='h', marker_color='#00CC96',
-            text=f"${incremental_margin:,.0f}", textposition='inside'
+            y=['Ngân sách Khuyến mãi'], x=[wasted_burn],
+            name='Burn trên rides nền', orientation='h', marker_color='#FF4B4B',
+            text=f"${wasted_burn:,.0f}", textposition='inside'
         ))
         fig_bar.add_trace(go.Bar(
-            y=['Ngân sách Khuyến mãi'], x=[total_voucher_burn], 
-            name='Tổng Ngân sách Tiêu hao', orientation='h', marker_color='#FF4B4B',
-            text=f"${total_voucher_burn:,.0f}", textposition='inside'
+            y=['Ngân sách Khuyến mãi'], x=[effective_burn],
+            name='Burn trên incremental rides', orientation='h', marker_color='#00CC96',
+            text=f"${effective_burn:,.0f}", textposition='inside'
         ))
         fig_bar.update_layout(
             plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
             font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20),
-            height=200, barmode='group', 
+            height=200, barmode='stack',
             legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5))
         fig_bar.update_xaxes(title="Tổng chi phí Voucher ($)", showgrid=False)
         st.plotly_chart(fig_bar, use_container_width=True)
-        st.info("Khuyến mãi đại trà tạo ra lượng cuốc xe mới, nhưng tổng ngân sách tiêu hao có thể vượt quá lợi nhuận biên mang lại.")
+        st.info("Khuyến mãi đại trà tạo thêm cuốc xe, nhưng phần lớn burn có thể rơi vào rides nền vốn đã có khả năng phát sinh nếu không phát voucher.")
 
 # ================= TAB 2: CAUSAL EVIDENCE =================
 with tab2:
@@ -309,6 +311,14 @@ with tab3:
         fig_cate.update_yaxes(title="Số lượng User")
         st.plotly_chart(fig_cate, use_container_width=True)
         st.caption("Simplified R-Learner-style Model dự báo độ nhạy cảm tại cấp độ khách hàng.")
+        try:
+            qini_summary = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
+            area_model = np.trapz(qini_summary['qini_uplift'], qini_summary['pct_targeted'])
+            area_random = np.trapz(qini_summary['random_uplift'], qini_summary['pct_targeted'])
+            qini_coef = (area_model - area_random) / abs(area_random) if abs(area_random) > 1e-9 else np.nan
+            st.metric("Qini Coef", f"{qini_coef:.3f}", "Ranking > random" if qini_coef > 0 else "Needs review")
+        except Exception:
+            st.caption("Qini Coef chưa khả dụng. Hãy chạy lại policy export pipeline nếu cần.")
         
     with col_c2:
         st.markdown("#### Cầu nối Lợi nhuận (Expected Value Bridge)")
