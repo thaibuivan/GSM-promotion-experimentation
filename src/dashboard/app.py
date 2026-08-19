@@ -163,7 +163,7 @@ with tab1:
     avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
     incremental_rev_per_user = avg_rev_treat - avg_rev_ctrl
     gross_profit_per_user = incremental_rev_per_user * (MARGIN_PERCENT / 100.0)
-    cost_per_user = calc_cost(avg_rev_treat, DISCOUNT_PERCENT)
+    cost_per_user = df_treat['discount_cost_30d'].mean()
     net_profit_per_user = gross_profit_per_user - cost_per_user
     overall_roi = (net_profit_per_user / cost_per_user) * 100 if cost_per_user > 0 else 0
     total_users = len(df)
@@ -197,15 +197,12 @@ with tab1:
     with col_chart2:
         st.markdown("#### Illustrative Baseline Subsidy Exposure")
         st.caption("This is an illustrative sandbox decomposition, not an identified production cannibalization estimate.")
-        avg_rev_organic = df_ctrl['gross_revenue_30d'].mean()
-        avg_rev_total = df_treat['gross_revenue_30d'].mean()
-        avg_rev_inc = avg_rev_total - avg_rev_organic
+        avg_burn_organic = df_ctrl['discount_cost_30d'].mean()
+        avg_burn_total = df_treat['discount_cost_30d'].mean()
+        avg_burn_inc = avg_burn_total - avg_burn_organic
         
-        cost_organic = calc_cost(avg_rev_organic, DISCOUNT_PERCENT)
-        cost_inc = calc_cost(avg_rev_inc, DISCOUNT_PERCENT)
-        
-        wasted_burn = cost_organic * len(df_treat)
-        effective_burn = cost_inc * len(df_treat)
+        wasted_burn = avg_burn_organic * len(df_treat)
+        effective_burn = avg_burn_inc * len(df_treat)
         total_burn = wasted_burn + effective_burn
         
         fig_bar = go.Figure()
@@ -236,7 +233,7 @@ with tab2:
     observed_treatment = len(df_treat)
     observed_control = len(df_ctrl)
     total = observed_treatment + observed_control
-    st.success(f"**A/A Test & Randomization Health: PASS** | Tỷ lệ Mẫu: {observed_treatment/total*100:.1f}% vs {observed_control/total*100:.1f}%. Cân bằng đặc trưng (SMD < 0.1). Không phát hiện nhiễu mẫu (SRM).")
+    st.success("**Prior Experiment Validation Summary: PASS**\n\nBased on Week 4 A/A Monte Carlo, SRM and covariate-balance checks.")
     
     st.markdown("---")
     st.subheader("Voucher có thật sự tạo Causal Effect, và lift có đồng đều không?")
@@ -276,7 +273,7 @@ with tab2:
             rev_t = t['gross_revenue_30d'].mean()
             d_rev = rev_t - rev_c
             gross_profit = d_rev * (MARGIN_PERCENT / 100.0)
-            cost = calc_cost(rev_t, DISCOUNT_PERCENT)
+            cost = t['discount_cost_30d'].mean()
             roi = (gross_profit - cost) / cost * 100 if cost > 0 else 0
             roi_data.append({
                 'Phân khúc (Persona)': p, 
@@ -400,9 +397,9 @@ with tab4:
         mass_m = pd.Series([True]*len(preds_df), index=preds_df.index)
         sim_results.append(eval_policy_sim(mass_m, "1. Mass Voucher"))
         
-        if 'is_weekend_rider' in preds_df.columns:
-            sub_m = preds_df['is_weekend_rider'] == 1
-            sim_results.append(eval_policy_sim(sub_m, "2. Segment (Cuối tuần)"))
+        if 'persona' in preds_df.columns:
+            sub_m = preds_df['persona'].str.contains('Suburban', case=False, na=False)
+            sim_results.append(eval_policy_sim(sub_m, "2. Segment Targeting (Suburban)"))
             
         uplift_thresh = preds_df['cate_pred'].quantile(0.7)
         uplift_m = preds_df['cate_pred'] >= uplift_thresh
@@ -416,7 +413,7 @@ with tab4:
         df_sorted['cum_cost'] = (df_sorted['pred_rides_treated'] * df_sorted['voucher_cost']).cumsum()
         budget_m_idx = df_sorted[df_sorted['cum_cost'] <= sim_budget].index
         budget_m = preds_df.index.isin(budget_m_idx)
-        sim_results.append(eval_policy_sim(budget_m, f"5. Budget Greedy", tooltip="Current budget allocation is a greedy heuristic that ranks positive-EV users; it is not an exact combinatorial optimum."))
+        sim_results.append(eval_policy_sim(budget_m, "5. Budget Greedy"))
         
         sim_df = pd.DataFrame(sim_results)
         # Handle tooltip column if needed (Streamlit dataframe tooltip isn't native for single cells easily without extra code, we will just use a helper icon or text).

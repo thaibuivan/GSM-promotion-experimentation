@@ -53,10 +53,10 @@ try:
     with open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config.json'), 'r') as f:
         _cfg = json.load(f)
     VOUCHER_DISCOUNT_RATE = _cfg['economics'].get('voucher_rate', 0.15)
+    VOUCHER_CAP_PER_TRIP  = _cfg['economics'].get('voucher_cap', 3.0)
 except:
     VOUCHER_DISCOUNT_RATE = 0.15
-
-VOUCHER_CAP_PER_TRIP  = 3.0
+    VOUCHER_CAP_PER_TRIP  = 3.0
 
 # Demographics
 AGE_MEAN    = 30

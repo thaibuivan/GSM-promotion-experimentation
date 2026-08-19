@@ -28,6 +28,7 @@ with open(config_path, 'r') as f:
     config = json.load(f)
 
 VOUCHER_RATE = config['economics']['voucher_rate']
+VOUCHER_CAP = config['economics'].get('voucher_cap', 3.0)
 MARGIN_RATE  = config['economics']['margin_rate']
 CAMPAIGN_BUDGET = config['economics']['budget_limit']
 
@@ -78,7 +79,8 @@ print(f"  Mean predicted CATE: {cate.mean():.4f}")
 print("\n[3/5] Computing Expected Incremental Value per user...")
 df_test['cate_pred'] = cate
 df_test['pred_rides_treated'] = pred1
-df_test['voucher_cost'] = df_test['avg_fare'] * VOUCHER_RATE
+import numpy as np
+df_test['voucher_cost'] = np.minimum(df_test['avg_fare'] * VOUCHER_RATE, VOUCHER_CAP)
 df_test['margin_per_ride'] = df_test['avg_fare'] * MARGIN_RATE
 # EV_i = CATE_i × margin_per_ride − pred_rides_treated × voucher_cost
 df_test['expected_value'] = (df_test['cate_pred'] * df_test['margin_per_ride']) - \
