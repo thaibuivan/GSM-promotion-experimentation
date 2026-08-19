@@ -267,29 +267,54 @@ with tab2:
 
     st.markdown("#### Phân tích theo Phân khúc (Segment Economics)")
     roi_data = []
+    use_synthetic_segment_benchmark = {'Y0', 'Y1', 'avg_fare_per_trip'}.issubset(df.columns)
     for p in df['persona'].unique():
-        t = df[(df['persona'] == p) & (df['treatment_rand'] == 1)]
-        c = df[(df['persona'] == p) & (df['treatment_rand'] == 0)]
-        if len(t) > 0 and len(c) > 0:
-            rev_c = c['gross_revenue_30d'].mean()
-            rev_t = t['gross_revenue_30d'].mean()
-            d_rev = rev_t - rev_c
+        segment = df[df['persona'] == p]
+        if use_synthetic_segment_benchmark:
+            base_gmv = (segment['Y0'] * segment['avg_fare_per_trip']).mean()
+            d_rev = ((segment['Y1'] - segment['Y0']) * segment['avg_fare_per_trip']).mean()
+            ate = (segment['Y1'] - segment['Y0']).mean()
+            cost = (segment['Y1'] * calc_cost(segment['avg_fare_per_trip'], DISCOUNT_PERCENT)).mean()
             gross_profit = d_rev * (MARGIN_PERCENT / 100.0)
-            cost = t['discount_cost_30d'].mean()
             roi = (gross_profit - cost) / cost * 100 if cost > 0 else 0
             roi_data.append({
-                'Phân khúc (Persona)': p, 
-                'Base GMV ($)': round(rev_c, 2),
+                'Phân khúc (Persona)': p,
+                'N Users': len(segment),
+                'ATE': round(ate, 2),
+                'Base GMV ($)': round(base_gmv, 2),
                 'Inc GMV ($)': round(d_rev, 2),
                 'Burn ($)': round(cost, 2),
                 'Net Profit ($)': round(gross_profit - cost, 2),
                 'ROI (%)': round(roi, 1)
             })
+        else:
+            t = segment[segment['treatment_rand'] == 1]
+            c = segment[segment['treatment_rand'] == 0]
+            if len(t) > 0 and len(c) > 0:
+                rev_c = c['gross_revenue_30d'].mean()
+                rev_t = t['gross_revenue_30d'].mean()
+                d_rev = rev_t - rev_c
+                ate = t['Y_rand'].mean() - c['Y_rand'].mean()
+                gross_profit = d_rev * (MARGIN_PERCENT / 100.0)
+                cost = t['discount_cost_30d'].mean()
+                roi = (gross_profit - cost) / cost * 100 if cost > 0 else 0
+                roi_data.append({
+                    'Phân khúc (Persona)': p,
+                    'N Users': len(segment),
+                    'ATE': round(ate, 2),
+                    'Base GMV ($)': round(rev_c, 2),
+                    'Inc GMV ($)': round(d_rev, 2),
+                    'Burn ($)': round(cost, 2),
+                    'Net Profit ($)': round(gross_profit - cost, 2),
+                    'ROI (%)': round(roi, 1)
+                })
     roi_df = pd.DataFrame(roi_data).sort_values(by='ROI (%)', ascending=False)
     
     st.dataframe(roi_df.style.format(precision=1)
              .background_gradient(subset=['ROI (%)'], cmap='RdYlGn', vmin=-100, vmax=50), 
              use_container_width=True, hide_index=True)
+    if use_synthetic_segment_benchmark:
+        st.caption("Segment economics dùng synthetic potential outcomes Y0/Y1 để làm benchmark ổn định; không diễn giải là ROI production thực tế.")
 
     st.info("**Kết luận:** Average effect tồn tại nhưng business outcome khác nhau giữa các nhóm; segment targeting cơ bản vẫn chưa tối ưu được Lợi nhuận.")
 
