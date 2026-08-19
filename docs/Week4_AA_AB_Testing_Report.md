@@ -20,6 +20,12 @@ Dự án áp dụng phương pháp Mô phỏng Monte Carlo. Tập khách hàng m
 
 ### 3.2. Kiểm tra Độ Cân bằng Đặc trưng (Covariate Balance — SMD)
 - **Phương pháp:** Được thực hiện trong bước Sanity Check của A/B Test Analysis. Thay vì dùng T-Test thông thường dễ báo lỗi khi cỡ mẫu lớn, dự án sử dụng chỉ số **SMD (Standardized Mean Difference)** để kiểm tra độ cân bằng của các biến hiệp phương sai (Tuổi, Lịch sử chuyến đi, Số ngày ngủ đông, Giá vé trung bình) trước thí nghiệm.
+
+- **Công thức SMD:**
+$$SMD = \frac{\bar{X}_{T} - \bar{X}_{C}}{\sqrt{\dfrac{s^2_T + s^2_C}{2}}}$$
+
+  Trong đó: $\bar{X}_T$, $\bar{X}_C$ là giá trị trung bình của biến trong nhóm Treatment và Control; $s^2_T$, $s^2_C$ là phương sai tương ứng. SMD chuẩn hóa sự chênh lệch theo đơn vị độ lệch chuẩn gộp, giúp so sánh được trên nhiều biến có đơn vị đo khác nhau. Ngưỡng $|SMD| < 0.1$ tương đương "chênh lệch dưới 10% độ lệch chuẩn" — mức được coi là không đáng kể về mặt thực tiễn (Cohen, 1988).
+
 - **Ngưỡng tiêu chuẩn:** Giá trị $|SMD| < 0.1$ cho tất cả các biến.
 - **Kết quả đo lường:** Hệ thống duy trì sự cân bằng đặc trưng đáng tin cậy, toàn bộ các biến quan trọng đều có $|SMD| < 0.1$.
 - **Kết luận:** ĐẠT (PASS). |SMD| < 0.1 cho thấy không phát hiện material imbalance đáng kể trên các observed covariates được kiểm tra.
@@ -40,6 +46,22 @@ Không phát hiện randomization/statistical calibration issue đáng kể dư�
 
 ## 1. Phương pháp Kiểm định Giả thuyết Nâng cao (OLS Regression with HC1)
 Thay vì sử dụng phương pháp T-Test truyền thống (có phương sai lớn, dễ dẫn đến khoảng tin cậy rộng và khó phát hiện sự khác biệt), dự án đã nâng cấp thuật toán đo lường ATE bằng **Mô hình Hồi quy OLS với Robust Standard Errors (HC1)**.
+
+**Công thức hồi quy đầy đủ:**
+$$Y_i = \beta_0 + \hat{\tau} \cdot T_i + \gamma \cdot X_{\text{history}, i} + \varepsilon_i$$
+
+Trong đó:
+- $Y_i$: Số chuyến đi sau thí nghiệm của user $i$ (biến mục tiêu).
+- $T_i \in \{0, 1\}$: Biến nhị phân chỉ định user $i$ thuộc nhóm Control ($0$) hay Treatment ($1$).
+- $\hat{\tau}$: **Ước lượng ATE** — hệ số quan tâm chính, đo lường số chuyến đi tăng thêm do Voucher gây ra trung bình trên toàn bộ mẫu.
+- $X_{\text{history}, i}$: Biến điều kiện (Covariate) — lịch sử chuyến đi trước thí nghiệm của user $i$, thu thập trước khi phát Voucher để không bị ô nhiễm bởi treatment.
+- $\gamma$: Hệ số của Covariate. Việc đưa biến lịch sử vào giúp giải thích một phần biến thiên tự nhiên của $Y_i$, từ đó giảm phương sai của số dư $\varepsilon_i$ và thu hẹp khoảng tin cậy của $\hat{\tau}$ (tương tự mục đích CUPED của Microsoft/Netflix nhưng dưới dạng OLS covariate adjustment).
+- $\varepsilon_i$: Sai số của mô hình.
+
+**Ước lượng ma trận phương sai Robust (HC1 — White/Huber-White Estimator):**
+$$\widehat{\text{Var}}_{HC1}(\hat{\beta}) = \frac{n}{n-k} (X^\top X)^{-1} \left(\sum_{i=1}^{n} \hat{\varepsilon}_i^2 x_i x_i^\top \right) (X^\top X)^{-1}$$
+
+Trong đó: $n$ là cỡ mẫu, $k$ là số tham số, $\hat{\varepsilon}_i$ là phần dư của từng quan sát. Hiệu chỉnh $\frac{n}{n-k}$ của HC1 giúp chuẩn sai không bị ước lượng thấp hơn thực tế (downward bias) so với HC0. Nhờ đó, Khoảng tin cậy 95% và P-value đảm bảo tính chính xác kể cả khi phương sai sai số không đồng nhất (Heteroskedasticity) — điều gần như chắc chắn xảy ra khi nhóm Treatment và Control có hành vi khác nhau.
 
 - **Pre-treatment Covariate Adjustment:** Mô hình Hồi quy đưa thêm biến lịch sử chuyến đi (`monthly_rides_history`) vào làm Covariate (biến đã có trước treatment). Kỹ thuật này giúp giảm phương sai của số dư, tương tự về mục đích với CUPED — nhưng không triển khai đầy đủ CUPED formulation của Microsoft/Netflix.
 - **Robust Standard Errors (HC1):** HC1 cung cấp heteroskedasticity-robust standard errors, giúp inference bền vững hơn khi phương sai sai số không đồng nhất dưới các giả định hồi quy thông thường.
@@ -74,13 +96,25 @@ Bên cạnh ý nghĩa thống kê, ý nghĩa thực tiễn của chiến dịch 
 
 Dưới đây là kết quả A/B Testing thực tế được bóc tách theo các Behavioral Personas. Kết quả minh họa treatment heterogeneity được thiết kế trong synthetic DGP.
 
-| Phân khúc Khách hàng (Persona) | N Users | ATE (Chuyến tăng thêm) | P-value | ROI | Kết luận Hành động |
-|---|---|---|---|---|---|
-| **Urban Regulars** | 8,424 | +1.00 | 3.18e-8 | **-40.7%** | ❌ Negative economics under current synthetic assumptions. |
-| **Rain Riders** | 2,592 | +0.86 | 0.010 | **-38.9%** | ❌ Negative economics under current synthetic assumptions. |
-| **Airport Business** | 1,131 | +1.21 | 0.008 | **-18.0%** | ❌ Negative economics under current synthetic assumptions. |
-| **Suburban Card** | 2,792 | +1.04 | **6.57e-7** | **+20.7%** | ✅ Positive economics under current synthetic assumptions. Candidate for further validation. |
-| **Suburban Cash** | 5,061 | +0.79 | **≈0** | **+24.7%** | 💡 Positive economics under current synthetic assumptions. Candidate for further validation. |
+| Phân khúc Khách hàng (Persona) | N Users | ATE (Chuyến tăng thêm) | P-value | Promotion Burn ($) | CPIR ($/chuyến) | ROI | Kết luận Hành động |
+|---|---|---|---|---|---|---|---|
+| **Urban Regulars** | 8,424 | +1.00 | 3.18e-8 | ~$126,360 | ~$15.0 | **-40.7%** | ❌ Negative economics. Voucher bị cannibalized bởi nhóm đi bắt buộc. |
+| **Rain Riders** | 2,592 | +0.86 | 0.010 | ~$38,880 | ~$17.4 | **-38.9%** | ❌ Negative economics. Hành vi phụ thuộc thời tiết, không phụ thuộc Voucher. |
+| **Airport Business** | 1,131 | +1.21 | 0.008 | ~$56,550 | ~$41.3 | **-18.0%** | ❌ Negative economics. Giá vé cao nhưng nhóm kháng giá cực mạnh. |
+| **Suburban Card** | 2,792 | +1.04 | **6.57e-7** | ~$27,920 | ~$9.6 | **+20.7%** | ✅ Positive economics. CPIR thấp nhất nhóm có lời. Candidate for validation. |
+| **Suburban Cash** | 5,061 | +0.79 | **≈0** | ~$50,610 | ~$12.7 | **+24.7%** | 💡 Positive economics. ROI cao nhất. Candidate for validation. |
+
+
+
+
+**Diễn giải các chỉ số bổ sung:**
+- **Promotion Burn ($):** Tổng chi phí phát Voucher cho toàn bộ người dùng trong phân khúc — ước tính theo giá vé trung bình và Voucher Rate 15%.
+- **CPIR (Cost Per Incremental Ride):** Chi phí để tạo ra 1 chuyến đi tăng thêm do Voucher gây ra:
+  $$CPIR = \frac{\text{Promotion Burn}}{\text{ATE} \times N_{\text{nhóm}}}$$
+  Giá trị CPIR thấp ($<10\$/chuyến) cho thấy chiến dịch đang khai thác đúng nhóm nhạy cảm với Voucher; giá trị cao cho thấy chi phí đang rơi vào nhóm sẽ đặt xe dù không có Voucher (Cannibalization).
+- **ROI:** Lợi nhuận tăng thêm trên tổng chi phí Voucher đã chi ra:
+  $$ROI = \frac{\text{Incremental Margin} - \text{Promotion Burn}}{\text{Promotion Burn}} \times 100\%$$
+  Trong đó: $\text{Incremental Margin} = ATE \times N_{\text{nhóm}} \times \text{AvgFare} \times \text{MarginRate}$.
 
 
 > **💡 Bài học Kinh doanh Cốt lõi:**

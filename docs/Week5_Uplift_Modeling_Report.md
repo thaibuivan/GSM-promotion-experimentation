@@ -423,6 +423,23 @@ Sau đó train model cuối:
 tau_model(X) -> DR_target
 ```
 
+**Tại sao DR-Learner được gọi là "Doubly Robust"?**
+
+Đây là tính chất nổi bật nhất của DR-Learner: phương trình correction term có 2 thành phần độc lập:
+
+$$DR\_target_i = \underbrace{\mu_1(X_i) - \mu_0(X_i)}_{\text{Thành phần 1: Dự đoán từ Outcome Models}} + \underbrace{\frac{T_i}{e(X_i)}[Y_i - \mu_1(X_i)] - \frac{1-T_i}{1-e(X_i)}[Y_i - \mu_0(X_i)]}_{\text{Thành phần 2: Correction bằng Sai số quan sát thực tế}}$$
+
+- **Thành phần 1** (T-Learner component): Ước lượng hiệu ứng nhân quả dựa hoàn toàn vào 2 outcome models $\mu_0, \mu_1$. Nếu cả 2 model này chính xác, Thành phần 1 đã đủ tốt.
+- **Thành phần 2** (Augmented correction): Dùng sai số quan sát thực tế $[Y_i - \mu_1(X_i)]$ và $[Y_i - \mu_0(X_i)]$ để "sửa lỗi" cho Thành phần 1. Nếu outcome model sai, phần correction sẽ bù đắp lại — với điều kiện Propensity Score $e(X)$ phải chính xác.
+- **Tính "Doubly Robust":** Thuật toán cho kết quả $\hat{\tau}$ **nhất quán (consistent)** khi:
+  - *Hoặc* outcome models $\mu_0, \mu_1$ chính xác (dù $e(X)$ sai), *hoặc*
+  - *Hoặc* propensity model $e(X)$ chính xác (dù $\mu_0, \mu_1$ sai).
+  - Chỉ cần **1 trong 2 loại model** ước lượng đúng là đủ.
+
+**Tại sao DR-Learner bị overestimate trong project này?**
+
+Trong setting RCT 50/50, $e(X) = 0.5$ là hằng số nên không cần ước lượng — Propensity Score đã chính xác. Nhưng trong DGP phức tạp ZINB, các outcome models $\mu_0, \mu_1$ vẫn còn sai số đáng kể (RMSE > 6). Khi $Y_i - \mu_1(X_i)$ (sai số outcome) lớn, correction term bị khuếch đại và tạo ra pseudo-target nhiễu, làm DR-Learner overestimate CATE ở một số user, dẫn đến predicted profit ảo cao hơn thực tế (Oracle profit âm).
+
 **Ưu điểm**
 
 - Có cơ chế correction, hấp dẫn về mặt lý thuyết.
@@ -517,10 +534,22 @@ Qini coefficient trong notebook:
 Qini Coef = (AUUC_model - AUUC_random) / AUUC_random
 ```
 
+**Công thức tính AUUC bằng Trapezoidal Rule (Tích phân số):**
+
+$$AUUC = \sum_{k=1}^{N-1} \frac{Qini(k) + Qini(k+1)}{2} \cdot \Delta k$$
+
+Trong đó: $\Delta k = \frac{1}{N}$ (mỗi bước tương ứng thêm 1 user vào danh sách target). Đây là phương pháp tính diện tích dưới đường cong bằng cách chia thành các hình thang nhỏ — cách làm chuẩn mực trong Uplift Model evaluation. **AUUC_random** được tính bằng diện tích tam giác dưới đường thẳng tuyến tính từ $(0, 0)$ đến $(N, Qini(N))$, tức là:
+$$AUUC_{\text{random}} = \frac{1}{2} \cdot Qini(N)$$
+
+Vì vậy, **Qini Coefficient** đo lường *phần diện tích vượt trội của model so với chiến lược target ngẫu nhiên*, được chuẩn hóa theo diện tích của đường random:
+$$\text{Qini Coef} = \frac{AUUC_{\text{model}} - AUUC_{\text{random}}}{|AUUC_{\text{random}}|}$$
+
 Diễn giải:
 
 ```text
 Qini Coef > 0 nghĩa là model rank user tốt hơn random targeting.
+Qini Coef = 1 là model hoàn hảo (target đúng toàn bộ người nhạy cảm trước).
+Qini Coef < 0 nghĩa là model xếp hạng sai — target ngẫu nhiên còn tốt hơn.
 ```
 
 Kết quả:
