@@ -125,6 +125,59 @@ CATE(X) = mu_1(X) - mu_0(X)
 - Nếu `mu_0` hoặc `mu_1` sai, CATE sẽ sai.
 - Mục tiêu chính vẫn là dự đoán outcome, chưa trực tiếp tối ưu treatment effect.
 
+**Đánh giá trong project**
+
+Lưu ý: RMSE dưới đây chỉ là diagnostic cho hai outcome models `mu_0`, `mu_1`, không phải metric chính để chọn uplift model. RMSE đo sai số giữa số chuyến model dự đoán và số chuyến thực tế quan sát được:
+
+```text
+RMSE = sqrt(mean((Y_pred - Y_true)^2))
+```
+
+Vì vậy, RMSE trả lời câu hỏi:
+
+```text
+Model outcome dự đoán Y có lệch nhiều so với Y thực tế không?
+```
+
+Nó không trực tiếp trả lời:
+
+```text
+Model uplift có rank đúng user nhạy voucher không?
+```
+
+Metric chính của uplift model vẫn là Qini/AUUC, calibration và policy value.
+
+Trong notebook exploratory, T-Learner được dùng như baseline đầu tiên trên một persona cụ thể (`Suburban Card`). Kết quả base model:
+
+```text
+Control model RMSE: 4.328
+Treatment model RMSE: 4.936
+```
+
+Khi chuyển sang business policy:
+
+```text
+Phát voucher đại trà trong segment: 2,465.50
+Chỉ target top 20% CATE: 4,620.22
+Tăng lợi nhuận so với phát rộng: 87.4%
+```
+
+Notebook T-Learner cũng có vẽ Qini Curve để kiểm tra ranking uplift. Kết quả trong title biểu đồ:
+
+```text
+T-Learner Qini Coef: -0.320
+```
+
+Điểm này rất quan trọng: dù top 20% theo CATE tạo profit tốt hơn phát rộng trong riêng segment `Suburban Card`, đường Qini tổng thể lại nằm dưới random ở nhiều vùng nên Qini Coef âm. Vì vậy T-Learner chỉ nên được xem là baseline để minh họa cách tách treated/control, chưa đủ tốt để làm champion.
+
+Diễn giải:
+
+```text
+T-Learner chứng minh được ý tưởng quan trọng: target theo uplift có thể tốt hơn phát đều trong một nhóm cụ thể.
+Tuy nhiên, Qini Coef = -0.320 cho thấy ranking toàn đường chưa ổn định và kém hơn random baseline.
+Vì nó chỉ được thử mạnh trên một persona và dùng hai outcome models riêng, nó phù hợp làm baseline hơn là champion toàn hệ thống.
+```
+
 ### 4.2 S-Learner
 
 S-Learner train một model duy nhất:
@@ -148,6 +201,41 @@ CATE(X) = f(X, T = 1) - f(X, T = 0)
 
 - Treatment signal có thể bị làm mờ nếu nhỏ hơn nhiều so với baseline behavior.
 - Model có thể tối ưu dự đoán `Y` hơn là học heterogeneous uplift.
+
+**Đánh giá trong project**
+
+Lưu ý: RMSE ở đây đo khả năng dự đoán outcome `Y`, không trực tiếp đo CATE. Vì S-Learner chỉ có một outcome model `f(X, T)`, RMSE được dùng như sanity check xem model có học được pattern cơ bản của `Y` hay không.
+
+S-Learner được thử trên toàn bộ population 20,000 users. Kết quả validation:
+
+```text
+Validation RMSE: 6.314
+Qini Coef: 0.153
+```
+
+Khi chuyển sang profit:
+
+```text
+Phát voucher đại trà: -44,640.06
+Top 30% user tốt nhất theo expected profit: 14,338.87
+```
+
+Top 30% profitable users chủ yếu thuộc:
+
+```text
+Suburban Cash: 54.6%
+Suburban Card: 26.3%
+Urban Regulars: 14.2%
+```
+
+Diễn giải:
+
+```text
+S-Learner cho thấy model một tầng có thể tìm được nhóm profitable tốt hơn mass voucher.
+Qini Coef = 0.153 cho thấy ranking uplift tốt hơn random, nhưng vẫn thấp hơn R-Learner champion.
+Tuy nhiên, vì treatment chỉ là một feature trong bài toán dự đoán Y, model có rủi ro làm mờ treatment effect.
+Do đó S-Learner được giữ như benchmark đơn giản, không phải final champion.
+```
 
 ### 4.3 X-Learner
 
@@ -173,6 +261,34 @@ Sau đó model train tiếp trên `D_0`, `D_1` để học treatment effect.
 - Nhiều tầng model nên dễ tích lũy lỗi.
 - Pseudo-effect có thể nhiễu.
 - Calibration khó kiểm soát hơn.
+
+**Đánh giá trong project**
+
+Lưu ý: RMSE của `mu_0`, `mu_1` chỉ kiểm tra chất lượng hai outcome models tầng đầu. Để so sánh X-Learner với các uplift models khác, cần ưu tiên Qini/AUUC và business policy value.
+
+X-Learner được thử trên toàn bộ population. Kết quả base outcome models:
+
+```text
+mu_0 RMSE: 6.328
+mu_1 RMSE: 6.379
+AUUC / Qini score: 0.038
+```
+
+Khi chuyển sang profit:
+
+```text
+Phát voucher đại trà: -33,138.55
+Top 20% user tốt nhất: 10,023.58
+Tăng lợi nhuận so với phát rộng: 130.2%
+```
+
+Diễn giải:
+
+```text
+X-Learner tốt hơn T-Learner ở chỗ nó học trực tiếp pseudo-effect thay vì chỉ lấy hiệu hai outcome models.
+Kết quả cho thấy model có khả năng tránh mass voucher và tìm nhóm target tốt hơn.
+Tuy nhiên, pipeline nhiều tầng khiến pseudo-effect và calibration dễ nhiễu, nên chưa được chọn làm champion.
+```
 
 ### 4.4 R-Learner
 
@@ -253,6 +369,35 @@ So với mức bình thường của kiểu user này, outcome có tăng cùng c
 - Pseudo-label từng user vẫn có nhiễu.
 - Cần đánh giá thêm bằng Qini, calibration và policy value.
 
+**Đánh giá trong project**
+
+R-Learner được chọn làm champion vì kết quả cân bằng nhất giữa model quality và business value:
+
+```text
+Mean predicted CATE: 0.9551
+Qini Coef: 0.188
+Users targeted với EV > 0: 888 / 4,000
+Predicted profit: 7,939
+Synthetic benchmark profit: 7,060
+ROI: 54.1%
+```
+
+So với các policy khác:
+
+```text
+Mass Voucher: -65,358 predicted profit
+Segment Targeting: -4,286 predicted profit
+Top 30% CATE: -10,187 predicted profit
+Profit Targeting EV > 0: 7,939 predicted profit
+```
+
+Diễn giải:
+
+```text
+R-Learner không chỉ rank tốt hơn random qua Qini Curve, mà còn tạo ra policy có lợi nhuận dương khi chuyển CATE sang Expected Value.
+Điểm mạnh chính là khả năng tách baseline ride behavior khỏi incremental response do voucher.
+```
+
 ### 4.5 DR-Learner Challenger
 
 DR-Learner được thêm như một challenger nâng cao.
@@ -290,7 +435,17 @@ tau_model(X) -> DR_target
 - Model chọn target aggressive hơn.
 - Trong test hiện tại, DR-Learner overestimate business value.
 
-Kết quả so sánh:
+**Đánh giá trong project**
+
+DR-Learner được dùng để kiểm tra xem một learner có correction doubly robust có vượt R-Learner không. Kết quả model-level:
+
+```text
+Mean predicted CATE: 0.8283
+Qini Coef: 0.138
+Users targeted với EV > 0: 1,266 / 4,000
+```
+
+Kết quả policy-level:
 
 | Model | Mean CATE | Users Targeted (EV > 0) | Predicted Profit | Oracle Profit |
 |---|---:|---:|---:|---:|
@@ -306,6 +461,17 @@ R-Learner thận trọng hơn nhưng đáng tin hơn trong setting hiện tại.
 ```
 
 ## 5. Chỉ Số Đánh Giá Model
+
+RMSE/MAE có thể xuất hiện trong các notebook exploratory, nhưng chúng chỉ đo khả năng dự đoán outcome `Y` của các nuisance/outcome models. Với uplift modeling, mục tiêu chính không phải dự đoán số chuyến chính xác nhất, mà là rank đúng user có treatment effect cao và tạo policy có lợi nhuận.
+
+Vì vậy, tiêu chí chính để chọn champion model trong project là:
+
+```text
+1. Qini Curve / Qini Coef / AUUC
+2. Calibration theo decile
+3. Profit Targeting / Policy Value
+4. Oracle Regret nếu có cate_true trong synthetic data
+```
 
 ### 5.1 Qini Curve
 
@@ -360,11 +526,14 @@ Qini Coef > 0 nghĩa là model rank user tốt hơn random targeting.
 Kết quả:
 
 ```text
+T-Learner Qini Coef: -0.320
+X-Learner Qini Coef: 0.038
+S-Learner Qini Coef: 0.153
 R-Learner Qini Coef: 0.188
 DR-Learner Qini Coef: 0.138
 ```
 
-R-Learner có ranking quality tốt hơn.
+R-Learner có ranking quality tốt nhất trong các model đã thử. S-Learner đứng sau R-Learner theo Qini, DR-Learner thấp hơn R-Learner và còn bị lệch mạnh khi quy đổi sang profit. X-Learner chỉ nhỉnh hơn random nhẹ, còn T-Learner âm nên không phù hợp làm model cuối.
 
 ### 5.3 Calibration theo Decile
 
@@ -668,7 +837,7 @@ Oracle cho biết trần lý tưởng và khoảng còn có thể cải thiện 
 
 R-Learner được chọn làm champion vì:
 
-1. Qini ranking tốt hơn DR-Learner.
+1. Qini ranking tốt nhất trong các model đã thử: `0.188`, cao hơn S-Learner `0.153`, DR-Learner `0.138`, X-Learner `0.038` và T-Learner `-0.320`.
 2. Tạo predicted profit dương và synthetic benchmark profit dương.
 3. Predicted profit gần với oracle-evaluated profit hơn DR-Learner, cho thấy đáng tin hơn.
 4. Phù hợp với cấu trúc causal của bài toán: tách baseline ride behavior khỏi voucher-induced incremental response.
