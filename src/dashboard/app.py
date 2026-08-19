@@ -384,6 +384,23 @@ with tab3:
         **Nguyên lý Targeting:** Chỉ giữ lại tập khách hàng có **Expected Incremental Profit > 0**. Nếu CATE cao nhưng baseline trips quá lớn, chi phí khuyến mãi sẽ nuốt chửng lợi nhuận biên.
         """)
         
+
+        preds_df['voucher_cost'] = calc_cost(preds_df['avg_fare'], DISCOUNT_PERCENT)
+        preds_df['margin_per_ride'] = preds_df['avg_fare'] * (MARGIN_PERCENT / 100.0)
+        preds_df['expected_value'] = (preds_df['cate_pred'] * preds_df['margin_per_ride']) - (preds_df['pred_rides_treated'] * preds_df['voucher_cost'])
+        
+        fig_scatter = px.scatter(preds_df.sample(min(2000, len(preds_df)), random_state=42), 
+                                 x='cate_pred', y='expected_value', 
+                                 color='expected_value', color_continuous_scale='RdYlGn',
+                                 title="CATE vs Expected Profit (Sample 2000 users)",
+                                 opacity=0.6)
+        fig_scatter.add_hline(y=0, line_dash="dash", line_color="#FF4B4B")
+        fig_scatter.add_vline(x=0, line_dash="dash", line_color="#00CC96")
+        fig_scatter.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#F8FAFC'), coloraxis_showscale=False, height=350)
+        fig_scatter.update_xaxes(title="CATE (Uplift chuyến đi)")
+        fig_scatter.update_yaxes(title="Expected Profit ($)")
+        st.plotly_chart(fig_scatter, use_container_width=True)
+
     with st.expander("Technical Method - Heterogeneous Treatment Estimation"):
         st.markdown("""
         **Quy trình Mô hình hóa (Residualization Flow):**
