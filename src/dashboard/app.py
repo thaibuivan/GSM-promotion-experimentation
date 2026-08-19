@@ -9,7 +9,7 @@ import scipy.stats as stats
 import statsmodels.api as sm
 
 # Page Config
-st.set_page_config(page_title="Promotion Decision Support Sandbox", page_icon="🧪", layout="wide")
+st.set_page_config(page_title="Promotion Experimentation Framework", page_icon="🧪", layout="wide")
 
 # Custom CSS for Premium Look
 st.markdown("""
@@ -60,8 +60,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="title-gradient">🧪 Promotion Decision Support Sandbox</p>', unsafe_allow_html=True)
-st.info("Mục tiêu của sandbox không phải dự đoán ai sẽ đi nhiều, mà là hỗ trợ câu hỏi quyết định: voucher có thực sự tạo incremental demand, và nếu ngân sách giới hạn thì nên phân bổ voucher cho ai để tạo expected incremental value tốt hơn.")
+st.markdown('<p class="title-gradient">🧪 Promotion Experimentation & Personalization Framework</p>', unsafe_allow_html=True)
+st.markdown("### Customer-Level Prototype for Causal Targeting and Policy Evaluation")
+st.info("Framework mô phỏng quy trình ra quyết định promotion từ causal experiment đến customer-level personalization, economics, policy selection và robustness validation. Kết quả hiện tại thuộc synthetic sandbox và được sử dụng để kiểm chứng workflow, không phải ước lượng production của GSM.")
 
 # Load Data
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -201,7 +202,6 @@ with tab2:
     st.markdown("A/B cho biết voucher có tác dụng trung bình. Nhưng average effect không cho biết tất cả user đều phản ứng giống nhau.")
     
     # Calculate ATE
-    # OLS for Adjusted ATE
     X = sm.add_constant(df['treatment_rand'])
     y = df['Y_rand']
     model = sm.OLS(y, X).fit(cov_type='HC1')
@@ -393,7 +393,7 @@ with tab5:
         except:
             st.warning("Chưa có dữ liệu Qini Curve.")
             
-    with st.expander("🩺 2. A/A Test & SRM Check (Sanity)"):
+    with st.expander("🩺 2. Stress Test & SRM Check (Sanity)"):
         observed_treatment = len(df_treat)
         observed_control = len(df_ctrl)
         total = observed_treatment + observed_control
@@ -404,6 +404,14 @@ with tab5:
         st.markdown("### Giới hạn Dữ liệu (Evidence Boundary)")
         st.info("Bước tiếp theo hợp lý là làm một **Randomized Pilot nhỏ theo Champion-Challenger** để kiểm chứng model và economics trên dữ liệu Production.")
         st.markdown("`Synthetic Sandbox` ➔ `Small Randomized GSM Pilot` ➔ `Champion-Challenger` ➔ `Production Monitoring`")
+        
+        st.markdown("### Lộ trình Mở rộng (Roadmap)")
+        st.markdown("""
+        - **CURRENT:** Customer-Level (WHO?)
+        - **NEXT:** Session-Level (WHO + WHEN?)
+        - **FUTURE:** Voucher Personalization (WHO + WHEN + HOW MUCH?)
+        """)
+        st.markdown("---")
         
         st.markdown("### Luồng Kiến trúc Dự kiến (Production Workflow)")
         mermaid_code = """
