@@ -85,7 +85,7 @@ st.markdown("""
 st.markdown('<p class="executive-title">Khung thử nghiệm khuyến mãi và cá nhân hóa</p>', unsafe_allow_html=True)
 st.markdown("### Mô hình thử nghiệm ở cấp khách hàng cho nhắm chọn nhân quả và đánh giá chính sách")
 st.info("Dự án xây dựng một quy trình xuyên suốt từ bằng chứng nhân quả đến quyết định phát voucher ở cấp khách hàng. Phiên bản hiện tại trả lời KHÁCH HÀNG NÀO nên nhận voucher; hướng phát triển tiếp theo là KHÁCH HÀNG NÀO + KHI NÀO ở cấp phiên, rồi KHÁCH HÀNG NÀO + KHI NÀO + MỨC BAO NHIÊU ở cấp voucher.")
-st.caption("**Quần thể đánh giá:** Dữ liệu mô phỏng trong chu kỳ 30 ngày, sử dụng chuẩn đối chiếu nhân quả tổng hợp (Synthetic Causal Benchmark). Không so sánh trực tiếp số tiền tuyệt đối giữa các quần thể có quy mô khác nhau.")
+st.caption("**Quần thể đánh giá:** Dữ liệu mô phỏng trong chu kỳ 30 ngày, sử dụng chuẩn đối chiếu nhân quả tổng hợp. Không so sánh trực tiếp số tiền tuyệt đối giữa các quần thể có quy mô khác nhau.")
 
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 data_path = os.path.join(base_path, "data", "processed", "segmented_simulation_data.csv")
@@ -188,7 +188,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 with tab1:
     render_breadcrumb("Business Problem")
     st.subheader("Phát voucher đại trà có tạo thêm lợi nhuận không?")
-    st.markdown("Thay vì chỉ nhìn vào tỷ lệ mở ứng dụng hoặc số chuyến tăng, ta đánh giá trực tiếp **lợi nhuận tăng thêm (Incremental Profit)** khi phát voucher đại trà theo các giả định của môi trường mô phỏng.")
+    st.markdown("Thay vì chỉ nhìn vào tỷ lệ mở ứng dụng hoặc số chuyến tăng, ta đánh giá trực tiếp **lợi nhuận tăng thêm** khi phát voucher đại trà theo các giả định của môi trường mô phỏng.")
     
     avg_rev_treat = df_treat['gross_revenue_30d'].mean()
     avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
@@ -201,7 +201,7 @@ with tab1:
     total_net_profit = net_profit_per_user * total_users
     
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Tổng chi phí voucher (Burn)", f"${cost_per_user * total_users:,.0f}")
+    c1.metric("Tổng chi phí voucher", f"${cost_per_user * total_users:,.0f}")
     c2.metric("Doanh thu tăng thêm", f"${incremental_rev_per_user * total_users:,.0f}")
     c3.metric("Lợi nhuận ròng", f"${total_net_profit:,.0f}")
     c4.metric("ROI tổng thể", f"{overall_roi:.1f}%")
@@ -283,7 +283,7 @@ with tab2:
     ci_high = model.conf_int().loc['treatment_rand', 1]
     
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("ATE thô", f"{raw_ate:.2f} chuyến", help="Chênh lệch trung bình đơn thuần giữa nhóm treatment và control.")
+    c1.metric("ATE thô", f"{raw_ate:.2f} chuyến", help="Chênh lệch trung bình đơn thuần giữa nhóm nhận voucher và nhóm đối chứng.")
     c2.metric("ATE đã hiệu chỉnh", f"{adj_ate:.2f} chuyến", help="Ước lượng đã điều chỉnh theo hành vi nền để tăng độ chính xác.")
     c3.metric("Khoảng tin cậy 95%", f"[{ci_low:.2f} , {ci_high:.2f}]")
     c4.metric("P-value", f"{p_val:.4f}", "Có ý nghĩa thống kê" if p_val < 0.05 else "Chưa có ý nghĩa thống kê")
@@ -291,9 +291,9 @@ with tab2:
     with st.expander("Phương pháp kỹ thuật - Ước lượng nhân quả"):
         st.markdown("""
         **Mô hình hồi quy nhân quả:**
-        `Y_i = β₀ + β₁T_i + β₂Baseline_i + ε_i`
+        `Y_i = β₀ + β₁T_i + β₂X_nền,i + ε_i`
         
-        > **Việc phân nhóm ngẫu nhiên tạo khả năng nhận diện tác động nhân quả. Điều chỉnh theo baseline nhằm tăng độ chính xác, không phải để sửa sai lệch do nhiễu.**
+        > **Việc phân nhóm ngẫu nhiên tạo khả năng nhận diện tác động nhân quả. Điều chỉnh theo đặc trưng nền nhằm tăng độ chính xác, không phải để sửa sai lệch do nhiễu.**
         """)
 
     st.markdown("#### Hiệu quả kinh tế theo phân khúc")
@@ -309,7 +309,7 @@ with tab2:
             gross_profit = d_rev * (MARGIN_PERCENT / 100.0)
             roi = (gross_profit - cost) / cost * 100 if cost > 0 else 0
             roi_data.append({
-                'Phân khúc (Persona)': p,
+                'Phân khúc': p,
                 'Số khách hàng': len(segment),
                 'ATE': round(ate, 2),
                 'GMV nền ($)': round(base_gmv, 2),
@@ -330,7 +330,7 @@ with tab2:
                 cost = t['discount_cost_30d'].mean()
                 roi = (gross_profit - cost) / cost * 100 if cost > 0 else 0
                 roi_data.append({
-                    'Phân khúc (Persona)': p,
+                    'Phân khúc': p,
                     'Số khách hàng': len(segment),
                     'ATE': round(ate, 2),
                     'GMV nền ($)': round(rev_c, 2),
@@ -372,7 +372,7 @@ with tab3:
             bargap=0.05
         )
         fig_cate.update_xaxes(title="CATE (Tác động nhân quả)", showgrid=True, gridcolor='#333333')
-        fig_cate.update_yaxes(title="Số lượng User", showgrid=True, gridcolor='#333333')
+        fig_cate.update_yaxes(title="Số khách hàng", showgrid=True, gridcolor='#333333')
         st.plotly_chart(fig_cate, use_container_width=True)
         st.caption("Mô hình theo phong cách R-Learner đơn giản hóa dự báo độ nhạy với voucher ở cấp khách hàng.")
         qini_summary = load_or_build_qini_curve()
@@ -412,7 +412,7 @@ with tab3:
     with st.expander("Phương pháp kỹ thuật - Ước lượng tác động khác biệt"):
         st.markdown("""
         **Quy trình Mô hình hóa (Residualization Flow):**
-        `X + T + Y` ➔ `Trừ baseline của outcome` ➔ `Trừ propensity của treatment` ➔ `Mô hình tác động kiểu R-Learner` ➔ `Xếp hạng CATE`
+        `X + T + Y` ➔ `Trừ mức nền của kết quả` ➔ `Trừ xác suất nhận voucher` ➔ `Mô hình tác động kiểu R-Learner` ➔ `Xếp hạng CATE`
         
         **Các công thức chính:**
         `m(X) = E[Y|X]`
@@ -439,7 +439,8 @@ with tab4:
     """, unsafe_allow_html=True)
     
     st.caption("**Đầu ra mô hình chưa phải quyết định cuối cùng; điều kiện kinh tế và ràng buộc chính sách mới chuyển dự báo thành hành động.**")
-    st.latex(r"EV_i = CATE_i \times AvgFare_i \times MarginRate - PredictedTreatedRides_i \times VoucherCostPerRide_i")
+    st.latex(r"EV_i = CATE_i \times L_i - \widehat{Y_i(1)} \times C_i")
+    st.caption("Trong đó, Lᵢ là lợi nhuận trên mỗi chuyến; Ŷᵢ(1) là tổng số chuyến dự kiến khi phát voucher; Cᵢ là chi phí voucher trên mỗi chuyến.")
     
     col_sim_left, col_sim_right = st.columns([1, 3])
     
@@ -534,13 +535,13 @@ with tab5:
     g1, g2, g3, g4 = st.columns(4)
     g1.success("**Tăng quy mô mẫu**\n\nATE duy trì ổn định và khoảng tin cậy hẹp dần khi N tăng từ 10 nghìn lên 50 nghìn và 100 nghìn.")
     g2.success("**Kiểm tra tác động bằng 0**\n\nKhi tác động thật bằng 0, ước lượng vẫn tập trung quanh 0 và tỷ lệ dương tính giả gần mức sai lầm loại I đã thiết kế trong mô phỏng.")
-    g3.warning("**Mất cân bằng treatment/control**\n\nVới tỷ lệ phân bổ 90/10, ước lượng có thể dao động đáng kể trong một lần chạy; rủi ro chính là độ bất định lớn hơn và lực thống kê thấp hơn.")
+    g3.warning("**Mất cân bằng giữa hai nhóm**\n\nVới tỷ lệ phân bổ nhóm nhận voucher/đối chứng là 90/10, ước lượng có thể dao động đáng kể trong một lần chạy; rủi ro chính là độ bất định lớn hơn và lực thống kê thấp hơn.")
     g4.info("**Bổ sung nhiễu**\n\nNhiễu ngoại sinh làm tín hiệu yếu đi và tăng độ bất định, nhưng về kỳ vọng không tạo sai lệch có hướng một cách hệ thống.")
     
-    st.caption("**Các stress test trên dữ liệu tổng hợp giúp kiểm tra logic đo lường, nhưng chưa chứng minh hệ thống đã đủ vững trên production hoặc sẵn sàng tự động triển khai.**")
-    st.info("**Cổng Champion–Challenger:** Phát theo lợi nhuận kỳ vọng mới là chính sách ứng viên, chưa phải quyết định triển khai cuối cùng. Pilot thực tế cần so sánh chính sách này với phát theo phân khúc và chỉ mở rộng khi lợi nhuận tăng thêm cao hơn với bằng chứng thống kê.")
+    st.caption("**Các kiểm tra độ vững trên dữ liệu tổng hợp giúp kiểm tra logic đo lường, nhưng chưa chứng minh hệ thống đã đủ vững trên môi trường vận hành thực tế hoặc sẵn sàng tự động triển khai.**")
+    st.info("**Cổng Champion–Challenger:** Phát theo lợi nhuận kỳ vọng mới là chính sách ứng viên, chưa phải quyết định triển khai cuối cùng. Thử nghiệm thực tế cần so sánh chính sách này với phát theo phân khúc và chỉ mở rộng khi lợi nhuận tăng thêm cao hơn với bằng chứng thống kê.")
     
-    with st.expander("Cách diễn giải stress test"):
+    with st.expander("Cách diễn giải kiểm tra độ vững"):
         st.markdown("""
         | Kiểm tra | Biến được thay đổi | Hành vi thống kê kỳ vọng |
         |---|---|---|
@@ -549,7 +550,7 @@ with tab5:
         | Chia nhóm 90/10 | Tỷ lệ phân bổ treatment | Sai số chuẩn tăng |
         | Bổ sung nhiễu | Phương sai outcome | Tín hiệu yếu đi |
         
-        > **Stress test ở đây kiểm tra pipeline có phản ứng đúng như lý thuyết thống kê hay không, chưa khẳng định pipeline đã đủ vững để vận hành thực tế.**
+        > **Các phép kiểm tra ở đây xác nhận quy trình có phản ứng đúng như lý thuyết thống kê hay không, chưa khẳng định quy trình đã đủ vững để vận hành thực tế.**
         """)
     
     st.markdown("---")
@@ -588,11 +589,11 @@ with tab5:
         st.markdown("""
         `Tầng dữ liệu` ➔ `Kiểm định thí nghiệm` ➔ `Ước lượng nhân quả` ➔ `Bộ máy kinh tế` ➔ `Bộ máy chính sách` ➔ `Giao diện quyết định`
         
-        **HIỆN TẠI:** Offline / Cấp khách hàng / Dữ liệu tổng hợp<br>
+        **HIỆN TẠI:** Ngoại tuyến / Cấp khách hàng / Dữ liệu tổng hợp<br>
         **TIẾP THEO:** Đặc trưng phiên và sự kiện / Cấp phiên<br>
         **TƯƠNG LAI:** Quyết định mức voucher / Giám sát
         
-        > **Đây là lộ trình minh họa cho sự phát triển của framework, không phải kiến trúc production hiện tại của GSM.**
+        > **Đây là lộ trình minh họa cho sự phát triển của khung giải pháp, không phải kiến trúc vận hành thực tế hiện tại của GSM.**
         """)
     
     with st.expander("Chi tiết đánh giá mô hình: Qini và Calibration"):
@@ -614,7 +615,7 @@ with tab5:
                 
         with col_calib:
             st.markdown("#### Biểu đồ Calibration - đánh giá độ lớn dự báo")
-            st.caption("Câu hỏi: Độ lớn CATE dự báo có gần với uplift quan sát theo từng nhóm decile không?")
+            st.caption("Câu hỏi: Độ lớn CATE dự báo có gần với uplift quan sát theo từng nhóm thập phân vị (decile) không?")
             try:
                 calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
                 fig_cal = go.Figure()
