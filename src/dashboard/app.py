@@ -126,6 +126,37 @@ def calc_cost(fare, rate_pct):
     raw_cost = fare * (rate_pct / 100.0)
     return np.minimum(raw_cost, VOUCHER_CAP)
 
+def trapezoid_area(y, x):
+    if hasattr(np, 'trapezoid'):
+        return np.trapezoid(y, x)
+    return np.trapz(y, x)
+
+def load_or_build_qini_curve():
+    qini_path = os.path.join(base_path, 'data', 'processed', 'qini_curve.csv')
+    if os.path.exists(qini_path):
+        qini_df = pd.read_csv(qini_path)
+        required_cols = {'pct_targeted', 'qini_uplift', 'random_uplift'}
+        if required_cols.issubset(qini_df.columns):
+            return qini_df
+
+    if {'cate_pred', 'cate_true'}.issubset(preds_df.columns):
+        qini_df = preds_df.sort_values('cate_pred', ascending=False).copy()
+        qini_df['pct_targeted'] = np.arange(1, len(qini_df) + 1) / len(qini_df) * 100
+        qini_df['qini_uplift'] = qini_df['cate_true'].cumsum()
+        total_uplift = qini_df['cate_true'].sum()
+        qini_df['random_uplift'] = qini_df['pct_targeted'] / 100 * total_uplift
+        zero_row = pd.DataFrame([{'pct_targeted': 0.0, 'qini_uplift': 0.0, 'random_uplift': 0.0}])
+        return pd.concat([zero_row, qini_df[['pct_targeted', 'qini_uplift', 'random_uplift']]], ignore_index=True)
+
+    return None
+
+def compute_qini_coef(qini_df):
+    if qini_df is None or qini_df.empty:
+        return np.nan
+    area_model = trapezoid_area(qini_df['qini_uplift'], qini_df['pct_targeted'])
+    area_random = trapezoid_area(qini_df['random_uplift'], qini_df['pct_targeted'])
+    return (area_model - area_random) / abs(area_random) if abs(area_random) > 1e-9 else np.nan
+
 def render_breadcrumb(active_step):
     steps = [
         ("Business Problem", "1. Business Problem"),
@@ -336,13 +367,11 @@ with tab3:
         fig_cate.update_yaxes(title="Số lượng User")
         st.plotly_chart(fig_cate, use_container_width=True)
         st.caption("Simplified R-Learner-style Model dự báo độ nhạy cảm tại cấp độ khách hàng.")
-        try:
-            qini_summary = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
-            area_model = np.trapz(qini_summary['qini_uplift'], qini_summary['pct_targeted'])
-            area_random = np.trapz(qini_summary['random_uplift'], qini_summary['pct_targeted'])
-            qini_coef = (area_model - area_random) / abs(area_random) if abs(area_random) > 1e-9 else np.nan
+        qini_summary = load_or_build_qini_curve()
+        qini_coef = compute_qini_coef(qini_summary)
+        if pd.notna(qini_coef):
             st.metric("Qini Coef", f"{qini_coef:.3f}", "Ranking > random" if qini_coef > 0 else "Needs review")
-        except Exception:
+        else:
             st.caption("Qini Coef chưa khả dụng. Hãy chạy lại policy export pipeline nếu cần.")
         
     with col_c2:
@@ -545,8 +574,8 @@ with tab5:
         with col_qini:
             st.markdown("#### Qini Curve (Ranking Metric)")
             st.caption("Hỏi: Model có đưa responsive users lên top tốt hơn random không?")
-            try:
-                qini_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
+            qini_df = load_or_build_qini_curve()
+            if qini_df is not None and not qini_df.empty:
                 fig_qini = go.Figure()
                 fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines', name='Model', line=dict(color='#00E5FF', width=3)))
                 fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['random_uplift'], mode='lines', name='Random Baseline', line=dict(color='rgba(255,255,255,0.3)', dash='dash', width=2)))
@@ -554,7 +583,7 @@ with tab5:
                 fig_qini.update_xaxes(title="% Khách hàng (Targeted)", dtick=10)
                 fig_qini.update_yaxes(title="Tích lũy Số chuyến (Qini)")
                 st.plotly_chart(fig_qini, use_container_width=True)
-            except:
+            else:
                 st.warning("Chưa có dữ liệu Qini Curve.")
                 
         with col_calib:
