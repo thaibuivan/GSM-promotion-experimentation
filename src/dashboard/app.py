@@ -139,6 +139,40 @@ with tab1:
         fig_waterfall.update_layout(**chart_layout, height=350)
         st.plotly_chart(fig_waterfall, use_container_width=True)
 
+    with col_chart2:
+        st.markdown("#### Giải phẫu Ngân sách (Cannibalization Waste)")
+        avg_rev_organic = df_ctrl['gross_revenue_30d'].mean()
+        avg_rev_total = df_treat['gross_revenue_30d'].mean()
+        avg_rev_inc = avg_rev_total - avg_rev_organic
+        
+        wasted_burn = avg_rev_organic * (DISCOUNT_PERCENT / 100.0) * len(df_treat)
+        effective_burn = avg_rev_inc * (DISCOUNT_PERCENT / 100.0) * len(df_treat)
+        total_burn = wasted_burn + effective_burn
+        
+        fig_bar = go.Figure()
+        fig_bar.add_trace(go.Bar(
+            y=['Ngân sách<br>Khuyến mãi'], x=[wasted_burn], 
+            name='Lãng phí (Khách hữu cơ)', orientation='h', marker_color='#FF007F',
+            text=f"${wasted_burn:,.0f}", textposition='inside'
+        ))
+        fig_bar.add_trace(go.Bar(
+            y=['Ngân sách<br>Khuyến mãi'], x=[effective_burn], 
+            name='Hiệu quả (Sinh cuốc mới)', orientation='h', marker_color='#00E5FF',
+            text=f"${effective_burn:,.0f}", textposition='inside'
+        ))
+        
+        fig_bar.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20),
+            height=220, barmode='stack', 
+            legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5))
+        fig_bar.update_xaxes(title="Tổng chi phí Voucher ($)", showgrid=False)
+        st.plotly_chart(fig_bar, use_container_width=True)
+        
+        waste_pct = (wasted_burn / total_burn * 100) if total_burn > 0 else 0
+        st.info(f"💡 **Cú sốc dữ liệu:** Hơn **{waste_pct:.1f}%** ngân sách đang ném qua cửa sổ cho những khách VỐN DĨ VẪN ĐI XE. Causal AI sẽ vá lỗ hổng này!")
+
+
 # ================= TAB 2: A/B TESTING =================
 with tab2:
     st.subheader("Phân tích A/B Test theo Phân khúc (Segmentation)")
