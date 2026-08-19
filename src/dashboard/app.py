@@ -195,8 +195,8 @@ with tab1:
         st.plotly_chart(fig_waterfall, use_container_width=True)
 
     with col_chart2:
-        st.markdown("#### Illustrative Baseline Subsidy Exposure")
-        st.caption("This is an illustrative sandbox decomposition, not an identified production cannibalization estimate.")
+        st.markdown("#### Phân rã Chi phí Trợ giá (Minh họa)")
+        st.caption("Đây là mô phỏng phân rã trên sandbox, không phải ước lượng cannibalization chính thức trên production.")
         avg_burn_organic = df_ctrl['discount_cost_30d'].mean()
         avg_burn_total = df_treat['discount_cost_30d'].mean()
         avg_burn_inc = avg_burn_total - avg_burn_organic
@@ -207,13 +207,13 @@ with tab1:
         
         fig_bar = go.Figure()
         fig_bar.add_trace(go.Bar(
-            y=['Promotion Budget'], x=[wasted_burn], 
-            name='Total Voucher Burn', orientation='h', marker_color='#FF4B4B',
+            y=['Ngân sách Khuyến mãi'], x=[wasted_burn], 
+            name='Tổng Ngân sách Tiêu hao', orientation='h', marker_color='#FF4B4B',
             text=f"${wasted_burn:,.0f}", textposition='inside'
         ))
         fig_bar.add_trace(go.Bar(
-            y=['Promotion Budget'], x=[effective_burn], 
-            name='Incremental Margin', orientation='h', marker_color='#00CC96',
+            y=['Ngân sách Khuyến mãi'], x=[effective_burn], 
+            name='Lợi nhuận Biên', orientation='h', marker_color='#00CC96',
             text=f"${effective_burn:,.0f}", textposition='inside'
         ))
         fig_bar.update_layout(
@@ -221,9 +221,9 @@ with tab1:
             font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20),
             height=200, barmode='stack', 
             legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5))
-        fig_bar.update_xaxes(title="Total Voucher Cost ($)", showgrid=False)
+        fig_bar.update_xaxes(title="Tổng chi phí Voucher ($)", showgrid=False)
         st.plotly_chart(fig_bar, use_container_width=True)
-        st.info(f"Mass treatment creates lift, but total promotion burn can exceed incremental margin.")
+        st.info(f"Khuyến mãi đại trà tạo ra lượng cuốc xe mới, nhưng tổng ngân sách tiêu hao có thể vượt quá lợi nhuận biên mang lại.")
 
 # ================= TAB 2: CAUSAL EVIDENCE =================
 with tab2:
