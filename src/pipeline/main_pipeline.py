@@ -53,10 +53,10 @@ try:
     with open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config.json'), 'r') as f:
         _cfg = json.load(f)
     VOUCHER_DISCOUNT_RATE = _cfg['economics'].get('voucher_rate', 0.15)
-    VOUCHER_CAP_PER_TRIP  = _cfg['economics'].get('voucher_cap', 3.0)
+    VOUCHER_CAP_PER_TRIP  = _cfg['economics'].get('voucher_cap')
 except:
     VOUCHER_DISCOUNT_RATE = 0.15
-    VOUCHER_CAP_PER_TRIP  = 3.0
+    VOUCHER_CAP_PER_TRIP  = None
 
 # Demographics
 AGE_MEAN    = 30
@@ -336,8 +336,10 @@ def run_pipeline(n_users=N_USERS, progress_callback=None):
     # Doanh thu thang (dung Y_rand cho nhanh RCT)
     gross_revenue_30d = (Y_rand * avg_fare_per_trip).round(2)
 
-    # Chi phi voucher: giam 15%, cap 3 USD/chuyen, CHI ap dung cho T_rand=1
-    discount_per_trip = np.minimum(avg_fare_per_trip * VOUCHER_DISCOUNT_RATE, VOUCHER_CAP_PER_TRIP)
+    # Synthetic sandbox: giam 15% moi chuyen, khong cap; chi ap dung cho T_rand=1.
+    discount_per_trip = avg_fare_per_trip * VOUCHER_DISCOUNT_RATE
+    if VOUCHER_CAP_PER_TRIP is not None:
+        discount_per_trip = np.minimum(discount_per_trip, VOUCHER_CAP_PER_TRIP)
     discount_cost_30d = (t_rand * Y_rand * discount_per_trip).round(2)
 
     # Doanh thu thuan
@@ -408,11 +410,9 @@ def run_pipeline(n_users=N_USERS, progress_callback=None):
 
 
     # ----------------------------------------------------------
-    # BLOCK 7: T-Learner REMOVED
-    # Ly do: (1) Data Leakage - model predict tren chinh data no da hoc
-    #        (2) Trung lap voi Week 7 notebook - da co phan tich day du hon
-    #        (3) Pipeline nen chi lam Data Generation, khong lam Modeling
-    # cate_true da co san o Block 3 de dung lam Benchmark cho Week 7
+    # BLOCK 7: Data generation boundary
+    # Modeling duoc tach sang policy pipeline de tranh leakage va trung lap.
+    # cate_true da co san o Block 3 de lam synthetic benchmark.
     # ----------------------------------------------------------
     if progress_callback: progress_callback(88, "Hoan tat sinh du lieu, dang luu...")
 

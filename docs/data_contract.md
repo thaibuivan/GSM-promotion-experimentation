@@ -10,7 +10,7 @@
 Bản hợp đồng dữ liệu này quy định rõ schema, nguồn cấp, và ranh giới thời gian (Time Cutoff) của các trường dữ liệu được phép sử dụng trong dự án `GSM-promotion-experimentation`. Mục tiêu tối thượng là **chống rò rỉ dữ liệu (Data Leakage)** giữa thời điểm trước (Pre-treatment) và sau (Post-treatment) khi chạy chiến dịch.
 
 ## 2. Ranh giới Thời gian (Time Cutoff Rules)
-Bất kỳ mô hình Machine Learning nào (K-Means, X-Learner) cũng phải đáng tin cậy tuân thủ trục thời gian (T) sau:
+Bất kỳ mô hình Machine Learning nào, gồm champion residual model hiện tại, cũng phải tuân thủ trục thời gian (T) sau:
 
 - **T < 0 (Historical Window):** Khoảng thời gian thu thập Feature. Ví dụ: Lịch sử đi lại 90 ngày trước chiến dịch.
 - **T = 0 (Randomization & Assignment):** Thời điểm chia nhóm A/B và phát Voucher.

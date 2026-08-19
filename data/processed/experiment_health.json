@@ -1,0 +1,12 @@
+{
+  "source": "notebooks/week4_ab_testing/1_aa_test_pipeline.ipynb",
+  "aa_monte_carlo_runs": 5000,
+  "alpha": 0.05,
+  "false_positive_rate": 0.0508,
+  "fpr_acceptance_low": 0.04,
+  "fpr_acceptance_high": 0.06,
+  "srm_simulation_failures": 263,
+  "srm_simulation_rate": 0.0526,
+  "srm_binomial_p_value": 0.3988,
+  "balance_smd_threshold": 0.1
+}

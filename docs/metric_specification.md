@@ -25,7 +25,7 @@ Chỉ số Kinh doanh (North Star Metric) cốt lõi của toàn bộ dự án. 
   - `CATE`: Số chuyến đi tăng thêm do mô hình AI dự báo.
   - `Margin per Ride`: Lợi nhuận gộp công ty thu được trên mỗi chuyến (Khấu trừ chi phí xăng xe, tài xế). (Configurable trong `config.json`).
   - `Predicted Rides`: Tổng số chuyến đi dự báo của User đó nếu được nhận Voucher.
-  - `Voucher Cost`: Số tiền công ty phải bù giá cho User đó trên mỗi chuyến. (Configurable trong `config.json`).
+  - `Voucher Cost`: Số tiền công ty phải bù giá cho User đó trên mỗi chuyến. Trong synthetic sandbox hiện tại: `0.15 × average_fare`, không cap. Tham số này được cấu hình trong `config.json` và không đại diện cho chính sách GSM thực tế.
 - **Missing Rule:** Nếu không có dữ liệu lịch sử giá cước của user, sử dụng Average Fare toàn hệ thống.
 
 ---
@@ -41,9 +41,18 @@ Chỉ số Kinh doanh (North Star Metric) cốt lõi của toàn bộ dự án. 
 
 ---
 
-## 4. Voucher Cannibalization Cost (Chi phí Ăn thịt Doanh thu)
-Chỉ số ẩn nhưng cực kỳ quan trọng để giải thích tại sao Mass Voucher lại thất bại.
+## 4. Budget Greedy (Heuristic phân bổ ngân sách)
 
-- **Định nghĩa:** Chi phí công ty phải trả để trợ giá cho những chuyến đi mà Khách hàng ĐẰNG NÀO CŨNG SẼ ĐI (Sure Things) kể cả khi không có Voucher.
+- Chỉ giữ user có `expected_incremental_profit > 0`.
+- Sắp xếp user theo Expected Value giảm dần.
+- Chọn tuần tự đến khi chi phí tích lũy chạm budget.
+- Đây là **greedy heuristic**, không phải nghiệm exact knapsack và không bảo đảm tối ưu tổ hợp toàn cục.
+
+---
+
+## 5. Illustrative Baseline Burn (Chi phí minh họa trên chuyến nền)
+Chỉ số minh họa giúp giải thích tại sao Mass Voucher có thể thất bại.
+
+- **Định nghĩa:** Chi phí voucher giả định trên các chuyến nền `Y0` vốn có thể phát sinh khi không có treatment.
 - **Công thức:** $Y_0 \times \text{Voucher Cost}$
-- *(Trong đó $Y_0$ là Base Rides - số chuyến đi tự nhiên không có tác động khuyến mãi).*
+- Đây là decomposition trên synthetic potential outcomes, không phải phép đo cannibalization production.

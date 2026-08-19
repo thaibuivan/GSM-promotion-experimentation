@@ -3,7 +3,7 @@
         "voucher_rate": 0.15,
         "margin_rate": 0.7,
         "budget_limit": 50000,
-        "voucher_cap": 999.0
+        "voucher_cap": null
     },
     "features": {
         "target_col": "Y_rand",

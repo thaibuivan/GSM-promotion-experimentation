@@ -6,6 +6,7 @@ import numpy as np
 import os
 import json
 import statsmodels.api as sm
+from scipy.stats import binomtest
 
 # Page Config
 st.set_page_config(page_title="Khung thử nghiệm khuyến mãi", layout="wide")
@@ -85,7 +86,7 @@ st.markdown("""
 st.markdown('<p class="executive-title">Khung thử nghiệm khuyến mãi và cá nhân hóa</p>', unsafe_allow_html=True)
 st.markdown("### Mô hình thử nghiệm ở cấp khách hàng cho nhắm chọn nhân quả và đánh giá chính sách")
 st.info("Dự án xây dựng một quy trình xuyên suốt từ bằng chứng nhân quả đến quyết định phát voucher ở cấp khách hàng. Phiên bản hiện tại trả lời KHÁCH HÀNG NÀO nên nhận voucher; hướng phát triển tiếp theo là KHÁCH HÀNG NÀO + KHI NÀO ở cấp phiên, rồi KHÁCH HÀNG NÀO + KHI NÀO + MỨC BAO NHIÊU ở cấp voucher.")
-st.caption("**Quần thể đánh giá:** Dữ liệu mô phỏng trong chu kỳ 30 ngày, sử dụng chuẩn đối chiếu nhân quả tổng hợp. Không so sánh trực tiếp số tiền tuyệt đối giữa các quần thể có quy mô khác nhau.")
+st.caption("**Phạm vi:** Synthetic sandbox cấp khách hàng trong chu kỳ 30 ngày. Economics mặc định dùng voucher 15% giá mỗi chuyến, không cap; đây không phải chính sách GSM thực tế.")
 
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 data_path = os.path.join(base_path, "data", "processed", "segmented_simulation_data.csv")
@@ -113,18 +114,18 @@ try:
         config = json.load(f)
     DISCOUNT_PERCENT = config['economics'].get('voucher_rate', 0.15) * 100
     MARGIN_PERCENT = config['economics'].get('margin_rate', 0.7) * 100
-    VOUCHER_CAP = config['economics'].get('voucher_cap', 3.0)
+    VOUCHER_CAP = config['economics'].get('voucher_cap')
 except:
     DISCOUNT_PERCENT = 15.0
     MARGIN_PERCENT = 70.0
-    VOUCHER_CAP = 3.0
+    VOUCHER_CAP = None
 
 df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]
 
 def calc_cost(fare, rate_pct):
     raw_cost = fare * (rate_pct / 100.0)
-    return np.minimum(raw_cost, VOUCHER_CAP)
+    return raw_cost if VOUCHER_CAP is None else np.minimum(raw_cost, VOUCHER_CAP)
 
 def trapezoid_area(y, x):
     if hasattr(np, 'trapezoid'):
@@ -156,6 +157,20 @@ def compute_qini_coef(qini_df):
     area_model = trapezoid_area(qini_df['qini_uplift'], qini_df['pct_targeted'])
     area_random = trapezoid_area(qini_df['random_uplift'], qini_df['pct_targeted'])
     return (area_model - area_random) / abs(area_random) if abs(area_random) > 1e-9 else np.nan
+
+@st.cache_data
+def load_experiment_health():
+    health_path = os.path.join(base_path, 'data', 'processed', 'experiment_health.json')
+    if not os.path.exists(health_path):
+        return None
+    with open(health_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def standardized_mean_difference(treated, control):
+    pooled_variance = (treated.var(ddof=1) + control.var(ddof=1)) / 2.0
+    if pd.isna(pooled_variance) or pooled_variance <= 0:
+        return 0.0
+    return (treated.mean() - control.mean()) / np.sqrt(pooled_variance)
 
 def render_breadcrumb(active_step):
     steps = [
@@ -266,7 +281,63 @@ with tab2:
     observed_treatment = len(df_treat)
     observed_control = len(df_ctrl)
     total = observed_treatment + observed_control
-    st.success("**Kết quả kiểm định thí nghiệm trước đó: ĐẠT**\n\nDựa trên mô phỏng A/A Monte Carlo, kiểm tra SRM và cân bằng biến nền ở Tuần 4.")
+
+    health = load_experiment_health()
+    srm_p_value = binomtest(k=observed_treatment, n=total, p=0.5).pvalue
+    balance_features = [
+        col for col in ['age', 'monthly_rides_history', 'recency_days', 'avg_fare_per_trip', 'is_urban']
+        if col in df.columns
+    ]
+    smd_by_feature = {
+        col: standardized_mean_difference(df_treat[col], df_ctrl[col])
+        for col in balance_features
+    }
+    max_smd_feature = max(smd_by_feature, key=lambda col: abs(smd_by_feature[col])) if smd_by_feature else None
+    max_abs_smd = abs(smd_by_feature[max_smd_feature]) if max_smd_feature else np.nan
+
+    if health is not None:
+        fpr = health['false_positive_rate']
+        fpr_ok = health['fpr_acceptance_low'] <= fpr <= health['fpr_acceptance_high']
+        srm_ok = srm_p_value >= health['alpha']
+        balance_ok = pd.notna(max_abs_smd) and max_abs_smd < health['balance_smd_threshold']
+        health_pass = fpr_ok and srm_ok and balance_ok
+        health_message = (
+            "Không phát hiện vấn đề đáng kể trong các kiểm tra A/A, SRM và cân bằng biến nền."
+            if health_pass else
+            "Có ít nhất một chỉ số vượt ngưỡng; cần xem chi tiết trước khi diễn giải ATE."
+        )
+        (st.success if health_pass else st.warning)(
+            f"**Kết quả kiểm định: {'ĐẠT' if health_pass else 'CẦN XEM XÉT'}**\n\n{health_message}"
+        )
+    else:
+        st.warning("Chưa có artifact kiểm định thí nghiệm; dashboard không tự gán trạng thái ĐẠT.")
+
+    with st.expander("Số liệu kiểm định và nguồn tính"):
+        h1, h2, h3, h4 = st.columns(4)
+        h1.metric(
+            "Số lần mô phỏng A/A",
+            f"{health['aa_monte_carlo_runs']:,}" if health is not None else "N/A"
+        )
+        h2.metric(
+            "False Positive Rate",
+            f"{health['false_positive_rate']:.2%}" if health is not None else "N/A"
+        )
+        h3.metric("SRM p-value hiện tại", f"{srm_p_value:.4f}")
+        h4.metric(
+            "Max |SMD| hiện tại",
+            f"{max_abs_smd:.3f}" if pd.notna(max_abs_smd) else "N/A",
+            help=f"Biến có |SMD| lớn nhất: {max_smd_feature}" if max_smd_feature else "Không có biến phù hợp"
+        )
+        st.caption(
+            f"Phân bổ hiện tại: {observed_treatment:,} nhận voucher / {observed_control:,} đối chứng. "
+            + (
+                f"Trong {health['aa_monte_carlo_runs']:,} lần mô phỏng, tỷ lệ cảnh báo SRM là "
+                f"{health['srm_simulation_rate']:.2%} với Binomial p-value = "
+                f"{health['srm_binomial_p_value']:.4f}. Nguồn: {health['source']}."
+                if health is not None else
+                "SRM p-value và SMD được tính trực tiếp từ dữ liệu hiện tại."
+            )
+        )
     
     st.markdown("---")
     st.subheader("Voucher có thật sự tạo tác động nhân quả và mức tăng có đồng đều không?")
@@ -449,6 +520,7 @@ with tab4:
         sim_voucher = st.slider("Mức giảm giá (%)", min_value=5.0, max_value=50.0, value=15.0, step=1.0)
         sim_margin = st.slider("Biên lợi nhuận (%)", min_value=10.0, max_value=100.0, value=70.0, step=5.0)
         sim_budget = st.number_input("Ngân sách ($)", min_value=1000, max_value=500000, value=50000, step=5000)
+        st.caption("Chi phí voucher mỗi chuyến = mức giảm giá × giá cước; simulator không áp dụng cap trong synthetic sandbox.")
         
     with col_sim_right:
         st.markdown("#### Bảng so sánh chính sách")
@@ -515,6 +587,13 @@ with tab4:
             'Lợi nhuận ($)': '${:,.0f}',
             'ROI (%)': '{:.1f}%'
         }).background_gradient(subset=['Lợi nhuận ($)'], cmap='RdYlGn', vmin=-5000, vmax=15000), use_container_width=True, hide_index=True)
+
+        st.download_button(
+            "Tải bảng chính sách (CSV)",
+            data=sim_df.to_csv(index=False).encode('utf-8-sig'),
+            file_name="policy_simulation.csv",
+            mime="text/csv"
+        )
         
         st.caption("*5. Phân bổ theo ngân sách: Thuật toán tham lam xếp khách hàng có EV dương theo EV từ cao xuống thấp. Nếu ngân sách lớn hơn tổng chi phí của toàn bộ khách hàng EV dương, kết quả sẽ giống chính sách phát theo lợi nhuận kỳ vọng. Đây không phải nghiệm tối ưu tổ hợp chính xác.*")
         
@@ -539,6 +618,7 @@ with tab5:
     g4.info("**Bổ sung nhiễu**\n\nNhiễu ngoại sinh làm tín hiệu yếu đi và tăng độ bất định, nhưng về kỳ vọng không tạo sai lệch có hướng một cách hệ thống.")
     
     st.caption("**Các kiểm tra độ vững trên dữ liệu tổng hợp giúp kiểm tra logic đo lường, nhưng chưa chứng minh hệ thống đã đủ vững trên môi trường vận hành thực tế hoặc sẵn sàng tự động triển khai.**")
+    st.caption("Nguồn: `notebooks/week6_stress_test/1_stress_test.ipynb`. Dashboard tóm tắt kết quả đã chạy, không tự chạy lại stress tests khi tải trang.")
     st.info("**Cổng Champion–Challenger:** Phát theo lợi nhuận kỳ vọng mới là chính sách ứng viên, chưa phải quyết định triển khai cuối cùng. Thử nghiệm thực tế cần so sánh chính sách này với phát theo phân khúc và chỉ mở rộng khi lợi nhuận tăng thêm cao hơn với bằng chứng thống kê.")
     
     with st.expander("Cách diễn giải kiểm tra độ vững"):

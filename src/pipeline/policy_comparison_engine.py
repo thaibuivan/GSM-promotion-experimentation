@@ -28,7 +28,7 @@ with open(config_path, 'r') as f:
     config = json.load(f)
 
 VOUCHER_RATE = config['economics']['voucher_rate']
-VOUCHER_CAP = config['economics'].get('voucher_cap', 3.0)
+VOUCHER_CAP = config['economics'].get('voucher_cap')
 MARGIN_RATE  = config['economics']['margin_rate']
 CAMPAIGN_BUDGET = config['economics']['budget_limit']
 
@@ -49,8 +49,8 @@ df_test['avg_fare'] = df_test['avg_fare_per_trip']
 
 print(f"  Test set size: {len(df_test):,}")
 
-# ─── 2. TRAIN R-LEARNER (DOUBLE MACHINE LEARNING) ─────────
-print("\n[2/5] Training R-Learner (Residual Learner) to remove Base Outcome Bias...")
+# ─── 2. TRAIN SIMPLIFIED R-LEARNER-STYLE RESIDUAL MODEL ───
+print("\n[2/5] Training simplified R-Learner-style residual model...")
 params_y = dict(random_state=42, n_estimators=100, learning_rate=0.05, max_depth=4)
 params_cate = dict(random_state=42, n_estimators=100, learning_rate=0.05, max_depth=3, min_child_weight=10)
 
@@ -80,7 +80,9 @@ print("\n[3/5] Computing Expected Incremental Value per user...")
 df_test['cate_pred'] = cate
 df_test['pred_rides_treated'] = pred1
 import numpy as np
-df_test['voucher_cost'] = np.minimum(df_test['avg_fare'] * VOUCHER_RATE, VOUCHER_CAP)
+df_test['voucher_cost'] = df_test['avg_fare'] * VOUCHER_RATE
+if VOUCHER_CAP is not None:
+    df_test['voucher_cost'] = np.minimum(df_test['voucher_cost'], VOUCHER_CAP)
 df_test['margin_per_ride'] = df_test['avg_fare'] * MARGIN_RATE
 # EV_i = CATE_i × margin_per_ride − pred_rides_treated × voucher_cost
 df_test['expected_value'] = (df_test['cate_pred'] * df_test['margin_per_ride']) - \
@@ -101,7 +103,8 @@ def evaluate_policy(target_mask, df_eval, label):
     if n_targeted == 0:
         return {"Policy": label, "N_Targeted": 0, "Pct_Targeted": 0.0,
                 "Expected_Incremental_Rides": 0, "Expected_GMV": 0, "Incremental_GMV": 0,
-                "Burn": 0, "CPIR": 0, "Burn_per_GMV_pct": 0, "Burn_per_Inc_GMV_pct": 0,
+                "Total_Voucher_Cost": 0, "Burn": 0, "CPIR": 0,
+                "Burn_per_GMV_pct": 0, "Burn_per_Inc_GMV_pct": 0,
                 "Predicted_Incremental_Profit": 0,
                 "Synthetic_Causal_Benchmark_Profit": 0,
                 "EV_Lower_95": 0, "EV_Upper_95": 0,
@@ -134,6 +137,7 @@ def evaluate_policy(target_mask, df_eval, label):
         "Expected_Incremental_Rides": round(total_inc_rides, 0),
         "Expected_GMV": round(total_gmv, 0),
         "Incremental_GMV": round(total_inc_gmv, 0),
+        "Total_Voucher_Cost": round(total_burn, 0),
         "Burn": round(total_burn, 0),
         "CPIR": round(cpir, 0),
         "Burn_per_GMV_pct": round(burn_per_gmv, 1),
@@ -167,7 +171,7 @@ results.append({
 mass_mask = pd.Series([True] * len(df_test), index=df_test.index)
 results.append(evaluate_policy(mass_mask, df_test, "1. Mass Voucher (All Users)"))
 
-# Policy 2: Segment Targeting (Suburban personas from K-Means)
+# Policy 2: Rule-based segment targeting for Suburban personas
 suburban_mask = df_test['persona'].str.contains('Suburban', case=False, na=False)
 results.append(evaluate_policy(suburban_mask, df_test, "2. Segment Targeting (Suburban)"))
 
@@ -180,7 +184,7 @@ results.append(evaluate_policy(uplift_mask, df_test, "3. Uplift Targeting (Top 3
 profit_mask = df_test['expected_value'] > 0
 results.append(evaluate_policy(profit_mask, df_test, "4. Profit Targeting (EV > 0)"))
 
-# Policy 5: Budget-Constrained Profit Targeting
+# Policy 5: Greedy budget heuristic; this is not an exact knapsack optimum.
 prof_df = df_test[df_test['expected_value'] > 0].copy()
 df_sorted_ev = prof_df.sort_values('expected_value', ascending=False)
 df_sorted_ev['cumulative_cost'] = (df_sorted_ev['pred_rides_treated'] * df_sorted_ev['voucher_cost']).cumsum()

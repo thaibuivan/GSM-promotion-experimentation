@@ -11,6 +11,14 @@
 ## 📌 Current Source of Truth
 The current implementation is defined by `src/pipeline/main_pipeline.py`, `src/pipeline/policy_comparison_engine.py`, `src/dashboard/app.py`, `config.json`, and the active technical documentation. Weekly notebooks and reports are retained as development-history artifacts and may reflect earlier assumptions, schemas, metrics or model versions.
 
+### Synthetic Sandbox Assumptions
+
+- Voucher cost is **15% of average fare per treated ride, with no cap** (`voucher_cap: null`).
+- Contribution margin is **70% of fare**.
+- Campaign budget is **$50,000**.
+- These values are controlled synthetic assumptions used to exercise promotion-burn logic. They are **not GSM production policy** and must be replaced with Business-approved economics before any real pilot.
+- All budget-constrained results use a **greedy budget heuristic**, not an exact knapsack optimization.
+
 ## 📌 Tổng quan Dự án
 Dự án này là một **Experimentation-Driven Promotion Sandbox**. Bắt đầu từ Data Quality & EDA trên dữ liệu mobility công khai, chuyển empirical patterns thành synthetic user-level causal data có Y0/Y1/Ground-Truth CATE và realized ITE. Sau đó, sử dụng A/B Testing để kiểm chứng incremental treatment effect, và mở rộng sang Uplift Modeling cùng business metrics (GMV, Burn) để đánh giá các targeting policies dưới controlled assumptions.
 
@@ -41,10 +49,11 @@ Dự án sử dụng phương pháp lai ghép (Hybrid Approach):
 - A/B Testing với OLS HC1 covariate adjustment để đo ATE và ROI theo persona.
 - Kết quả: Trong sandbox với assumptions hiện tại, segment-targeting cho policy value tốt hơn mass-targeting.
 
-### Giai đoạn 3: Uplift Modeling & Policy Optimization (Tuần 5 & 6)
-- Triển khai R-Learner (XGBoost-based residual learner) làm Champion Model trên toàn eligible population.
+### Giai đoạn 3: Uplift Modeling & Policy Evaluation (Tuần 5 & 6)
+- Triển khai **simplified R-Learner-style residual model** làm Champion Model trên toàn eligible population: model đầu học `m(X)`, sau đó residualization và model thứ hai học `τ(X)`. Implementation hiện chưa dùng cross-fitting nên không được gọi là full DML.
 - Đánh giá bằng Qini Curve, AUUC, và **profit-based policy comparison** (No Voucher / Mass / Segment / Uplift / Profit Targeting).
-- Stress Test: Kiểm định robustness dưới tỷ lệ chia mẫu lệch và Gaussian noise.
+- Phân bổ ngân sách bằng greedy heuristic trên nhóm có EV dương.
+- Stress Test: Kiểm định robustness trong các kịch bản synthetic đã thử, gồm tỷ lệ chia mẫu lệch và Gaussian noise.
 
 ---
 
@@ -60,7 +69,7 @@ Dự án sử dụng phương pháp lai ghép (Hybrid Approach):
 ```
 
 ## 🎯 Kết luận & Định vị Đúng
-Pipeline prototype này minh họa cách chuyển từ "A/B Testing + Uplift Model" thành **"Experimentation-Driven Promotion Decision System"**: đo incremental effect, dự đoán heterogeneous response, chuyển response thành expected profit, rồi chọn targeting policy tối ưu dưới ràng buộc ngân sách.
+Pipeline prototype này minh họa cách chuyển từ "A/B Testing + Uplift Model" thành **"Experimentation-Driven Promotion Decision System"**: đo incremental effect, dự đoán heterogeneous response, chuyển response thành expected profit, rồi so sánh các targeting policy dưới ràng buộc ngân sách.
 
 Khi có randomized GSM data thật, cùng pipeline có thể được dùng để estimate treatment response thực tế và benchmark policy mới trong champion–challenger experiments.
 

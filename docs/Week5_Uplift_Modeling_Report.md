@@ -290,9 +290,11 @@ Kết quả cho thấy model có khả năng tránh mass voucher và tìm nhóm 
 Tuy nhiên, pipeline nhiều tầng khiến pseudo-effect và calibration dễ nhiễu, nên chưa được chọn làm champion.
 ```
 
-### 4.4 R-Learner
+### 4.4 Simplified R-Learner-style Residual Model
 
-R-Learner được chọn làm champion vì nó phù hợp với bài toán promotion: phải tách user vốn đi nhiều khỏi user đi thêm vì voucher.
+Mô hình residual theo phong cách R-Learner được chọn làm champion vì nó phù hợp với bài toán promotion: phải tách user vốn đi nhiều khỏi user đi thêm vì voucher.
+
+Implementation hiện có hai model: model đầu học `m(X)`, sau đó residualization và model cuối học `τ(X)`. Vì chưa dùng cross-fitting, project không gọi implementation này là full Double Machine Learning.
 
 R-Learner học baseline outcome trước:
 

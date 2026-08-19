@@ -24,35 +24,36 @@ Kết quả A/B Test trên synthetic data với assumptions HTE đã thiết k�
 
 | Persona | N Users | ATE | ROI (dưới assumptions) | Kết luận trong Sandbox |
 |---|---|---|---|---|
-| Urban Regulars | 8,424 | +1.00 | -40.7% | Mass voucher gây cannibalization |
-| Rain Riders | 2,592 | +0.86 | -38.9% | Phụ thuộc thời tiết, chi phí > lợi nhuận |
-| Airport Business | 1,131 | +1.21 | -18.0% | ATE dương nhưng margin không bù voucher cost |
-| **Suburban Card** | 2,792 | +1.04 | **+20.7%** | Phù hợp assumptions — ROI dương trong sandbox |
-| **Suburban Cash** | 5,061 | +0.79 | **+24.7%** | Phù hợp assumptions — ROI dương trong sandbox |
+| Urban Regulars | 8,568 | +0.79 | -69.3% | Chi phí voucher lớn hơn lợi nhuận tăng thêm |
+| Rain Riders | 2,651 | +0.91 | -71.4% | Phản ứng dương nhưng economics vẫn âm |
+| Airport Business | 720 | +0.00 | -106.8% | Không tạo uplift trong DGP hiện tại |
+| Suburban Card | 5,381 | +0.87 | -12.0% | Tốt hơn mass voucher nhưng vẫn âm |
+| Suburban Cash | 2,680 | +0.75 | -15.1% | Tốt hơn mass voucher nhưng vẫn âm |
 
 ### B.3. Uplift Model Evaluation
-- R-Learner shows useful ranking signal, while CATE level calibration remains imperfect.
-- Profit Targeting: Nhắm mục tiêu 888 / 4000 users (22.2%) 
-- Predicted Profit: ≈ $7,939
-- Synthetic Causal Benchmark: ≈ $7,060
-- Oracle Benchmark: ≈ $10,818
-- Oracle Regret: ≈ $3,758 (34.7%)
+- Champion hiện tại là **simplified R-Learner-style residual model**: model đầu học `m(X)`, sau đó residualization và model thứ hai học `τ(X)`. Chưa có cross-fitting, nên không gọi là full DML.
+- Mô hình có useful ranking signal, trong khi CATE level calibration vẫn chưa hoàn hảo.
+- Profit Targeting: Nhắm mục tiêu 873 / 4.000 users (21,8%).
+- Predicted Profit: ≈ $6.369.
+- Synthetic Causal Benchmark: ≈ $6.579.
+- Oracle Benchmark: ≈ $9.063.
+- Oracle Regret: ≈ $2.484 (27,4%).
 
 ---
 
 ## C. Recommendation IN SANDBOX
 Trong synthetic sandbox với assumptions hiện tại về treatment effect, voucher cost và contribution margin:
 
-> **Profit-based Uplift Targeting** (rank toàn eligible population theo Expected Incremental Value, phát đến hết budget) cho policy value tốt hơn Mass Voucher và Segment Targeting.
+> **Profit-based Uplift Targeting** cho policy value tốt hơn Mass Voucher và Segment Targeting trong sandbox hiện tại.
 
-Mức Voucher giả định 15% → Lọc theo Expected Value > 0 → Predicted Profit ~$7,939 (trong sandbox).
+Mức voucher giả định 15% không cap → lọc theo Expected Value > 0 → áp dụng greedy budget heuristic → Predicted Profit khoảng $6.369 trong sandbox. Với budget $50.000 hiện tại, budget không binding nên policy ngân sách trùng với Profit Targeting.
 
 ---
 
 ## D. Conditions Required (Điều kiện để kết luận đúng)
 - Margin per incremental ride ≈ 0.70 × average fare (assumption hiện tại)
-- Voucher cost = 15% of user's average revenue (assumption hiện tại)
-- R-Learner có useful ranking signal trong held-out synthetic test set; CATE level calibration vẫn còn imperfect và cần được theo dõi.
+- Voucher cost mỗi chuyến = 15% average fare, không cap (synthetic assumption hiện tại, không phải chính sách GSM)
+- Simplified R-Learner-style residual model có useful ranking signal trong held-out synthetic test set; CATE level calibration vẫn còn imperfect và cần được theo dõi.
 - SUTVA: không có marketplace interference
 - Eligible population có cùng DGP distribution như training data
 
