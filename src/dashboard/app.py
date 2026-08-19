@@ -6,9 +6,10 @@ import numpy as np
 import os
 import json
 import scipy.stats as stats
+import statsmodels.api as sm
 
 # Page Config
-st.set_page_config(page_title="GSM Promotion AI Sandbox", page_icon="🧪", layout="wide")
+st.set_page_config(page_title="Promotion Decision Support Sandbox", page_icon="🧪", layout="wide")
 
 # Custom CSS for Premium Look
 st.markdown("""
@@ -18,7 +19,7 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-weight: 800;
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         margin-bottom: 0px;
     }
     [data-testid="stMetricValue"] {
@@ -46,39 +47,44 @@ st.markdown("""
         border-bottom: 3px solid #00E5FF !important;
     }
     
-    /* Style Dataframe */
-    [data-testid="stDataFrame"] {
-        border-radius: 8px;
-        overflow: hidden;
+    /* Breadcrumbs */
+    .breadcrumb {
+        font-size: 1.1rem;
+        color: #aaa;
+        margin-bottom: 20px;
+    }
+    .breadcrumb span.active {
+        color: #00E5FF;
+        font-weight: bold;
     }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="title-gradient">🧪 Khung Tối ưu Khuyến mãi bằng Causal AI</p>', unsafe_allow_html=True)
-st.info("Môi trường mô phỏng (Sandbox) được thiết kế riêng cho **Giám đốc Kinh doanh (Business)** và **Giám đốc Kỹ thuật (Tech)** để đánh giá hiệu quả của thuật toán R-Learner so với phương pháp phân bổ đại trà.")
+st.markdown('<p class="title-gradient">🧪 Promotion Decision Support Sandbox</p>', unsafe_allow_html=True)
+st.info("Mục tiêu của sandbox không phải dự đoán ai sẽ đi nhiều, mà là hỗ trợ câu hỏi quyết định: voucher có thực sự tạo incremental demand, và nếu ngân sách giới hạn thì nên phân bổ voucher cho ai để tạo expected incremental value tốt hơn.")
 
 # Load Data
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 data_path = os.path.join(base_path, "data", "processed", "segmented_simulation_data.csv")
+pred_path = os.path.join(base_path, 'data', 'processed', 'test_predictions.csv')
 
 @st.cache_data
-def load_data():
-    return pd.read_csv(data_path)
+def load_data(path):
+    return pd.read_csv(path)
 
 try:
-    df = load_data()
+    df = load_data(data_path)
+    preds_df = load_data(pred_path)
 except Exception as e:
-    st.error(f"Không tìm thấy dữ liệu tại: {data_path}")
+    st.error(f"Không tìm thấy dữ liệu. Lỗi: {str(e)}")
     st.stop()
 
-# Tùy chỉnh màu sắc Plotly cho Dark Mode
-neon_colors = ["#FF007F", "#00E5FF"]
+# Plotly settings
 chart_layout = dict(
     plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
     font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20)
 )
 
-# ----------------- TÍNH TOÁN DATA CHUNG -----------------
 config_path = os.path.join(base_path, 'config.json')
 try:
     with open(config_path, 'r') as f:
@@ -92,19 +98,39 @@ except:
 df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]
 
-# ----------------- CHIA TABS MỚI (5 TABS) -----------------
+def render_breadcrumb(active_step):
+    steps = [
+        ("Business Problem", "1. Business Problem"),
+        ("Causal Evidence", "2. Causal Evidence"),
+        ("User Heterogeneity", "3. User Heterogeneity"),
+        ("Policy", "4. Policy Simulator"),
+        ("Robustness", "5. Robustness")
+    ]
+    html = '<div class="breadcrumb">'
+    for i, (key, label) in enumerate(steps):
+        if key == active_step:
+            html += f'<span class="active">{label}</span>'
+        else:
+            html += f'<span>{label}</span>'
+        if i < len(steps) - 1:
+            html += ' ➔ '
+    html += '</div>'
+    st.markdown(html, unsafe_allow_html=True)
+
+# ----------------- TABS -----------------
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📊 1. Vấn đề Kinh doanh (Mass Voucher)", 
-    "🧪 2. Insights từ A/B Testing", 
-    "🧠 3. Giải pháp Causal AI", 
-    "🕹️ 4. Mô phỏng Kịch bản (Simulator)", 
-    "🔬 5. Nền tảng Dữ liệu (Tech)"
+    "📊 1. Business Problem", 
+    "🧪 2. Causal Evidence", 
+    "🧠 3. User Heterogeneity", 
+    "🕹️ 4. Policy Simulator", 
+    "🔬 5. Robustness"
 ])
 
-# ================= TAB 1: EXECUTIVE SUMMARY =================
+# ================= TAB 1: BUSINESS PROBLEM =================
 with tab1:
-    st.subheader("Nỗi đau kinh doanh: Phát khuyến mãi đại trà (Mass Voucher) đang gây lỗ")
-    st.markdown("Thay vì nhìn vào ATE (Hiệu ứng trung bình), chúng ta nhìn trực tiếp vào **Lợi nhuận (ROI)** khi phát Voucher cho **toàn bộ khách hàng**.")
+    render_breadcrumb("Business Problem")
+    st.subheader("Mass promotion có tạo economic value không?")
+    st.markdown("Thay vì nhìn vào ATE (Hiệu ứng trung bình), chúng ta nhìn trực tiếp vào **Lợi nhuận (ROI)** khi phát Voucher cho toàn bộ khách hàng.")
     
     avg_rev_treat = df_treat['gross_revenue_30d'].mean()
     avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
@@ -117,12 +143,12 @@ with tab1:
     total_net_profit = net_profit_per_user * total_users
     
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Tổng chi phí (Burn)", f"${cost_per_user * total_users:,.0f}", f"${cost_per_user:.2f}/User", delta_color="inverse")
-    c2.metric("Doanh thu tăng thêm", f"${incremental_rev_per_user * total_users:,.0f}", f"${incremental_rev_per_user:.2f}/User", delta_color="normal")
-    c3.metric("Lợi nhuận Ròng", f"${total_net_profit:,.0f}", f"Mass Voucher", delta_color="inverse")
-    c4.metric("ROI Tổng thể", f"{overall_roi:.1f}%", "Báo động đỏ", delta_color="inverse")
+    c1.metric("Tổng chi phí (Burn)", f"${cost_per_user * total_users:,.0f}", help="Burn = Tổng số tiền bỏ ra cho Khuyến mãi")
+    c2.metric("Doanh thu tăng thêm", f"${incremental_rev_per_user * total_users:,.0f}")
+    c3.metric("Lợi nhuận Ròng", f"${total_net_profit:,.0f}")
+    c4.metric("ROI Tổng thể", f"{overall_roi:.1f}%", help="ROI = Lợi nhuận Ròng / Tổng Chi phí Burn")
     
-    st.error(f"🚨 **Vấn đề (Cannibalization):** Khách hàng vẫn tăng số chuyến đi, nhưng Doanh thu tăng thêm KHÔNG ĐỦ bù đắp chi phí phát Voucher cho những người 'không cần voucher vẫn đi'. Chiến dịch đang lỗ **${abs(total_net_profit):,.0f}**.")
+    st.error(f"🚨 **Kết luận:** Mass Voucher tạo incremental behavior nhưng economics ÂM dưới assumptions hiện tại. Chiến dịch lỗ **${abs(total_net_profit):,.0f}**.")
 
     col_chart1, col_chart2 = st.columns(2)
     with col_chart1:
@@ -144,11 +170,9 @@ with tab1:
         avg_rev_organic = df_ctrl['gross_revenue_30d'].mean()
         avg_rev_total = df_treat['gross_revenue_30d'].mean()
         avg_rev_inc = avg_rev_total - avg_rev_organic
-        
         wasted_burn = avg_rev_organic * (DISCOUNT_PERCENT / 100.0) * len(df_treat)
         effective_burn = avg_rev_inc * (DISCOUNT_PERCENT / 100.0) * len(df_treat)
         total_burn = wasted_burn + effective_burn
-        
         fig_bar = go.Figure()
         fig_bar.add_trace(go.Bar(
             y=['Ngân sách<br>Khuyến mãi'], x=[wasted_burn], 
@@ -160,7 +184,6 @@ with tab1:
             name='Hiệu quả (Sinh cuốc mới)', orientation='h', marker_color='#00E5FF',
             text=f"${effective_burn:,.0f}", textposition='inside'
         ))
-        
         fig_bar.update_layout(
             plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
             font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20),
@@ -168,16 +191,31 @@ with tab1:
             legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5))
         fig_bar.update_xaxes(title="Tổng chi phí Voucher ($)", showgrid=False)
         st.plotly_chart(fig_bar, use_container_width=True)
-        
         waste_pct = (wasted_burn / total_burn * 100) if total_burn > 0 else 0
-        st.info(f"💡 **Cú sốc dữ liệu:** Hơn **{waste_pct:.1f}%** ngân sách đang ném qua cửa sổ cho những khách VỐN DĨ VẪN ĐI XE. Causal AI sẽ vá lỗ hổng này!")
+        st.info(f"💡 Hơn **{waste_pct:.1f}%** ngân sách đang bị ném qua cửa sổ cho những khách VỐN DĨ VẪN ĐI XE (Cannibalization).")
 
-
-# ================= TAB 2: A/B TESTING =================
+# ================= TAB 2: CAUSAL EVIDENCE =================
 with tab2:
-    st.subheader("Phân tích A/B Test theo Phân khúc (Segmentation)")
-    st.markdown("Nếu phát đại trà gây lỗ, liệu chúng ta có nên chỉ phát cho một nhóm khách hàng cụ thể? Dưới đây là phân tích A/B Test chia theo 5 Personas.")
+    render_breadcrumb("Causal Evidence")
+    st.subheader("Voucher có thật sự tạo lift, và lift có đồng đều giữa các nhóm không?")
+    st.markdown("A/B cho biết voucher có tác dụng trung bình. Nhưng average effect không cho biết tất cả user đều phản ứng giống nhau.")
     
+    # Calculate ATE
+    # OLS for Adjusted ATE
+    X = sm.add_constant(df['treatment_rand'])
+    y = df['Y_rand']
+    model = sm.OLS(y, X).fit(cov_type='HC1')
+    ate = model.params['treatment_rand']
+    p_val = model.pvalues['treatment_rand']
+    ci_low = model.conf_int().loc['treatment_rand', 0]
+    ci_high = model.conf_int().loc['treatment_rand', 1]
+    
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Adjusted ATE (Chuyến đi tăng thêm)", f"{ate:.2f} chuyến/user", help="ATE (Average Treatment Effect): Hiệu ứng trung bình của Voucher lên số chuyến đi")
+    c2.metric("95% Confidence Interval", f"[{ci_low:.2f} , {ci_high:.2f}]")
+    c3.metric("P-value", f"{p_val:.4f}", "Statistically Significant" if p_val < 0.05 else "Not Significant")
+
+    st.markdown("#### Phân tích A/B theo Phân khúc (Segment Economics)")
     roi_data = []
     for p in df['persona'].unique():
         t = df[(df['persona'] == p) & (df['treatment_rand'] == 1)]
@@ -199,30 +237,150 @@ with tab2:
             })
     roi_df = pd.DataFrame(roi_data).sort_values(by='ROI (%)', ascending=False)
     
-    c1, c2 = st.columns(2)
-    with c1:
-        st.dataframe(roi_df.style.format(precision=1)
-                 .background_gradient(subset=['ROI (%)'], cmap='RdYlGn', vmin=-100, vmax=50)
-                 .highlight_max(subset=['Net Profit ($)'], color='rgba(0,229,255,0.3)'), 
-                 use_container_width=True, hide_index=True)
-    with c2:
-        fig_prof = px.bar(roi_df.sort_values('Net Profit ($)'), x='Phân khúc (Persona)', y='Net Profit ($)', 
-                          color='Net Profit ($)', color_continuous_scale=['#FF007F', '#00E5FF'],
-                          title="Lợi nhuận theo Từng Nhóm Khách hàng")
-        fig_prof.update_layout(**chart_layout, coloraxis_showscale=False)
-        fig_prof.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.1)', zeroline=True, zerolinecolor='white', zerolinewidth=2)
-        st.plotly_chart(fig_prof, use_container_width=True)
+    st.dataframe(roi_df.style.format(precision=1)
+             .background_gradient(subset=['ROI (%)'], cmap='RdYlGn', vmin=-100, vmax=50), 
+             use_container_width=True, hide_index=True)
 
-    st.success("💡 **Insights:** Nhóm `Suburban Card` và `Suburban Cash` tạo ra Lợi nhuận Dương (ROI ~ 20%). Tuy nhiên, cách làm này vẫn quá 'thô' vì trong nội bộ nhóm Suburban vẫn có những người không nhạy cảm với khuyến mãi.")
+    st.success("💡 **Kết luận:** Average effect tồn tại nhưng business outcome khác nhau giữa segment; segment targeting (ví dụ: chỉ chọn Ngoại ô) vẫn còn quá coarse (thô).")
 
-# ================= TAB 3: CAUSAL AI =================
+# ================= TAB 3: USER HETEROGENEITY =================
 with tab3:
-    st.subheader("Giải pháp Công nghệ: Bóc tách hành vi bằng Causal AI (R-Learner)")
-    st.markdown("Thay vì đánh giá cả một nhóm lớn, thuật toán **R-Learner (Double Machine Learning)** dự đoán độ nhạy cảm (CATE) của **từng cá nhân riêng biệt** bằng cách loại bỏ nhiễu từ hành vi đi xe tự nhiên.")
+    render_breadcrumb("User Heterogeneity")
+    st.subheader("Trong cùng segment, user nào thực sự responsive và profitable?")
+    st.markdown("User có uplift cao (tăng nhiều chuyến) chưa chắc là user nên nhận voucher. Nếu incremental margin tạo thêm không bù đắp được voucher burn, campaign vẫn destroy value.")
     
-    col_q1, col_q2 = st.columns(2)
-    with col_q1:
-        st.markdown("#### 1. Đánh giá Hiệu quả Xếp hạng (Qini Curve)")
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        st.markdown("#### Phân phối độ nhạy cảm (CATE Distribution)")
+        fig_cate = px.histogram(preds_df, x='cate_pred', nbins=50, 
+                                title="Phân bố CATE (Chuyến đi dự kiến tăng thêm)",
+                                color_discrete_sequence=['#00E5FF'])
+        fig_cate.add_vline(x=0, line_dash="dash", line_color="#FF007F")
+        fig_cate.update_layout(**chart_layout)
+        fig_cate.update_xaxes(title="CATE (Hiệu ứng Can thiệp Cấp Cá nhân)")
+        fig_cate.update_yaxes(title="Số lượng User")
+        st.plotly_chart(fig_cate, use_container_width=True)
+        st.caption("CATE (Conditional Average Treatment Effect): Mức độ nhạy cảm với Khuyến mãi dự đoán bởi R-Learner.")
+        
+    with col_c2:
+        st.markdown("#### Cầu nối Giá trị Kỳ vọng (Expected Value Bridge)")
+        st.info("""
+        **Từ Uplift sang Economics:**
+        
+        Mỗi User sẽ được AI quy đổi từ `Số chuyến đi tăng thêm (CATE)` sang **Lợi nhuận Kỳ vọng (Expected Value)**:
+        
+        `EV = [CATE * (Lợi nhuận / Cuốc)] - [Tổng chuyến đi có Voucher * (Chi phí Voucher / Cuốc)]`
+        
+        **Nguyên lý:** Phải ưu tiên người có **EV > 0**, chứ không phải người có CATE cao nhất (vì người CATE cao có thể số chuyến Organic vốn dĩ cũng rất lớn dẫn đến Burn khổng lồ).
+        """)
+    
+    st.success("💡 **Kết luận:** Response ≠ Profit. Uplift cần được chuyển sang economics trước khi ra quyết định.")
+
+# ================= TAB 4: POLICY SIMULATOR =================
+with tab4:
+    render_breadcrumb("Policy")
+    st.subheader("Nếu phải chọn campaign policy dưới assumptions hiện tại, policy nào tốt nhất?")
+    st.markdown("Output cuối của model không phải chỉ là CATE, mà là một ranking phục vụ policy: Mass, Segment, Uplift, Profit và Budget-Constrained.")
+    
+    col_sim_left, col_sim_right = st.columns([1, 3])
+    
+    with col_sim_left:
+        st.markdown("#### Kéo để thay đổi (What-If)")
+        sim_voucher = st.slider("Mức Khuyến mãi (Voucher %)", min_value=5.0, max_value=50.0, value=15.0, step=1.0)
+        sim_margin = st.slider("Biên lợi nhuận gộp (Margin %)", min_value=10.0, max_value=100.0, value=70.0, step=5.0)
+        sim_budget = st.number_input("Ngân sách (Budget Limit $)", min_value=1000, max_value=500000, value=50000, step=5000)
+        
+    with col_sim_right:
+        st.markdown("#### Bảng Xếp hạng Chính sách (Policy Comparison)")
+        preds_df['voucher_cost'] = preds_df['avg_fare'] * (sim_voucher / 100.0)
+        preds_df['margin_per_ride'] = preds_df['avg_fare'] * (sim_margin / 100.0)
+        preds_df['expected_value'] = (preds_df['cate_pred'] * preds_df['margin_per_ride']) - (preds_df['pred_rides_treated'] * preds_df['voucher_cost'])
+        
+        total_pop = len(preds_df)
+        
+        def eval_policy_sim(mask, label):
+            targeted = preds_df[mask]
+            n_t = mask.sum()
+            target_pct = (n_t / total_pop) * 100 if total_pop > 0 else 0
+            
+            if n_t == 0: 
+                return {"Policy": label, "Target %": 0.0, "Inc Rides": 0.0, "Burn ($)": 0, "Profit ($)": 0, "ROI (%)": 0.0}
+            
+            pred_inc_rides = targeted['cate_pred'].sum()
+            pred_burn = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
+            pred_profit = targeted['expected_value'].sum()
+            pred_roi = (pred_profit / pred_burn * 100) if pred_burn > 0 else 0
+            
+            return {
+                "Policy": label, 
+                "Target %": round(target_pct, 1), 
+                "Inc Rides": round(pred_inc_rides, 1), 
+                "Burn ($)": round(pred_burn, 0), 
+                "Profit ($)": round(pred_profit, 0),
+                "ROI (%)": round(pred_roi, 1)
+            }
+        
+        sim_results = []
+        # 0. No Voucher
+        no_m = pd.Series([False]*len(preds_df), index=preds_df.index)
+        sim_results.append(eval_policy_sim(no_m, "0. No Voucher (Không phát)"))
+        
+        # 1. Mass
+        mass_m = pd.Series([True]*len(preds_df), index=preds_df.index)
+        sim_results.append(eval_policy_sim(mass_m, "1. Mass Voucher (Đại trà)"))
+        
+        # 2. Segment
+        if 'is_urban' in preds_df.columns:
+            sub_m = preds_df['is_urban'] == 0
+            sim_results.append(eval_policy_sim(sub_m, "2. Segment (Chỉ Ngoại ô)"))
+            
+        # 3. Uplift Targeting (Top 30% CATE)
+        uplift_thresh = preds_df['cate_pred'].quantile(0.7)
+        uplift_m = preds_df['cate_pred'] >= uplift_thresh
+        sim_results.append(eval_policy_sim(uplift_m, "3. Uplift Targeting (Top 30% CATE)"))
+        
+        # 4. Profit Target
+        prof_m = preds_df['expected_value'] > 0
+        sim_results.append(eval_policy_sim(prof_m, "4. Profit Targeting (Causal AI EV > 0)"))
+        
+        # 5. Budget
+        prof_df_sim = preds_df[preds_df['expected_value'] > 0].copy()
+        df_sorted = prof_df_sim.sort_values('expected_value', ascending=False)
+        df_sorted['cum_cost'] = (df_sorted['pred_rides_treated'] * df_sorted['voucher_cost']).cumsum()
+        budget_m_idx = df_sorted[df_sorted['cum_cost'] <= sim_budget].index
+        budget_m = preds_df.index.isin(budget_m_idx)
+        sim_results.append(eval_policy_sim(budget_m, f"5. Greedy Heuristic (Budget < ${sim_budget:,})"))
+        
+        sim_df = pd.DataFrame(sim_results)
+        st.dataframe(sim_df.style.format({
+            'Target %': '{:.1f}%',
+            'Inc Rides': '{:,.1f}',
+            'Burn ($)': '${:,.0f}',
+            'Profit ($)': '${:,.0f}',
+            'ROI (%)': '{:.1f}%'
+        }).background_gradient(subset=['Profit ($)'], cmap='RdYlGn', vmin=-10000, vmax=20000), use_container_width=True, hide_index=True)
+        
+        # Export Button
+        st.markdown("---")
+        st.markdown("#### 📤 Xuất danh sách triển khai (Export to CRM)")
+        export_df = preds_df[preds_df['expected_value'] > 0]
+        csv_data = export_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Tải xuống CSV (Profit Targeting Users)",
+            data=csv_data,
+            file_name="crm_target_list.csv",
+            mime="text/csv",
+            type="primary"
+        )
+
+# ================= TAB 5: ROBUSTNESS & TECH =================
+with tab5:
+    render_breadcrumb("Robustness")
+    st.subheader("Có thể tin decision này đến mức nào trong sandbox?")
+    st.markdown("Kết quả hiện tại chứng minh workflow trong synthetic sandbox, chưa phải evidence cho customer behavior thực tế của GSM.")
+    
+    with st.expander("📈 1. Causal Model Qini Curve & Calibration"):
+        st.markdown("#### Hiệu quả Xếp hạng (Qini Curve)")
         try:
             qini_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
             fig_qini = go.Figure()
@@ -235,93 +393,35 @@ with tab3:
         except:
             st.warning("Chưa có dữ liệu Qini Curve.")
             
-    with col_q2:
-        st.markdown("#### 2. Cơ chế Ra quyết định (Decision Rule)")
-        st.info("""
-        Mỗi User sẽ được AI chấm 1 điểm **Expected Value (Lợi nhuận Kỳ vọng)**:
-        
-        `EV = [Số chuyến AI dự đoán tăng thêm * (Margin)] - [Tổng chuyến đi dự kiến * (Voucher Cost)]`
-        
-        Quy tắc Vàng: **Chỉ phát Voucher cho ai có EV > 0.**
-        """)
-        st.success("🟢 Kết quả: R-Learner giúp giữ lại nhóm 'cứu vớt được' và mạnh dạn loại bỏ nhóm 'đi ké khuyến mãi', giúp tối đa hóa Lợi nhuận.")
-
-# ================= TAB 4: POLICY SIMULATOR =================
-with tab4:
-    st.subheader("🕹️ Trình mô phỏng Chính sách (Interactive Policy Simulator)")
-    st.markdown("GĐ Kinh doanh có thể điều chỉnh các thông số để xem AI sẽ cứu vãn lợi nhuận chiến dịch như thế nào dưới các điều kiện thị trường khác nhau.")
-    
-    col_sim_left, col_sim_right = st.columns([1, 2.5])
-    
-    with col_sim_left:
-        st.markdown("#### Kéo để thay đổi (What-If)")
-        sim_voucher = st.slider("Mức Khuyến mãi (Voucher %)", min_value=5.0, max_value=50.0, value=15.0, step=1.0, help="Thay đổi % giảm giá của Voucher")
-        sim_margin = st.slider("Biên lợi nhuận gộp (Margin %)", min_value=10.0, max_value=100.0, value=70.0, step=5.0, help="Phần trăm lợi nhuận giữ lại sau khi trừ chi phí tài xế")
-        sim_budget = st.number_input("Ngân sách (Budget Limit $)", min_value=1000, max_value=500000, value=50000, step=5000)
-        
-    with col_sim_right:
-        st.markdown("#### Bảng Xếp hạng Chiến lược (Tính toán Real-time)")
-        try:
-            preds_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'test_predictions.csv'))
-            preds_df['voucher_cost'] = preds_df['avg_fare'] * (sim_voucher / 100.0)
-            preds_df['margin_per_ride'] = preds_df['avg_fare'] * (sim_margin / 100.0)
-            preds_df['expected_value'] = (preds_df['cate_pred'] * preds_df['margin_per_ride']) - (preds_df['pred_rides_treated'] * preds_df['voucher_cost'])
-            
-            def eval_policy_sim(mask, label):
-                targeted = preds_df[mask]
-                n_t = mask.sum()
-                if n_t == 0: return {"Chiến lược (Policy)": label, "Khách hàng": 0, "Lợi nhuận AI Dự đoán ($)": 0}
-                pred_ev = targeted['expected_value'].sum()
-                return {"Chiến lược (Policy)": label, "Khách hàng": int(n_t), "Lợi nhuận AI Dự đoán ($)": round(pred_ev, 0)}
-            
-            sim_results = []
-            # 1. Mass
-            mass_m = pd.Series([True]*len(preds_df), index=preds_df.index)
-            sim_results.append(eval_policy_sim(mass_m, "1. Mass Voucher (Đại trà)"))
-            
-            # 2. Segment
-            if 'is_urban' in preds_df.columns:
-                sub_m = preds_df['is_urban'] == 0
-                sim_results.append(eval_policy_sim(sub_m, "2. Heuristic (Chỉ Ngoại ô)"))
-                
-            # 3. Profit Target
-            prof_m = preds_df['expected_value'] > 0
-            sim_results.append(eval_policy_sim(prof_m, "3. Causal AI (Chỉ EV > 0)"))
-            
-            # 4. Budget
-            prof_df_sim = preds_df[preds_df['expected_value'] > 0].copy()
-            df_sorted = prof_df_sim.sort_values('expected_value', ascending=False)
-            df_sorted['cum_cost'] = (df_sorted['pred_rides_treated'] * df_sorted['voucher_cost']).cumsum()
-            budget_m_idx = df_sorted[df_sorted['cum_cost'] <= sim_budget].index
-            budget_m = preds_df.index.isin(budget_m_idx)
-            sim_results.append(eval_policy_sim(budget_m, f"4. Causal AI (Budget < ${sim_budget:,})"))
-            
-            sim_df = pd.DataFrame(sim_results)
-            st.dataframe(sim_df.style.format({'Lợi nhuận AI Dự đoán ($)': '${:,.0f}'}).background_gradient(subset=['Lợi nhuận AI Dự đoán ($)'], cmap='RdYlGn', vmin=-50000, vmax=50000), use_container_width=True, hide_index=True)
-            
-            best_policy = sim_df.loc[sim_df['Lợi nhuận AI Dự đoán ($)'].idxmax()]
-            if best_policy['Lợi nhuận AI Dự đoán ($)'] > 0: 
-                st.success(f"🏆 Ứng dụng Causal AI mang lại kết quả tốt nhất: Lợi nhuận **${best_policy['Lợi nhuận AI Dự đoán ($)']:,.0f}** thay vì lỗ sấp mặt như phương pháp thông thường.")
-            else: 
-                st.error("🛑 Dưới cấu hình biên lợi nhuận/khuyến mãi này, cả AI cũng không cứu được lỗ. GĐ Kinh doanh vui lòng chỉnh lại!")
-            
-        except Exception as e:
-            st.warning(f"Chưa có dữ liệu dự đoán. ({str(e)})")
-
-# ================= TAB 5: DATA FOUNDATION (TECH) =================
-with tab5:
-    st.subheader("🔬 Phụ lục cho Tech Team: Data Calibration & MDE")
-    st.markdown("Phần này lưu trữ các thông tin kiểm định sức khỏe dữ liệu và công cụ tính toán quy mô mẫu (Sample Size) dành cho Khối Kỹ thuật & Data Science.")
-    
-    with st.expander("🩺 1. A/A Test & SRM Check (Sanity)"):
+    with st.expander("🩺 2. A/A Test & SRM Check (Sanity)"):
         observed_treatment = len(df_treat)
         observed_control = len(df_ctrl)
         total = observed_treatment + observed_control
         st.metric("Tỷ lệ Nhóm Treatment vs Control", f"{observed_treatment/total*100:.1f}% vs {observed_control/total*100:.1f}%", "Mục tiêu: 50/50", delta_color="off")
-        st.success("🟢 PASS: Tỷ lệ dương tính giả (FPR) nằm trong khoảng tin cậy. Không phát hiện calibration issue đáng kể.")
+        st.success("🟢 PASS: Tỷ lệ dương tính giả (FPR) nằm trong khoảng tin cậy. Không phát hiện calibration issue.")
         
-    with st.expander("📏 2. MDE & Sample Size Calculator"):
-        st.info("Công cụ tính toán cỡ mẫu cho A/B Test thực tế (Đã ẩn bớt để tối ưu giao diện Demo).")
+    with st.expander("📐 3. System Architecture & Boundaries"):
+        st.markdown("### Giới hạn Dữ liệu (Evidence Boundary)")
+        st.info("Bước tiếp theo hợp lý là làm một **Randomized Pilot nhỏ theo Champion-Challenger** để kiểm chứng model và economics trên dữ liệu Production.")
+        st.markdown("`Synthetic Sandbox` ➔ `Small Randomized GSM Pilot` ➔ `Champion-Challenger` ➔ `Production Monitoring`")
         
-    with st.expander("📖 3. Báo cáo Chi tiết (Technical Documentations)"):
-        st.info("Toàn bộ báo cáo Toán học (OLS, SMD, RMSE) đã được lưu trong Github Repository folder `docs/`.")
+        st.markdown("### Luồng Kiến trúc Dự kiến (Production Workflow)")
+        mermaid_code = """
+        graph TD
+            subgraph Batch Pipeline (Chạy ngầm hàng đêm)
+                DW[(Data Warehouse)] --> |Lịch sử cuốc xe 30 ngày| RLearner[R-Learner Model]
+                RLearner --> |Tính CATE & Lợi nhuận kỳ vọng| DB[(Prediction DB)]
+            end
+            
+            subgraph Real-time Marketing (Ban ngày)
+                App[GSM App] --> |Khách hàng mở App| CRM{Marketing CRM}
+                CRM --> |Gọi API kiểm tra Khách có EV > 0 không| API[FastAPI Microservice]
+                API --> |Truy vấn điểm CATE của Khách| DB
+                API -.-> |Trả về: Cấp Voucher = True/False| CRM
+                CRM -.-> |Bắn In-app Message giảm 15%| App
+            end
+            
+            style Batch Pipeline fill:#1E1E1E,stroke:#00E5FF,stroke-width:2px
+            style Real-time Marketing fill:#1E1E1E,stroke:#FF007F,stroke-width:2px
+        """
+        st.markdown(f"```mermaid\n{mermaid_code}\n```")
