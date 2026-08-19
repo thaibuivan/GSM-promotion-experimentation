@@ -10,7 +10,7 @@ import statsmodels.api as sm
 # Page Config
 st.set_page_config(page_title="Promotion Experimentation Framework", layout="wide")
 
-# Custom CSS for Premium, Neutral Executive Look
+# Custom CSS
 st.markdown("""
 <style>
     .executive-title {
@@ -28,7 +28,6 @@ st.markdown("""
     }
     .block-container { padding-top: 3.5rem; }
     
-    /* Style Tabs */
     .stTabs [data-baseweb="tab-list"] { gap: 10px; }
     .stTabs [data-baseweb="tab"] {
         height: 50px;
@@ -40,7 +39,6 @@ st.markdown("""
         font-weight: 600;
     }
     
-    /* Breadcrumbs */
     .breadcrumb {
         font-size: 1.1rem;
         color: #888;
@@ -53,7 +51,6 @@ st.markdown("""
         font-weight: bold;
     }
     
-    /* Roadmap Cards */
     .roadmap-card {
         padding: 20px;
         border-radius: 8px;
@@ -74,6 +71,14 @@ st.markdown("""
         color: #aaa;
         margin-bottom: 10px;
     }
+    
+    .flow-card {
+        padding: 10px 20px;
+        border-radius: 6px;
+        background-color: #2E2E2E;
+        border-left: 4px solid #00E5FF;
+        margin-bottom: 15px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -82,7 +87,6 @@ st.markdown("### Customer-Level Prototype for Causal Targeting and Policy Evalua
 st.info("Project này đóng gói một workflow đi từ causal evidence đến customer-level policy decision. Current prototype giải quyết WHO ở cấp customer; production evolution là session-aware WHO + WHEN và sau đó voucher-level WHO + WHEN + HOW MUCH.")
 st.caption("🎯 **Evaluation Population:** Dữ liệu mô phỏng tập trung vào 30 ngày (Synthetic Causal Benchmark). Không dùng để so sánh số tiền tuyệt đối trực tiếp giữa các quần thể khác nhau.")
 
-# Load Data
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 data_path = os.path.join(base_path, "data", "processed", "segmented_simulation_data.csv")
 pred_path = os.path.join(base_path, 'data', 'processed', 'test_predictions.csv')
@@ -98,7 +102,6 @@ except Exception as e:
     st.error(f"Không tìm thấy dữ liệu. Lỗi: {str(e)}")
     st.stop()
 
-# Plotly settings
 chart_layout = dict(
     plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
     font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20)
@@ -142,7 +145,6 @@ def render_breadcrumb(active_step):
     html += '</div>'
     st.markdown(html, unsafe_allow_html=True)
 
-# ----------------- TABS -----------------
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "1. Business Problem", 
     "2. Causal Evidence", 
@@ -240,10 +242,8 @@ with tab2:
     st.subheader("Voucher có thật sự tạo Causal Effect, và lift có đồng đều không?")
     st.markdown("Trước khi cá nhân hóa, ta cần chứng minh Voucher thực sự tạo ra lượng cầu tăng thêm mang tính nhân quả.")
     
-    # Raw ATE
     raw_ate = df_treat['Y_rand'].mean() - df_ctrl['Y_rand'].mean()
     
-    # Adjusted ATE using OLS with covariate
     X = sm.add_constant(df[['treatment_rand', 'monthly_rides_history']])
     y = df['Y_rand']
     model = sm.OLS(y, X).fit(cov_type='HC1')
@@ -257,6 +257,14 @@ with tab2:
     c2.metric("Adjusted ATE", f"{adj_ate:.2f} chuyến", help="Baseline-adjusted estimator for improved precision.")
     c3.metric("95% CI (Adjusted)", f"[{ci_low:.2f} , {ci_high:.2f}]")
     c4.metric("P-value", f"{p_val:.4f}", "Statistically Significant" if p_val < 0.05 else "Not Significant")
+
+    with st.expander("Technical Method - Causal Estimation"):
+        st.markdown("""
+        **Causal Regression Model:**
+        `Y_i = β₀ + β₁T_i + β₂Baseline_i + ε_i`
+        
+        > **Randomization is the identification strategy. Baseline adjustment is used to improve precision, not to repair confounding.**
+        """)
 
     st.markdown("#### Phân tích theo Phân khúc (Segment Economics)")
     roi_data = []
@@ -314,14 +322,38 @@ with tab3:
         
         **Nguyên lý Targeting:** Chỉ giữ lại tập khách hàng có **Expected Incremental Profit > 0**. Nếu CATE cao nhưng baseline trips quá lớn, chi phí khuyến mãi sẽ nuốt chửng lợi nhuận biên.
         """)
-    
-    st.info("**Kết luận:** Cần một Policy Layer để giải quyết trọn vẹn rào cản Kinh tế.")
+        
+    with st.expander("Technical Method - Heterogeneous Treatment Estimation"):
+        st.markdown("""
+        **Quy trình Mô hình hóa (Residualization Flow):**
+        `X + T + Y` ➔ `Outcome Residualization` ➔ `Treatment Residualization` ➔ `R-Learner-style Effect Model` ➔ `CATE Ranking`
+        
+        **Technical Equations:**
+        `m(X) = E[Y|X]`
+        `e(X) = P(T=1|X)`
+        `Y_tilde = Y - m(X)`
+        `T_tilde = T - e(X)`
+        
+        > **Current implementation does not use cross-fitting, so it is described as a simplified R-Learner-style residual learner rather than full DML.**
+        """)
 
 # ================= TAB 4: POLICY SIMULATOR =================
 with tab4:
     render_breadcrumb("Policy")
     st.subheader("Lựa chọn Candidate Policy dưới Giới hạn Kinh tế")
-    st.markdown("Bước cuối cùng trong sandbox là giả lập các chính sách khác nhau để chọn ra Candidate tốt nhất.")
+    
+    st.markdown("""
+    <div style='display: flex; justify-content: space-between; align-items: center; background-color: #2E2E2E; padding: 15px; border-radius: 6px; margin-bottom: 20px;'>
+        <div style='text-align: center; flex: 1;'><b>MODEL LAYER</b><br><span style='color:#ccc; font-size: 0.9em;'>Predicted CATE</span></div>
+        <div style='font-size: 1.5rem; color: #00E5FF;'>➔</div>
+        <div style='text-align: center; flex: 1;'><b>ECONOMICS LAYER</b><br><span style='color:#ccc; font-size: 0.9em;'>Incremental Margin - Voucher Cost</span></div>
+        <div style='font-size: 1.5rem; color: #00E5FF;'>➔</div>
+        <div style='text-align: center; flex: 1;'><b>POLICY LAYER</b><br><span style='color:#ccc; font-size: 0.9em;'>Target / Do Not Target / Budget Rule</span></div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.caption("**Model output is not the final decision; economics and policy constraints translate prediction into action.**")
+    st.latex(r"EV_i = CATE_i \times AvgFare_i \times MarginRate - PredictedTreatedRides_i \times VoucherCostPerRide_i")
     
     col_sim_left, col_sim_right = st.columns([1, 3])
     
@@ -362,38 +394,34 @@ with tab4:
             }
         
         sim_results = []
-        # 0. No Voucher
         no_m = pd.Series([False]*len(preds_df), index=preds_df.index)
         sim_results.append(eval_policy_sim(no_m, "0. No Voucher"))
         
-        # 1. Mass
         mass_m = pd.Series([True]*len(preds_df), index=preds_df.index)
         sim_results.append(eval_policy_sim(mass_m, "1. Mass Voucher"))
         
-        # 2. Segment
         if 'is_weekend_rider' in preds_df.columns:
             sub_m = preds_df['is_weekend_rider'] == 1
             sim_results.append(eval_policy_sim(sub_m, "2. Segment (Cuối tuần)"))
             
-        # 3. Uplift Targeting
         uplift_thresh = preds_df['cate_pred'].quantile(0.7)
         uplift_m = preds_df['cate_pred'] >= uplift_thresh
         sim_results.append(eval_policy_sim(uplift_m, "3. Uplift Targeting (Top 30% CATE)"))
         
-        # 4. Profit Target
         prof_m = preds_df['expected_value'] > 0
         sim_results.append(eval_policy_sim(prof_m, "4. Profit Targeting"))
         
-        # 5. Budget Greedy
         prof_df_sim = preds_df[preds_df['expected_value'] > 0].copy()
         df_sorted = prof_df_sim.sort_values('expected_value', ascending=False)
         df_sorted['cum_cost'] = (df_sorted['pred_rides_treated'] * df_sorted['voucher_cost']).cumsum()
         budget_m_idx = df_sorted[df_sorted['cum_cost'] <= sim_budget].index
         budget_m = preds_df.index.isin(budget_m_idx)
-        sim_results.append(eval_policy_sim(budget_m, f"5. Budget Greedy (Cost <= ${sim_budget:,})"))
+        sim_results.append(eval_policy_sim(budget_m, f"5. Budget Greedy", tooltip="Current budget allocation is a greedy heuristic that ranks positive-EV users; it is not an exact combinatorial optimum."))
         
         sim_df = pd.DataFrame(sim_results)
-        st.dataframe(sim_df.style.format({
+        # Handle tooltip column if needed (Streamlit dataframe tooltip isn't native for single cells easily without extra code, we will just use a helper icon or text).
+        
+        st.dataframe(sim_df.drop(columns=['tooltip'], errors='ignore').style.format({
             'Target %': '{:.1f}%',
             'Inc Rides': '{:,.1f}',
             'Burn ($)': '${:,.0f}',
@@ -401,23 +429,14 @@ with tab4:
             'ROI (%)': '{:.1f}%'
         }).background_gradient(subset=['Profit ($)'], cmap='RdYlGn', vmin=-5000, vmax=15000), use_container_width=True, hide_index=True)
         
-        # Recommendation Logic
+        st.caption("ℹ️ *5. Budget Greedy: Current budget allocation is a greedy heuristic that ranks positive-EV users; it is not an exact combinatorial optimum.*")
+        
         best_profit = sim_df['Profit ($)'].max()
         if best_profit > 0:
             best_policy = sim_df.loc[sim_df['Profit ($)'].idxmax(), 'Candidate Policy']
             st.success(f"**Recommended Candidate under Current Sandbox Assumptions:** {best_policy}")
         else:
             st.error("**Recommended Outside Option:** No Voucher")
-            
-        st.markdown("---")
-        export_df = preds_df[preds_df['expected_value'] > 0]
-        csv_data = export_df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Tải xuống CSV Recommendation List",
-            data=csv_data,
-            file_name="candidate_target_list.csv",
-            mime="text/csv"
-        )
 
 # ================= TAB 5: ROBUSTNESS =================
 with tab5:
@@ -433,6 +452,18 @@ with tab5:
     g4.info("ℹ️ **Noise Injection**\n\nExogenous noise weakens signal but randomization prevents systematic bias.")
     
     st.caption("Stable under the synthetic scenarios tested. This is not evidence of production robustness.")
+    
+    with st.expander("Stress Test Interpretation"):
+        st.markdown("""
+        | Stress | Changed Variable | Expected Statistical Behavior |
+        |---|---|---|
+        | Sample Scale | N | CI narrows |
+        | Null Effect | True ATE | Estimate centered near 0 |
+        | 90/10 Split | Treatment allocation | SE increases |
+        | Noise | Outcome variance | Signal weakens |
+        
+        > **Stress testing here checks whether the pipeline behaves as statistical theory suggests, not whether it is already production-robust.**
+        """)
     
     st.markdown("---")
     st.markdown("#### 2. Enterprise Maturity Roadmap")
@@ -465,27 +496,38 @@ with tab5:
             <p>What voucher amount maximizes expected incremental value?</p>
         </div>
         """, unsafe_allow_html=True)
+        
+    with st.expander("Lightweight Technical Architecture"):
+        st.markdown("""
+        `Data Layer` ➔ `Experiment Validation` ➔ `Causal Estimation` ➔ `Economics Engine` ➔ `Policy Engine` ➔ `Decision Interface`
+        
+        **CURRENT:** Offline / Customer-Level / Synthetic
+        **NEXT:** Session/Event Features / Session-Level
+        **FUTURE:** Voucher Amount Decision / Monitoring
+        
+        > **Illustrative framework evolution - not the current GSM production architecture.**
+        """)
     
-    with st.expander("Model Technical Detail (Qini & Calibration)"):
+    with st.expander("Model Technical Detail (Qini vs Calibration)"):
         col_qini, col_calib = st.columns(2)
         with col_qini:
             st.markdown("#### Qini Curve (Ranking Metric)")
-            st.caption("Qini Curve chứng minh khả năng xếp hạng độ nhạy cảm của mô hình so với Random baseline.")
+            st.caption("Hỏi: Model có đưa responsive users lên top tốt hơn random không?")
             try:
                 qini_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
                 fig_qini = go.Figure()
                 fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines', name='Model', line=dict(color='#00E5FF', width=3)))
                 fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['random_uplift'], mode='lines', name='Random Baseline', line=dict(color='rgba(255,255,255,0.3)', dash='dash', width=2)))
                 fig_qini.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-                fig_qini.update_xaxes(title="% Khách hàng được Chọn (Targeted)", dtick=10)
-                fig_qini.update_yaxes(title="Tích lũy Số chuyến (Qini)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+                fig_qini.update_xaxes(title="% Khách hàng (Targeted)", dtick=10)
+                fig_qini.update_yaxes(title="Tích lũy Số chuyến (Qini)")
                 st.plotly_chart(fig_qini, use_container_width=True)
             except:
                 st.warning("Chưa có dữ liệu Qini Curve.")
                 
         with col_calib:
-            st.markdown("#### Calibration Chart")
-            st.caption("So sánh Lift thực tế vs Lift dự đoán chia theo 10 nhóm Decile.")
+            st.markdown("#### Calibration Chart (Magnitude Diagnostic)")
+            st.caption("Hỏi: Predicted CATE magnitude có sát observed benchmark theo decile không?")
             try:
                 calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
                 fig_cal = go.Figure()
@@ -497,3 +539,5 @@ with tab5:
                 st.plotly_chart(fig_cal, use_container_width=True)
             except:
                 st.warning("Chưa có dữ liệu Calibration.")
+                
+        st.info("**Useful ranking signal; magnitude calibration remains imperfect.**")
