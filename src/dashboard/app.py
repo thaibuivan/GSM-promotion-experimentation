@@ -490,7 +490,7 @@ with tab4:
             'ROI (%)': '{:.1f}%'
         }).background_gradient(subset=['Profit ($)'], cmap='RdYlGn', vmin=-5000, vmax=15000), use_container_width=True, hide_index=True)
         
-        st.caption("ℹ️ *5. Budget Greedy: Current budget allocation is a greedy heuristic that ranks positive-EV users; it is not an exact combinatorial optimum.*")
+        st.caption("ℹ️ *5. Budget Greedy: Greedy heuristic ranks positive-EV users by EV. If budget is higher than total burn of all EV-positive users, this policy naturally equals Profit Targeting; it is not an exact combinatorial optimum.*")
         
         best_profit = sim_df['Profit ($)'].max()
         if best_profit > 0:
@@ -509,10 +509,11 @@ with tab5:
     g1, g2, g3, g4 = st.columns(4)
     g1.success("✅ **Sample Scale-Up**\n\nATE remains stable; confidence intervals narrow as N increases (10k ➔ 50k ➔ 100k).")
     g2.success("✅ **Null Effect Test**\n\nWhen true effect = 0, estimates remain centered near zero and false-positive behavior stays around the designed Type-I error in simulation.")
-    g3.warning("⚠️ **Treatment Imbalance**\n\nPoint estimates remain broadly stable; uncertainty increases because one arm contains fewer observations.")
+    g3.warning("⚠️ **Treatment Imbalance**\n\nWith 90/10 allocation, estimates can move materially in one run; the main risk is wider uncertainty and lower statistical power.")
     g4.info("ℹ️ **Noise Injection**\n\nAdditional exogenous noise weakens signal and increases uncertainty without systematic directional bias in expectation.")
     
-    st.caption("**Stable under the synthetic scenarios tested — not evidence of production robustness.**")
+    st.caption("**Synthetic stress tests support the measurement logic, but they are not evidence of production robustness or automatic rollout readiness.**")
+    st.info("**Champion-Challenger gate:** Profit Targeting is a candidate policy, not a final rollout decision. A real pilot should compare it against Segment Targeting and rollout only if incremental profit is higher with statistical evidence.")
     
     with st.expander("Stress Test Interpretation"):
         st.markdown("""
