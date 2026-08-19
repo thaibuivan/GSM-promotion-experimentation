@@ -207,12 +207,12 @@ with tab1:
         
         fig_bar = go.Figure()
         fig_bar.add_trace(go.Bar(
-            y=['Ngân sách Khuyến mãi'], x=[wasted_burn], 
+            y=['Promotion Budget'], x=[wasted_burn], 
             name='Total Voucher Burn', orientation='h', marker_color='#FF4B4B',
             text=f"${wasted_burn:,.0f}", textposition='inside'
         ))
         fig_bar.add_trace(go.Bar(
-            y=['Ngân sách Khuyến mãi'], x=[effective_burn], 
+            y=['Promotion Budget'], x=[effective_burn], 
             name='Incremental Margin', orientation='h', marker_color='#00CC96',
             text=f"${effective_burn:,.0f}", textposition='inside'
         ))
@@ -221,7 +221,7 @@ with tab1:
             font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20),
             height=200, barmode='stack', 
             legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5))
-        fig_bar.update_xaxes(title="Tổng chi phí Voucher ($)", showgrid=False)
+        fig_bar.update_xaxes(title="Total Voucher Cost ($)", showgrid=False)
         st.plotly_chart(fig_bar, use_container_width=True)
         st.info(f"Mass treatment creates lift, but total promotion burn can exceed incremental margin.")
 
