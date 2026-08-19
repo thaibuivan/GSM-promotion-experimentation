@@ -1,8 +1,9 @@
 {
     "economics": {
         "voucher_rate": 0.15,
-        "margin_rate": 0.70,
-        "budget_limit": 50000
+        "margin_rate": 0.7,
+        "budget_limit": 50000,
+        "voucher_cap": 3.0
     },
     "features": {
         "target_col": "Y_rand",

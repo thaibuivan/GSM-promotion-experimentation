@@ -52,13 +52,35 @@ st.markdown("""
         color: #00E5FF;
         font-weight: bold;
     }
+    
+    /* Roadmap Cards */
+    .roadmap-card {
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #222222;
+        border: 1px solid #444;
+        text-align: center;
+        height: 100%;
+    }
+    .roadmap-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #00E5FF;
+        margin-bottom: 5px;
+    }
+    .roadmap-subtitle {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #aaa;
+        margin-bottom: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown('<p class="executive-title">Promotion Experimentation & Personalization Framework</p>', unsafe_allow_html=True)
 st.markdown("### Customer-Level Prototype for Causal Targeting and Policy Evaluation")
-st.info("Framework mô phỏng quy trình ra quyết định promotion từ causal experiment đến customer-level personalization, economics, policy selection và robustness validation. Kết quả hiện tại thuộc synthetic sandbox và được sử dụng để kiểm chứng workflow, không phải ước lượng production của GSM.")
-st.caption("🎯 **Evaluation Population:** Dữ liệu mô phỏng dựa trên hành vi lịch sử 30 ngày (Synthetic Causal Benchmark).")
+st.info("Project này đóng gói một workflow đi từ causal evidence đến customer-level policy decision. Current prototype giải quyết WHO ở cấp customer; production evolution là session-aware WHO + WHEN và sau đó voucher-level WHO + WHEN + HOW MUCH.")
+st.caption("🎯 **Evaluation Population:** Dữ liệu mô phỏng tập trung vào 30 ngày (Synthetic Causal Benchmark). Không dùng để so sánh số tiền tuyệt đối trực tiếp giữa các quần thể khác nhau.")
 
 # Load Data
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -88,7 +110,7 @@ try:
         config = json.load(f)
     DISCOUNT_PERCENT = config['economics'].get('voucher_rate', 0.15) * 100
     MARGIN_PERCENT = config['economics'].get('margin_rate', 0.7) * 100
-    VOUCHER_CAP = config['economics'].get('voucher_cap', 3.0) # Cap default $3.0
+    VOUCHER_CAP = config['economics'].get('voucher_cap', 3.0)
 except:
     DISCOUNT_PERCENT = 15.0
     MARGIN_PERCENT = 70.0
@@ -98,7 +120,6 @@ df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]
 
 def calc_cost(fare, rate_pct):
-    # min(fare * rate, VOUCHER_CAP)
     raw_cost = fare * (rate_pct / 100.0)
     return np.minimum(raw_cost, VOUCHER_CAP)
 
@@ -232,8 +253,8 @@ with tab2:
     ci_high = model.conf_int().loc['treatment_rand', 1]
     
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Raw ATE", f"{raw_ate:.2f} chuyến/user", help="Chênh lệch trung bình đơn thuần")
-    c2.metric("Adjusted ATE", f"{adj_ate:.2f} chuyến/user", help="Khử nhiễu hiệp phương sai (Covariates)")
+    c1.metric("Raw ATE", f"{raw_ate:.2f} chuyến", help="Chênh lệch trung bình đơn thuần")
+    c2.metric("Adjusted ATE", f"{adj_ate:.2f} chuyến", help="Baseline-adjusted estimator for improved precision.")
     c3.metric("95% CI (Adjusted)", f"[{ci_low:.2f} , {ci_high:.2f}]")
     c4.metric("P-value", f"{p_val:.4f}", "Statistically Significant" if p_val < 0.05 else "Not Significant")
 
@@ -282,7 +303,7 @@ with tab3:
         fig_cate.update_xaxes(title="CATE (Causal Effect)")
         fig_cate.update_yaxes(title="Số lượng User")
         st.plotly_chart(fig_cate, use_container_width=True)
-        st.caption("Simplified R-Learner Model dự báo độ nhạy cảm tại cấp độ khách hàng.")
+        st.caption("Simplified R-Learner-style Model dự báo độ nhạy cảm tại cấp độ khách hàng.")
         
     with col_c2:
         st.markdown("#### Cầu nối Lợi nhuận (Expected Value Bridge)")
@@ -350,9 +371,9 @@ with tab4:
         sim_results.append(eval_policy_sim(mass_m, "1. Mass Voucher"))
         
         # 2. Segment
-        if 'is_urban' in preds_df.columns:
-            sub_m = preds_df['is_urban'] == 0
-            sim_results.append(eval_policy_sim(sub_m, "2. Segment (Ngoại ô)"))
+        if 'is_weekend_rider' in preds_df.columns:
+            sub_m = preds_df['is_weekend_rider'] == 1
+            sim_results.append(eval_policy_sim(sub_m, "2. Segment (Cuối tuần)"))
             
         # 3. Uplift Targeting
         uplift_thresh = preds_df['cate_pred'].quantile(0.7)
@@ -361,15 +382,15 @@ with tab4:
         
         # 4. Profit Target
         prof_m = preds_df['expected_value'] > 0
-        sim_results.append(eval_policy_sim(prof_m, "4. Profit Targeting (EV > 0)"))
+        sim_results.append(eval_policy_sim(prof_m, "4. Profit Targeting"))
         
-        # 5. Greedy Heuristic
+        # 5. Budget Greedy
         prof_df_sim = preds_df[preds_df['expected_value'] > 0].copy()
         df_sorted = prof_df_sim.sort_values('expected_value', ascending=False)
         df_sorted['cum_cost'] = (df_sorted['pred_rides_treated'] * df_sorted['voucher_cost']).cumsum()
         budget_m_idx = df_sorted[df_sorted['cum_cost'] <= sim_budget].index
         budget_m = preds_df.index.isin(budget_m_idx)
-        sim_results.append(eval_policy_sim(budget_m, f"5. Greedy Budget Policy (Cost <= ${sim_budget:,})"))
+        sim_results.append(eval_policy_sim(budget_m, f"5. Budget Greedy (Cost <= ${sim_budget:,})"))
         
         sim_df = pd.DataFrame(sim_results)
         st.dataframe(sim_df.style.format({
@@ -380,6 +401,14 @@ with tab4:
             'ROI (%)': '{:.1f}%'
         }).background_gradient(subset=['Profit ($)'], cmap='RdYlGn', vmin=-5000, vmax=15000), use_container_width=True, hide_index=True)
         
+        # Recommendation Logic
+        best_profit = sim_df['Profit ($)'].max()
+        if best_profit > 0:
+            best_policy = sim_df.loc[sim_df['Profit ($)'].idxmax(), 'Candidate Policy']
+            st.success(f"**Recommended Candidate under Current Sandbox Assumptions:** {best_policy}")
+        else:
+            st.error("**Recommended Outside Option:** No Voucher")
+            
         st.markdown("---")
         export_df = preds_df[preds_df['expected_value'] > 0]
         csv_data = export_df.to_csv(index=False).encode('utf-8')
@@ -398,39 +427,73 @@ with tab5:
     
     st.markdown("#### 1. Deployment Stress Gates")
     g1, g2, g3, g4 = st.columns(4)
-    g1.success("✅ **Sample Scale:** Đủ điều kiện đại diện")
-    g2.success("✅ **Null Effect Test:** Chống được nhiễu ngẫu nhiên")
-    g3.warning("⚠️ **Distribution Imbalance:** Cần hiệu chỉnh khi Pilot")
-    g4.info("ℹ️ **Evidence Boundary:** Production validation required")
+    g1.success("✅ **Sample Scale-Up**\n\nStable under 100x population projection. No sensitivity issues.")
+    g2.success("✅ **Null Effect Test**\n\nNo false positives detected when treatment is purely random.")
+    g3.warning("⚠️ **Treatment Imbalance**\n\nPoint estimates broadly stable, uncertainty increases due to 90/10 split.")
+    g4.info("ℹ️ **Noise Injection**\n\nExogenous noise weakens signal but randomization prevents systematic bias.")
+    
+    st.caption("Stable under the synthetic scenarios tested. This is not evidence of production robustness.")
     
     st.markdown("---")
     st.markdown("#### 2. Enterprise Maturity Roadmap")
-    st.info("Current prototype solves WHO at customer-level; production evolves to WHO + WHEN + HOW MUCH.")
     
-    mermaid_code = """
-    graph LR
-        A[CURRENT<br>Customer-Level<br>WHO?] --> B[NEXT<br>Session-Level<br>WHO + WHEN?]
-        B --> C[FUTURE<br>Voucher Amount<br>WHO + WHEN + HOW MUCH?]
-        
-        style A fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px,color:#000
-        style B fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px,color:#000
-        style C fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px,color:#000
-    """
-    st.markdown(f"```mermaid\n{mermaid_code}\n```")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("""
+        <div class='roadmap-card'>
+            <div class='roadmap-title'>CURRENT</div>
+            <div class='roadmap-subtitle'>Customer-Level</div>
+            <div style='color: #fff; font-size: 1.2rem; margin: 10px 0;'>WHO?</div>
+            <p>Who should receive a voucher?</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown("""
+        <div class='roadmap-card'>
+            <div class='roadmap-title' style='color:#ccc;'>NEXT</div>
+            <div class='roadmap-subtitle'>Session-Level</div>
+            <div style='color: #fff; font-size: 1.2rem; margin: 10px 0;'>WHO + WHEN?</div>
+            <p>Who should receive it, and in which context/session?</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with c3:
+        st.markdown("""
+        <div class='roadmap-card'>
+            <div class='roadmap-title' style='color:#ccc;'>FUTURE</div>
+            <div class='roadmap-subtitle'>Voucher Personalization</div>
+            <div style='color: #fff; font-size: 1.2rem; margin: 10px 0;'>WHO + WHEN + HOW MUCH?</div>
+            <p>What voucher amount maximizes expected incremental value?</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with st.expander("Model Technical Detail (Qini & Calibration)"):
-        st.markdown("#### Qini Curve (Ranking Metric)")
-        st.caption("Qini Curve chứng minh khả năng xếp hạng độ nhạy cảm của mô hình so với Random baseline.")
-        try:
-            qini_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
-            fig_qini = go.Figure()
-            fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines', name='Model (R-Learner style)', line=dict(color='#333333', width=3)))
-            fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['random_uplift'], mode='lines', name='Random Baseline', line=dict(color='rgba(0,0,0,0.3)', dash='dash', width=2)))
-            fig_qini.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-            fig_qini.update_xaxes(title="% Khách hàng được Chọn (Targeted)", dtick=10)
-            fig_qini.update_yaxes(title="Tích lũy Số chuyến tăng thêm (Qini)", showgrid=True, gridcolor='rgba(0,0,0,0.1)')
-            st.plotly_chart(fig_qini, use_container_width=True)
-            
-            st.success("✅ **Calibration Status:** Model dự đoán sát mức uplift thực tế trên từng Decile bin (Lệch < 5%).")
-        except:
-            st.warning("Chưa có dữ liệu Qini Curve.")
+        col_qini, col_calib = st.columns(2)
+        with col_qini:
+            st.markdown("#### Qini Curve (Ranking Metric)")
+            st.caption("Qini Curve chứng minh khả năng xếp hạng độ nhạy cảm của mô hình so với Random baseline.")
+            try:
+                qini_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'qini_curve.csv'))
+                fig_qini = go.Figure()
+                fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines', name='Model', line=dict(color='#00E5FF', width=3)))
+                fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['random_uplift'], mode='lines', name='Random Baseline', line=dict(color='rgba(255,255,255,0.3)', dash='dash', width=2)))
+                fig_qini.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+                fig_qini.update_xaxes(title="% Khách hàng được Chọn (Targeted)", dtick=10)
+                fig_qini.update_yaxes(title="Tích lũy Số chuyến (Qini)", showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+                st.plotly_chart(fig_qini, use_container_width=True)
+            except:
+                st.warning("Chưa có dữ liệu Qini Curve.")
+                
+        with col_calib:
+            st.markdown("#### Calibration Chart")
+            st.caption("So sánh Lift thực tế vs Lift dự đoán chia theo 10 nhóm Decile.")
+            try:
+                calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
+                fig_cal = go.Figure()
+                fig_cal.add_trace(go.Bar(name='Observed Lift', x=calib_df['decile'], y=calib_df['observed_lift'], marker_color='#00CC96'))
+                fig_cal.add_trace(go.Bar(name='Predicted Lift', x=calib_df['decile'], y=calib_df['predicted_lift'], marker_color='#FF4B4B'))
+                fig_cal.update_layout(barmode='group', **chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+                fig_cal.update_xaxes(title="Deciles (Tốt nhất đến Kém nhất)")
+                fig_cal.update_yaxes(title="Uplift trung bình")
+                st.plotly_chart(fig_cal, use_container_width=True)
+            except:
+                st.warning("Chưa có dữ liệu Calibration.")
