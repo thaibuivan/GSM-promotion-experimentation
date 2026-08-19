@@ -195,7 +195,8 @@ with tab1:
         st.plotly_chart(fig_waterfall, use_container_width=True)
 
     with col_chart2:
-        st.markdown("#### Khấu hao Ngân sách (Cannibalization Waste)")
+        st.markdown("#### Illustrative Baseline Subsidy Exposure")
+        st.caption("This is an illustrative sandbox decomposition, not an identified production cannibalization estimate.")
         avg_rev_organic = df_ctrl['gross_revenue_30d'].mean()
         avg_rev_total = df_treat['gross_revenue_30d'].mean()
         avg_rev_inc = avg_rev_total - avg_rev_organic
@@ -210,12 +211,12 @@ with tab1:
         fig_bar = go.Figure()
         fig_bar.add_trace(go.Bar(
             y=['Ngân sách Khuyến mãi'], x=[wasted_burn], 
-            name='Lãng phí (Khách hữu cơ)', orientation='h', marker_color='#FF4B4B',
+            name='Total Voucher Burn', orientation='h', marker_color='#FF4B4B',
             text=f"${wasted_burn:,.0f}", textposition='inside'
         ))
         fig_bar.add_trace(go.Bar(
             y=['Ngân sách Khuyến mãi'], x=[effective_burn], 
-            name='Hiệu quả (Sinh cuốc mới)', orientation='h', marker_color='#00CC96',
+            name='Incremental Margin', orientation='h', marker_color='#00CC96',
             text=f"${effective_burn:,.0f}", textposition='inside'
         ))
         fig_bar.update_layout(
@@ -225,8 +226,7 @@ with tab1:
             legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5))
         fig_bar.update_xaxes(title="Tổng chi phí Voucher ($)", showgrid=False)
         st.plotly_chart(fig_bar, use_container_width=True)
-        waste_pct = (wasted_burn / total_burn * 100) if total_burn > 0 else 0
-        st.info(f"Phần lớn ngân sách ({waste_pct:.1f}%) đang chi trả cho những cuốc xe vốn dĩ vẫn diễn ra không cần khuyến mãi.")
+        st.info(f"Mass treatment creates lift, but total promotion burn can exceed incremental margin.")
 
 # ================= TAB 2: CAUSAL EVIDENCE =================
 with tab2:
@@ -446,12 +446,12 @@ with tab5:
     
     st.markdown("#### 1. Deployment Stress Gates")
     g1, g2, g3, g4 = st.columns(4)
-    g1.success("✅ **Sample Scale-Up**\n\nStable under 100x population projection. No sensitivity issues.")
-    g2.success("✅ **Null Effect Test**\n\nNo false positives detected when treatment is purely random.")
-    g3.warning("⚠️ **Treatment Imbalance**\n\nPoint estimates broadly stable, uncertainty increases due to 90/10 split.")
-    g4.info("ℹ️ **Noise Injection**\n\nExogenous noise weakens signal but randomization prevents systematic bias.")
+    g1.success("✅ **Sample Scale-Up**\n\nATE remains stable; confidence intervals narrow as N increases (10k ➔ 50k ➔ 100k).")
+    g2.success("✅ **Null Effect Test**\n\nWhen true effect = 0, estimates remain centered near zero and false-positive behavior stays around the designed Type-I error in simulation.")
+    g3.warning("⚠️ **Treatment Imbalance**\n\nPoint estimates remain broadly stable; uncertainty increases because one arm contains fewer observations.")
+    g4.info("ℹ️ **Noise Injection**\n\nAdditional exogenous noise weakens signal and increases uncertainty without systematic directional bias in expectation.")
     
-    st.caption("Stable under the synthetic scenarios tested. This is not evidence of production robustness.")
+    st.caption("**Stable under the synthetic scenarios tested — not evidence of production robustness.**")
     
     with st.expander("Stress Test Interpretation"):
         st.markdown("""
@@ -531,9 +531,10 @@ with tab5:
             try:
                 calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
                 fig_cal = go.Figure()
-                fig_cal.add_trace(go.Bar(name='Observed Lift', x=calib_df['decile'], y=calib_df['observed_lift'], marker_color='#00CC96'))
-                fig_cal.add_trace(go.Bar(name='Predicted Lift', x=calib_df['decile'], y=calib_df['predicted_lift'], marker_color='#FF4B4B'))
-                fig_cal.update_layout(barmode='group', **chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+                fig_cal.add_trace(go.Scatter(name='Predicted CATE', x=calib_df['Decile'], y=calib_df['Predicted_CATE'], mode='lines+markers', line=dict(color='#FF4B4B', width=3)))
+                fig_cal.add_trace(go.Scatter(name='Observed Uplift', x=calib_df['Decile'], y=calib_df['Observed_Uplift'], mode='lines+markers', line=dict(color='#00CC96', width=2)))
+                fig_cal.add_trace(go.Scatter(name='Synthetic Ground Truth', x=calib_df['Decile'], y=calib_df['Ground_Truth_CATE'], mode='lines', line=dict(color='rgba(255,255,255,0.4)', dash='dash', width=2)))
+                fig_cal.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
                 fig_cal.update_xaxes(title="Deciles (Tốt nhất đến Kém nhất)")
                 fig_cal.update_yaxes(title="Uplift trung bình")
                 st.plotly_chart(fig_cal, use_container_width=True)
