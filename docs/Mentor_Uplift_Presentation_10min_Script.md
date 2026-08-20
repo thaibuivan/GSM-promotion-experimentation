@@ -32,15 +32,15 @@ Không cần đọc toàn bộ chữ trên slide. Mỗi slide chỉ cần nói r
 
 > Bước đầu tiên là tách tương quan thông thường khỏi tác động nhân quả của voucher.
 
-## 1:30 - 2:45 | Slide 2 - Bằng chứng nhân quả
+## 1:30 - 2:45 | Slide 2 - ATE dương nhưng segment targeting vẫn chưa đủ
 
-> Từ dữ liệu thí nghiệm ngẫu nhiên, Raw ATE vào khoảng 0,96 chuyến và Adjusted ATE vào khoảng 0,95 chuyến trên mỗi khách hàng trong 30 ngày.
+> Từ dữ liệu thí nghiệm ngẫu nhiên, Adjusted ATE vào khoảng 0,95 chuyến trên mỗi khách hàng trong 30 ngày. Khoảng tin cậy 95% là từ 0,76 đến 1,14. Như vậy voucher thực sự tạo mức tăng chuyến trung bình trong synthetic experiment hiện tại.
 >
-> Khoảng tin cậy 95% là từ 0,76 đến 1,14 và p-value nhỏ hơn 0,001. Như vậy, trong synthetic experiment hiện tại, voucher thực sự tạo ra mức tăng chuyến trung bình có ý nghĩa thống kê.
+> Tuy nhiên khi phân tích theo persona, cả 5 segment đều có ATE dương nhưng ROI vẫn âm. Ví dụ Suburban Card có ROI âm 7,5%, Airport Business âm 63,2% và Urban Regulars âm 73,1%.
 >
-> Tuy nhiên ATE chỉ cho biết tác động trung bình của toàn population. Nó không cho biết khách hàng nào phản ứng mạnh, khách hàng nào gần như không phản ứng, hoặc khách hàng nào có thể bị tác động âm.
+> Điều này cho thấy segment targeting vẫn quá thô. Hai khách hàng trong cùng một persona có thể có baseline rides, mức phản ứng và voucher burn rất khác nhau. Vì vậy chỉ chọn theo segment chưa giải quyết được cannibalization.
 >
-> Nếu phát voucher chỉ dựa trên ATE trung bình, doanh nghiệp vẫn có nguy cơ trả ưu đãi cho nhóm không tạo đủ incremental value.
+> Project cần đi xuống cấp user, ước lượng CATE và kết hợp với EV để tìm những khách hàng tạo đủ incremental value.
 
 **Câu chuyển:**
 
@@ -143,4 +143,3 @@ Sau đó chuyển thẳng sang slide 5.
 **888 khách hàng có phải tỷ lệ rollout cố định không?**
 
 > Không. Đây là số khách hàng có EV lớn hơn 0 trong test set và assumptions hiện tại; tỷ lệ sẽ thay đổi khi economics thay đổi.
-
