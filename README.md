@@ -6,6 +6,8 @@
 - 📖 [**Dashboard User Guide (Hướng dẫn xem Dashboard)**](docs/Dashboard_User_Guide.md)
 - [**Tech Doc W4**](docs/TECHNICAL_DOCUMENTATION_W4.md)
 - [**Week 4 A/B Report**](docs/Week4_AA_AB_Testing_Report.md)
+- [**Week 5 Uplift Modeling Report**](docs/Week5_Uplift_Modeling_Report.md)
+- [**Week 6 Stress Test Report**](docs/Week6_Stress_Test_Report.md)
 - [**Decision Memo**](docs/Decision_Memo.md)
 
 ## 📌 Nguồn kết quả chính thức
@@ -18,6 +20,7 @@ Khi thay đổi DGP hoặc huấn luyện lại mô hình, cần tái tạo đ�
 - Voucher cost is **15% of average fare per treated ride, with no cap** (`voucher_cap: null`).
 - Contribution margin is **70% of fare**.
 - Campaign budget is **$50,000**.
+- The synthetic evaluation covers **20,000 customers over a 30-day cycle**.
 - These values are controlled synthetic assumptions used to exercise promotion-burn logic. They are **not GSM production policy** and must be replaced with Business-approved economics before any real pilot.
 - All budget-constrained results use a **greedy budget heuristic**, not an exact knapsack optimization.
 

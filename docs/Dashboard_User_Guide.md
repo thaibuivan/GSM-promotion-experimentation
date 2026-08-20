@@ -29,6 +29,7 @@ Dashboard hiện đọc snapshot đã khóa `week5_r_learner_qini_0_188`: test s
 Tab này trả lời: **Phát voucher đại trà có tạo thêm lợi nhuận không?**
 
 - KPI hiển thị tổng voucher burn, doanh thu tăng thêm, lợi nhuận ròng và ROI.
+- Các KPI tổng được ngoại suy cho toàn bộ **20.000 khách hàng trong chu kỳ 30 ngày**. Giá trị bình quân trên nhóm treatment được dùng để tính chi phí voucher đại trà rồi nhân với quy mô population; đây không phải ngân sách theo ngày hay theo một chuyến.
 - Waterfall tách lợi nhuận gộp tăng thêm khỏi chi phí voucher.
 - Phân rã promotion burn chỉ mang tính minh họa; không phải phép đo cannibalization production.
 

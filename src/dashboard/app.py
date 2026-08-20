@@ -15,13 +15,10 @@ st.set_page_config(page_title="Khung thử nghiệm khuyến mãi", layout="wide
 st.markdown("""
 <style>
     .executive-title {
-        color: #1E1E1E;
+        color: #F8FAFC;
         font-weight: 800;
         font-size: 2.2rem;
         margin-bottom: 0px;
-    }
-    @media (prefers-color-scheme: dark) {
-        .executive-title { color: #F8FAFC; }
     }
     [data-testid="stMetricValue"] {
         font-size: 2rem;
@@ -291,11 +288,17 @@ with tab1:
     overall_roi = (net_profit_per_user / cost_per_user) * 100 if cost_per_user > 0 else 0
     total_users = len(df)
     total_net_profit = net_profit_per_user * total_users
+
+    population_label = f"{total_users:,}".replace(",", ".")
+    st.caption(
+        f"Quy mô ngoại suy: **{population_label} khách hàng trong 30 ngày** · "
+        f"voucher **{DISCOUNT_PERCENT:.0f}% không cap**."
+    )
     
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Tổng chi phí voucher", f"${cost_per_user * total_users:,.0f}")
-    c2.metric("Doanh thu tăng thêm", f"${incremental_rev_per_user * total_users:,.0f}")
-    c3.metric("Lợi nhuận ròng", f"${total_net_profit:,.0f}")
+    c1.metric("Tổng chi phí voucher (30 ngày)", f"${cost_per_user * total_users:,.0f}")
+    c2.metric("Doanh thu tăng thêm (30 ngày)", f"${incremental_rev_per_user * total_users:,.0f}")
+    c3.metric("Lợi nhuận ròng (30 ngày)", f"${total_net_profit:,.0f}")
     c4.metric("ROI tổng thể", f"{overall_roi:.1f}%")
     
     st.error("**Kết luận:** Phát voucher đại trà tạo thêm nhu cầu nhưng lợi nhuận vẫn âm theo các giả định hiện tại. Vì vậy, đây không phải chính sách ứng viên phù hợp.")
