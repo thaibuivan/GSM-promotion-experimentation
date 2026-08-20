@@ -93,12 +93,16 @@ data_path = os.path.join(base_path, "data", "processed", "segmented_simulation_d
 pred_path = os.path.join(base_path, 'data', 'processed', 'test_predictions.csv')
 
 @st.cache_data
-def load_data(path):
+def load_data(path, file_signature):
     return pd.read_csv(path)
 
+def get_file_signature(path):
+    stat = os.stat(path)
+    return f"{stat.st_size}:{stat.st_mtime_ns}"
+
 try:
-    df = load_data(data_path)
-    preds_df = load_data(pred_path)
+    df = load_data(data_path, get_file_signature(data_path))
+    preds_df = load_data(pred_path, get_file_signature(pred_path))
 except Exception as e:
     st.error(f"Không thể tải dữ liệu. Chi tiết lỗi: {str(e)}")
     st.stop()
