@@ -1,0 +1,124 @@
+{
+  "source_notebook": "notebooks/week6_stress_test/1_stress_test.ipynb",
+  "seed_version": "20260820-20260823",
+  "population_rows": 20000,
+  "dgp_expected_ate": 0.79999937,
+  "finite_population_ate": 0.93095,
+  "estimator": "OLS: Y ~ Treatment + monthly_rides_history, HC1 standard errors",
+  "scale_up": {
+    "runs_per_sample_size": 100,
+    "results": {
+      "1000": {
+        "mean_estimated_ate": 0.9519972096469406,
+        "mean_truth": 0.91018,
+        "estimator_sd": 0.420579092474789,
+        "mean_hc1_se": 0.42488270816942914,
+        "coverage_95": 0.98,
+        "q025": -0.02904173247667182,
+        "q975": 1.6756257808932145
+      },
+      "5000": {
+        "mean_estimated_ate": 0.9445545579647492,
+        "mean_truth": 0.9320780000000001,
+        "estimator_sd": 0.18402562692579447,
+        "mean_hc1_se": 0.18994440068975776,
+        "coverage_95": 0.97,
+        "q025": 0.4890399563636724,
+        "q975": 1.258421210837038
+      },
+      "10000": {
+        "mean_estimated_ate": 0.9389711115490027,
+        "mean_truth": 0.942079,
+        "estimator_sd": 0.1314253166612277,
+        "mean_hc1_se": 0.13472156627417348,
+        "coverage_95": 0.99,
+        "q025": 0.6779100077305783,
+        "q975": 1.1636778534671146
+      },
+      "20000": {
+        "mean_estimated_ate": 0.9229936301644802,
+        "mean_truth": 0.9242485,
+        "estimator_sd": 0.08737994514769487,
+        "mean_hc1_se": 0.0950512849068743,
+        "coverage_95": 1.0,
+        "q025": 0.7472094980215923,
+        "q975": 1.0717884857842048
+      },
+      "50000": {
+        "mean_estimated_ate": 0.9198202229052086,
+        "mean_truth": 0.9262752000000001,
+        "estimator_sd": 0.06262724555264002,
+        "mean_hc1_se": 0.0602392541123724,
+        "coverage_95": 0.98,
+        "q025": 0.7765628128141433,
+        "q975": 1.0450755265002418
+      },
+      "100000": {
+        "mean_estimated_ate": 0.9347549873086587,
+        "mean_truth": 0.9329967,
+        "estimator_sd": 0.04430484797019485,
+        "mean_hc1_se": 0.04257058803804645,
+        "coverage_95": 0.99,
+        "q025": 0.8467877944618252,
+        "q975": 1.0075944542857236
+      }
+    }
+  },
+  "aa_test": {
+    "runs": 5000,
+    "sample_size_per_run": 2000,
+    "alpha": 0.05,
+    "false_positive_rate": 0.0504,
+    "fpr_ci_low": 0.044500171455821025,
+    "fpr_ci_high": 0.05683147054363481,
+    "mean_estimated_ate": -0.0013427024332259266
+  },
+  "treatment_ratio": {
+    "runs_per_design": 300,
+    "sample_size_per_run": 20000,
+    "results": {
+      "10/90": {
+        "mean_estimated_ate": 0.9400638084654147,
+        "mean_truth": 0.9347361666666666,
+        "bias": 0.005327641798747981,
+        "estimator_sd": 0.15733423226546525,
+        "mean_hc1_se": 0.16168263066215005,
+        "coverage_95": 0.97,
+        "treated_share": 0.10000483333333333
+      },
+      "50/50": {
+        "mean_estimated_ate": 0.9351402119415804,
+        "mean_truth": 0.9355855000000001,
+        "bias": -0.0004452880584197294,
+        "estimator_sd": 0.09318357159160126,
+        "mean_hc1_se": 0.09518574916112257,
+        "coverage_95": 0.9833333333333333,
+        "treated_share": 0.5003996666666667
+      }
+    }
+  },
+  "noise": {
+    "runs_per_scenario": 300,
+    "sample_size_per_run": 20000,
+    "noise_sd": 1.0,
+    "results": {
+      "Gaussian noise SD=1": {
+        "mean_estimated_ate": 0.929432268153765,
+        "mean_truth": 0.9318331666666667,
+        "bias": -0.0024008985129017274,
+        "estimator_sd": 0.0923261255182831,
+        "mean_hc1_se": 0.09624682267812645,
+        "coverage_95": 1.0
+      },
+      "Không thêm noise": {
+        "mean_estimated_ate": 0.9290744422555118,
+        "mean_truth": 0.9318331666666667,
+        "bias": -0.002758724411154838,
+        "estimator_sd": 0.0906879002823391,
+        "mean_hc1_se": 0.09520518654179932,
+        "coverage_95": 1.0
+      }
+    }
+  },
+  "scope": "Synthetic robustness under tested scenarios; not production validation."
+}

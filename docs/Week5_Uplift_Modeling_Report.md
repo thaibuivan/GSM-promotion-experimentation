@@ -533,7 +533,7 @@ AUUC_random = Area under Random_Qini curve
 Qini coefficient trong notebook:
 
 ```text
-Qini Coef = (AUUC_model - AUUC_random) / AUUC_random
+Qini Coef = (AUUC_model - AUUC_random) / |AUUC_random|
 ```
 
 **Công thức tính AUUC bằng Trapezoidal Rule (Tích phân số):**
@@ -550,9 +550,10 @@ Diễn giải:
 
 ```text
 Qini Coef > 0 nghĩa là model rank user tốt hơn random targeting.
-Qini Coef = 1 là model hoàn hảo (target đúng toàn bộ người nhạy cảm trước).
 Qini Coef < 0 nghĩa là model xếp hạng sai — target ngẫu nhiên còn tốt hơn.
 ```
+
+Với cách chuẩn hóa custom của project, Qini Coef **không bị chặn tại 1**. Vì vậy không diễn giải `1` là model hoàn hảo; chỉ số được dùng để so sánh tương đối các model trên cùng test set và cùng cách tính.
 
 Kết quả:
 
@@ -610,10 +611,13 @@ voucher_cost_i = avg_fare_i * voucher_rate
 pred_rides_treated_i = số chuyến dự đoán nếu user nhận voucher
 ```
 
+`voucher_cost_i` không áp dụng cap trong synthetic sandbox hiện tại.
+
 Giả định hiện tại:
 
 ```text
 voucher_rate = 15%
+voucher_cap = None
 margin_rate = 70%
 budget_limit = 50,000
 ```
@@ -831,7 +835,7 @@ Diễn giải:
 
 ### 8.6 Budget-Constrained Policy
 
-Sắp xếp user theo expected value và chọn đến khi chạm budget.
+Policy dùng **greedy budget heuristic**: sắp xếp user có `EV > 0` theo expected value giảm dần và chọn đến khi chạm budget. Đây không phải exact knapsack và không bảo đảm nghiệm tối ưu tổ hợp toàn cục.
 
 Trong kết quả hiện tại, policy này trùng với Profit Targeting:
 
@@ -876,7 +880,7 @@ R-Learner được chọn làm champion vì:
 Khuyến nghị cuối:
 
 ```text
-Dùng R-Learner để dự đoán CATE.
+Dùng simplified R-Learner-style residual model để dự đoán CATE.
 Dùng EV > 0 làm rule target deployable.
 Dùng Qini, calibration, profit, ROI, CPIR và oracle regret để đánh giá.
 ```
