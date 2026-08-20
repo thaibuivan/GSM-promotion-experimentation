@@ -8,8 +8,10 @@
 - [**Week 4 A/B Report**](docs/Week4_AA_AB_Testing_Report.md)
 - [**Decision Memo**](docs/Decision_Memo.md)
 
-## 📌 Current Source of Truth
-The current implementation is defined by `src/pipeline/main_pipeline.py`, `src/pipeline/policy_comparison_engine.py`, `src/dashboard/app.py`, `config.json`, and the active technical documentation. Weekly notebooks and reports are retained as development-history artifacts and may reflect earlier assumptions, schemas, metrics or model versions.
+## 📌 Nguồn kết quả chính thức
+Dashboard, báo cáo Tuần 5 và Decision Memo dùng chung snapshot mô hình đã khóa tại `data/processed/model_snapshot_manifest.json`. Snapshot hiện tại là simplified R-Learner-style residual model với Qini Coef `0.188` trên test set 4.000 khách hàng. `src/pipeline/main_pipeline.py`, `src/pipeline/policy_comparison_engine.py`, `src/dashboard/app.py` và `config.json` là nguồn logic để tái tạo kết quả.
+
+Khi thay đổi DGP hoặc huấn luyện lại mô hình, cần tái tạo đồng thời toàn bộ Qini, calibration, prediction và policy artifacts; không thay riêng một file kết quả vì sẽ làm dashboard và notebook mất nhất quán.
 
 ### Synthetic Sandbox Assumptions
 

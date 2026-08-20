@@ -22,6 +22,8 @@ Champion là **simplified R-Learner-style residual model**:
 
 Hai model được train không đồng nghĩa với full Double Machine Learning. Implementation hiện chưa có cross-fitting, vì vậy dashboard và tài liệu không gọi model này là full DML.
 
+Dashboard hiện đọc snapshot đã khóa `week5_r_learner_qini_0_188`: test set 4.000 khách hàng, Qini Coef `0,188`, Profit Targeting chọn 888 khách hàng. Qini, calibration và bảng policy đều phải được lấy từ cùng snapshot này.
+
 ## Tab 1: Bài toán kinh doanh
 
 Tab này trả lời: **Phát voucher đại trà có tạo thêm lợi nhuận không?**

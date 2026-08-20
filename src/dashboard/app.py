@@ -166,6 +166,14 @@ def load_experiment_health():
     with open(health_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
+@st.cache_data
+def load_model_snapshot():
+    snapshot_path = os.path.join(base_path, 'data', 'processed', 'model_snapshot_manifest.json')
+    if not os.path.exists(snapshot_path):
+        return None
+    with open(snapshot_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
 def standardized_mean_difference(treated, control):
     pooled_variance = (treated.var(ddof=1) + control.var(ddof=1)) / 2.0
     if pd.isna(pooled_variance) or pooled_variance <= 0:
@@ -677,6 +685,12 @@ with tab5:
         """)
     
     with st.expander("Chi tiết đánh giá mô hình: Qini và Calibration"):
+        model_snapshot = load_model_snapshot()
+        if model_snapshot:
+            st.caption(
+                f"Qini, calibration và policy cùng dùng snapshot đã khóa trên "
+                f"test set {model_snapshot['test_rows']:,} khách hàng (seed {model_snapshot['split_seed']})."
+            )
         col_qini, col_calib = st.columns(2)
         with col_qini:
             st.markdown("#### Đường Qini - đánh giá khả năng xếp hạng")

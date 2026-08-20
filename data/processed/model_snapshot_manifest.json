@@ -1,0 +1,21 @@
+{
+  "snapshot_id": "week5_r_learner_qini_0_188",
+  "model_name": "Simplified R-Learner-style residual model",
+  "frozen": true,
+  "causal_artifact_source_commit": "33e070e",
+  "dataset_rows": 20000,
+  "test_rows": 4000,
+  "split_seed": 42,
+  "qini_coef": 0.187525,
+  "profit_targeted_users": 888,
+  "predicted_profit": 7939.0,
+  "synthetic_causal_benchmark_profit": 7060.0,
+  "oracle_profit": 10818.0,
+  "oracle_regret": 3758.0,
+  "economics": {
+    "voucher_rate": 0.15,
+    "voucher_cap": null,
+    "margin_rate": 0.7,
+    "budget_limit": 50000.0
+  }
+}

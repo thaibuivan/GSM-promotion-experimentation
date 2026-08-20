@@ -131,8 +131,8 @@ def run_pipeline(n_users=N_USERS, progress_callback=None):
     # Noi thanh: 90% the, Ngoai o: 65% the; Nguoi tre (< 35) tang them 5%
     prob_card    = np.where(is_urban == 1, 0.90, 0.65)
     prob_card    = np.clip(prob_card + np.where(age < 35, 0.05, -0.05), 0.5, 0.98)
-    is_card = rng.random(n_users) < prob_card
-    payment_type = np.where(is_card, 1, 2)  # 1=Card, 2=Cash
+    # Giu logic snapshot Week 5 da khoa de ket qua co the tai lap.
+    payment_type = (rng.random(n_users) < prob_card).astype(int) + 1
 
     # [FIX 4] passenger_count: Gio cao diem -> di mot minh; Cuoi tuan -> di nhom
     # Base: [70%, 20%, 8%, 2%] nhung dieu chinh theo context

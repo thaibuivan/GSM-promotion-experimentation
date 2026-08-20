@@ -24,20 +24,21 @@ Kết quả A/B Test trên synthetic data với assumptions HTE đã thiết k�
 
 | Persona | N Users | ATE | ROI (dưới assumptions) | Kết luận trong Sandbox |
 |---|---|---|---|---|
-| Urban Regulars | 8,568 | +0.79 | -69.3% | Chi phí voucher lớn hơn lợi nhuận tăng thêm |
-| Rain Riders | 2,651 | +0.91 | -71.4% | Phản ứng dương nhưng economics vẫn âm |
-| Airport Business | 720 | +0.00 | -106.8% | Không tạo uplift trong DGP hiện tại |
-| Suburban Card | 5,381 | +0.87 | -12.0% | Tốt hơn mass voucher nhưng vẫn âm |
-| Suburban Cash | 2,680 | +0.75 | -15.1% | Tốt hơn mass voucher nhưng vẫn âm |
+| Urban Regulars | 8,568 | +0.84 | -73.1% | Chi phí voucher lớn hơn lợi nhuận tăng thêm |
+| Rain Riders | 2,651 | +1.12 | -59.1% | Phản ứng dương nhưng economics vẫn âm |
+| Airport Business | 720 | +0.79 | -63.2% | Phản ứng dương nhưng chi phí trên giá vé cao |
+| Suburban Card | 2,680 | +1.22 | -7.5% | Tốt hơn mass voucher nhưng vẫn âm |
+| Suburban Cash | 5,381 | +0.86 | -11.3% | Tốt hơn mass voucher nhưng vẫn âm |
 
 ### B.3. Uplift Model Evaluation
 - Champion hiện tại là **simplified R-Learner-style residual model**: model đầu học `m(X)`, sau đó residualization và model thứ hai học `τ(X)`. Chưa có cross-fitting, nên không gọi là full DML.
 - Mô hình có useful ranking signal, trong khi CATE level calibration vẫn chưa hoàn hảo.
-- Profit Targeting: Nhắm mục tiêu 873 / 4.000 users (21,8%).
-- Predicted Profit: ≈ $6.369.
-- Synthetic Causal Benchmark: ≈ $6.579.
-- Oracle Benchmark: ≈ $9.063.
-- Oracle Regret: ≈ $2.484 (27,4%).
+- Qini Coef trên held-out test set: **0,188**.
+- Profit Targeting: Nhắm mục tiêu 888 / 4.000 users (22,2%).
+- Predicted Profit: ≈ $7.939.
+- Synthetic Causal Benchmark: ≈ $7.060.
+- Oracle Benchmark: ≈ $10.818.
+- Oracle Regret: ≈ $3.758 (34,7%).
 
 ---
 
@@ -46,7 +47,7 @@ Trong synthetic sandbox với assumptions hiện tại về treatment effect, vo
 
 > **Profit-based Uplift Targeting** cho policy value tốt hơn Mass Voucher và Segment Targeting trong sandbox hiện tại.
 
-Mức voucher giả định 15% không cap → lọc theo Expected Value > 0 → áp dụng greedy budget heuristic → Predicted Profit khoảng $6.369 trong sandbox. Với budget $50.000 hiện tại, budget không binding nên policy ngân sách trùng với Profit Targeting.
+Mức voucher giả định 15% không cap → lọc theo Expected Value > 0 → áp dụng greedy budget heuristic → Predicted Profit khoảng $7.939 trong sandbox. Với budget $50.000 hiện tại, budget không binding nên policy ngân sách trùng với Profit Targeting.
 
 ---
 
