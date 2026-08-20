@@ -4,10 +4,10 @@
 ## 🚀 Live Demo & Quick Navigation
 - [**Live Streamlit Dashboard**](https://gsm-promotion-experimentation.streamlit.app) *(Vui lòng đợi vài giây để Cloud tải dữ liệu giả lập ở lần truy cập đầu tiên).*
 - 📖 [**Dashboard User Guide (Hướng dẫn xem Dashboard)**](docs/Dashboard_User_Guide.md)
-- [**Tech Doc W4**](docs/TECHNICAL_DOCUMENTATION_W4.md)
-- [**Week 4 A/B Report**](docs/Week4_AA_AB_Testing_Report.md)
-- [**Week 5 Uplift Modeling Report**](docs/Week5_Uplift_Modeling_Report.md)
-- [**Week 6 Stress Test Report**](docs/Week6_Stress_Test_Report.md)
+- [**Tech Doc W4**](docs/specifications/TECHNICAL_DOCUMENTATION_W4.md)
+- [**Week 4 A/B Report**](docs/reports/Week4_AA_AB_Testing_Report.md)
+- [**Week 5 Uplift Modeling Report**](docs/reports/Week5_Uplift_Modeling_Report.md)
+- [**Week 6 Stress Test Report**](docs/reports/Week6_Stress_Test_Report.md)
 - [**Decision Memo**](docs/Decision_Memo.md)
 
 ## 📌 Nguồn kết quả chính thức
