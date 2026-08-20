@@ -178,6 +178,71 @@ def load_model_snapshot():
     with open(snapshot_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
+def render_model_evaluation():
+    st.markdown("---")
+    st.subheader("Đánh giá mô hình: Qini và hiệu chỉnh")
+    model_snapshot = load_model_snapshot()
+    if model_snapshot:
+        st.caption(
+            f"Qini, hiệu chỉnh và policy cùng dùng snapshot đã khóa trên "
+            f"test set {model_snapshot['test_rows']:,} khách hàng (seed {model_snapshot['split_seed']})."
+        )
+
+    col_qini, col_calib = st.columns(2)
+    with col_qini:
+        st.markdown("#### Đường Qini - khả năng xếp hạng")
+        st.caption("Mô hình có đưa khách hàng phản ứng tốt lên đầu danh sách tốt hơn cách chọn ngẫu nhiên không?")
+        qini_df = load_or_build_qini_curve()
+        if qini_df is not None and not qini_df.empty:
+            fig_qini = go.Figure()
+            fig_qini.add_trace(go.Scatter(
+                x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines',
+                name='Mô hình', line=dict(color='#00E5FF', width=3)
+            ))
+            fig_qini.add_trace(go.Scatter(
+                x=qini_df['pct_targeted'], y=qini_df['random_uplift'], mode='lines',
+                name='Mốc ngẫu nhiên', line=dict(color='rgba(255,255,255,0.3)', dash='dash', width=2)
+            ))
+            fig_qini.update_layout(
+                **chart_layout, height=350,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            fig_qini.update_xaxes(title="Tỷ lệ khách hàng được nhắm chọn (%)", dtick=10)
+            fig_qini.update_yaxes(title="Số chuyến tăng thêm tích lũy (Qini)")
+            st.plotly_chart(fig_qini, use_container_width=True)
+        else:
+            st.warning("Chưa có dữ liệu để vẽ đường Qini.")
+
+    with col_calib:
+        st.markdown("#### Biểu đồ hiệu chỉnh - độ lớn dự báo")
+        st.caption("CATE dự báo có gần với uplift quan sát theo từng nhóm thập phân vị không?")
+        try:
+            calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
+            fig_cal = go.Figure()
+            fig_cal.add_trace(go.Scatter(
+                name='CATE dự báo', x=calib_df['Decile'], y=calib_df['Predicted_CATE'],
+                mode='lines+markers', line=dict(color='#FF4B4B', width=3)
+            ))
+            fig_cal.add_trace(go.Scatter(
+                name='Uplift quan sát', x=calib_df['Decile'], y=calib_df['Observed_Uplift'],
+                mode='lines+markers', line=dict(color='#00CC96', width=2)
+            ))
+            fig_cal.add_trace(go.Scatter(
+                name='Giá trị thật tổng hợp', x=calib_df['Decile'], y=calib_df['Ground_Truth_CATE'],
+                mode='lines', line=dict(color='rgba(255,255,255,0.4)', dash='dash', width=2)
+            ))
+            fig_cal.update_layout(
+                **chart_layout, height=350,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            fig_cal.update_xaxes(title="Các nhóm thập phân vị (tốt nhất đến kém nhất)")
+            fig_cal.update_yaxes(title="Uplift trung bình")
+            st.plotly_chart(fig_cal, use_container_width=True)
+        except (FileNotFoundError, KeyError, pd.errors.EmptyDataError):
+            st.warning("Chưa có dữ liệu hiệu chỉnh.")
+
+    st.info("**Mô hình có tín hiệu xếp hạng hữu ích, nhưng độ lớn CATE dự báo vẫn chưa được hiệu chỉnh hoàn hảo.**")
+
 def standardized_mean_difference(treated, control):
     pooled_variance = (treated.var(ddof=1) + control.var(ddof=1)) / 2.0
     if pd.isna(pooled_variance) or pooled_variance <= 0:
@@ -506,6 +571,8 @@ with tab3:
         > **Phiên bản hiện tại chưa dùng cross-fitting, vì vậy được mô tả là mô hình residual đơn giản hóa theo phong cách R-Learner, chưa phải DML đầy đủ.**
         """)
 
+    render_model_evaluation()
+
 # ================= TAB 4: POLICY SIMULATOR =================
 with tab4:
     render_breadcrumb("Policy")
@@ -687,44 +754,3 @@ with tab5:
         
         > **Đây là lộ trình minh họa cho sự phát triển của khung giải pháp, không phải kiến trúc vận hành thực tế hiện tại của GSM.**
         """)
-    
-    with st.expander("Chi tiết đánh giá mô hình: Qini và Calibration"):
-        model_snapshot = load_model_snapshot()
-        if model_snapshot:
-            st.caption(
-                f"Qini, calibration và policy cùng dùng snapshot đã khóa trên "
-                f"test set {model_snapshot['test_rows']:,} khách hàng (seed {model_snapshot['split_seed']})."
-            )
-        col_qini, col_calib = st.columns(2)
-        with col_qini:
-            st.markdown("#### Đường Qini - đánh giá khả năng xếp hạng")
-            st.caption("Câu hỏi: Mô hình có đưa những khách hàng phản ứng tốt lên đầu danh sách tốt hơn cách chọn ngẫu nhiên không?")
-            qini_df = load_or_build_qini_curve()
-            if qini_df is not None and not qini_df.empty:
-                fig_qini = go.Figure()
-                fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines', name='Mô hình', line=dict(color='#00E5FF', width=3)))
-                fig_qini.add_trace(go.Scatter(x=qini_df['pct_targeted'], y=qini_df['random_uplift'], mode='lines', name='Mốc ngẫu nhiên', line=dict(color='rgba(255,255,255,0.3)', dash='dash', width=2)))
-                fig_qini.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-                fig_qini.update_xaxes(title="Tỷ lệ khách hàng được nhắm chọn (%)", dtick=10)
-                fig_qini.update_yaxes(title="Số chuyến tăng thêm tích lũy (Qini)")
-                st.plotly_chart(fig_qini, use_container_width=True)
-            else:
-                st.warning("Chưa có dữ liệu để vẽ đường Qini.")
-                
-        with col_calib:
-            st.markdown("#### Biểu đồ Calibration - đánh giá độ lớn dự báo")
-            st.caption("Câu hỏi: Độ lớn CATE dự báo có gần với uplift quan sát theo từng nhóm thập phân vị (decile) không?")
-            try:
-                calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
-                fig_cal = go.Figure()
-                fig_cal.add_trace(go.Scatter(name='CATE dự báo', x=calib_df['Decile'], y=calib_df['Predicted_CATE'], mode='lines+markers', line=dict(color='#FF4B4B', width=3)))
-                fig_cal.add_trace(go.Scatter(name='Uplift quan sát', x=calib_df['Decile'], y=calib_df['Observed_Uplift'], mode='lines+markers', line=dict(color='#00CC96', width=2)))
-                fig_cal.add_trace(go.Scatter(name='Giá trị thật tổng hợp', x=calib_df['Decile'], y=calib_df['Ground_Truth_CATE'], mode='lines', line=dict(color='rgba(255,255,255,0.4)', dash='dash', width=2)))
-                fig_cal.update_layout(**chart_layout, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-                fig_cal.update_xaxes(title="Các nhóm decile (tốt nhất đến kém nhất)")
-                fig_cal.update_yaxes(title="Uplift trung bình")
-                st.plotly_chart(fig_cal, use_container_width=True)
-            except:
-                st.warning("Chưa có dữ liệu Calibration.")
-                
-        st.info("**Mô hình có tín hiệu xếp hạng hữu ích, nhưng độ lớn CATE dự báo vẫn chưa được hiệu chỉnh hoàn hảo.**")
