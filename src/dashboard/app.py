@@ -530,11 +530,11 @@ with tab2:
             roi_data.append({
                 'Phân khúc': p,
                 'Số khách hàng': len(segment),
-                'ATE': round(ate, 2),
-                'GMV nền ($)': round(base_gmv, 2),
-                'GMV tăng thêm ($)': round(d_rev, 2),
-                'Chi phí voucher ($)': round(cost, 2),
-                'Lợi nhuận ròng ($)': round(gross_profit - cost, 2),
+                'ATE (chuyến/KH)': round(ate, 2),
+                'GMV nền / KH ($)': round(base_gmv, 2),
+                'GMV tăng thêm / KH ($)': round(d_rev, 2),
+                'Chi phí voucher / KH ($)': round(cost, 2),
+                'Lợi nhuận ròng / KH ($)': round(gross_profit - cost, 2),
                 'ROI (%)': round(roi, 1)
             })
         else:
@@ -551,11 +551,11 @@ with tab2:
                 roi_data.append({
                     'Phân khúc': p,
                     'Số khách hàng': len(segment),
-                    'ATE': round(ate, 2),
-                    'GMV nền ($)': round(rev_c, 2),
-                    'GMV tăng thêm ($)': round(d_rev, 2),
-                    'Chi phí voucher ($)': round(cost, 2),
-                    'Lợi nhuận ròng ($)': round(gross_profit - cost, 2),
+                    'ATE (chuyến/KH)': round(ate, 2),
+                    'GMV nền / KH ($)': round(rev_c, 2),
+                    'GMV tăng thêm / KH ($)': round(d_rev, 2),
+                    'Chi phí voucher / KH ($)': round(cost, 2),
+                    'Lợi nhuận ròng / KH ($)': round(gross_profit - cost, 2),
                     'ROI (%)': round(roi, 1)
                 })
     roi_df = pd.DataFrame(roi_data).sort_values(by='ROI (%)', ascending=False)
@@ -563,6 +563,7 @@ with tab2:
     st.dataframe(roi_df.style.format(precision=1)
              .background_gradient(subset=['ROI (%)'], cmap='RdYlGn', vmin=-100, vmax=50), 
              use_container_width=True, hide_index=True)
+    st.caption("Các chỉ số tiền trong bảng là **trung bình trên mỗi khách hàng trong phân khúc**, không phải tổng toàn segment. Đơn vị `$` là currency giả lập của synthetic sandbox.")
     st.info("Targeting theo phân khúc cải thiện hiệu quả so với mass voucher, nhưng vẫn chưa đủ để tạo ROI dương.")
     if use_synthetic_segment_benchmark:
         st.caption("Hiệu quả theo phân khúc sử dụng hai kết quả tiềm năng tổng hợp Y0/Y1 làm chuẩn đối chiếu ổn định; không diễn giải đây là ROI thực tế trên môi trường vận hành.")
