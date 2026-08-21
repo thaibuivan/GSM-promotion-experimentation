@@ -175,19 +175,28 @@ def load_model_snapshot():
     with open(snapshot_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
+def load_uplift_model_comparison():
+    return pd.DataFrame([
+        {'Mô hình': 'R-Learner-style', 'Qini Coef': 0.188, 'Vai trò': 'Được chọn'},
+        {'Mô hình': 'S-Learner', 'Qini Coef': 0.153, 'Vai trò': 'Benchmark'},
+        {'Mô hình': 'DR-Learner', 'Qini Coef': 0.138, 'Vai trò': 'Challenger'},
+        {'Mô hình': 'X-Learner', 'Qini Coef': 0.038, 'Vai trò': 'Benchmark'},
+        {'Mô hình': 'T-Learner', 'Qini Coef': -0.320, 'Vai trò': 'Baseline'}
+    ])
+
 def render_model_evaluation():
     st.markdown("---")
-    st.subheader("Đánh giá mô hình: Qini và hiệu chỉnh")
+    st.subheader("Đánh giá sâu model được chọn: Qini và calibration")
     model_snapshot = load_model_snapshot()
     if model_snapshot:
         st.caption(
-            f"Qini, hiệu chỉnh và policy cùng dùng snapshot đã khóa trên "
+            f"Qini curve, calibration và policy cùng dùng snapshot đã khóa trên "
             f"test set {model_snapshot['test_rows']:,} khách hàng (seed {model_snapshot['split_seed']})."
         )
 
     col_qini, col_calib = st.columns(2)
     with col_qini:
-        st.markdown("#### Đường Qini - khả năng xếp hạng")
+        st.markdown("#### Qini curve - ranking uplift")
         st.caption("Mô hình có đưa khách hàng phản ứng tốt lên đầu danh sách tốt hơn cách chọn ngẫu nhiên không?")
         qini_df = load_or_build_qini_curve()
         if qini_df is not None and not qini_df.empty:
@@ -211,7 +220,7 @@ def render_model_evaluation():
             st.warning("Chưa có dữ liệu để vẽ đường Qini.")
 
     with col_calib:
-        st.markdown("#### Biểu đồ hiệu chỉnh - độ lớn dự báo")
+        st.markdown("#### Calibration - độ lớn CATE")
         st.caption("CATE dự báo có gần với uplift quan sát theo từng nhóm thập phân vị không?")
         try:
             calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
@@ -225,7 +234,7 @@ def render_model_evaluation():
                 mode='lines+markers', line=dict(color='#00CC96', width=2)
             ))
             fig_cal.add_trace(go.Scatter(
-                name='Giá trị thật tổng hợp', x=calib_df['Decile'], y=calib_df['Ground_Truth_CATE'],
+                name='CATE ground truth (synthetic)', x=calib_df['Decile'], y=calib_df['Ground_Truth_CATE'],
                 mode='lines', line=dict(color='rgba(255,255,255,0.4)', dash='dash', width=2)
             ))
             fig_cal.update_layout(
@@ -238,7 +247,7 @@ def render_model_evaluation():
         except (FileNotFoundError, KeyError, pd.errors.EmptyDataError):
             st.warning("Chưa có dữ liệu hiệu chỉnh.")
 
-    st.info("**Mô hình có tín hiệu xếp hạng hữu ích, nhưng độ lớn CATE dự báo vẫn chưa được hiệu chỉnh hoàn hảo.**")
+    st.info("**Qini kiểm tra khả năng ranking; calibration kiểm tra độ lớn CATE. Model có ranking signal hữu ích, nhưng magnitude vẫn cần theo dõi.**")
 
 def standardized_mean_difference(treated, control):
     pooled_variance = (treated.var(ddof=1) + control.var(ddof=1)) / 2.0
@@ -563,16 +572,16 @@ with tab2:
 # ================= TAB 3: USER HETEROGENEITY =================
 with tab3:
     render_breadcrumb("User Heterogeneity")
-    st.subheader("Ai thực sự nhạy với voucher?")
-    st.markdown("Tín hiệu uplift giúp phân biệt khách hàng theo mức phản ứng với voucher, nhưng phản ứng cao chưa đồng nghĩa với lợi nhuận cao.")
+    st.subheader("Ai nhạy với voucher?")
+    st.markdown("Phân phối CATE dự báo cho thấy response không đồng đều giữa khách hàng; vì vậy cần model uplift để xếp hạng ai nên được ưu tiên nhận voucher.")
     
     col_c1, col_c2 = st.columns(2)
     with col_c1:
-        st.markdown("#### Phân phối tác động cá nhân (CATE)")
+        st.markdown("#### Phân phối CATE dự báo")
         q_low = preds_df['cate_pred'].quantile(0.01)
         q_high = preds_df['cate_pred'].quantile(0.99)
         fig_cate = px.histogram(preds_df, x='cate_pred', nbins=100, 
-                                title="Phân bố CATE (Chuyến đi dự kiến tăng thêm)",
+                                title="Phân bố CATE dự báo (số chuyến tăng thêm kỳ vọng)",
                                 color_discrete_sequence=['#00E5FF'], opacity=0.75,
                                 marginal="box", range_x=[q_low, q_high])
         fig_cate.add_vline(x=0, line_dash="dash", line_color="#FF4B4B", 
@@ -582,43 +591,63 @@ with tab3:
             font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20),
             bargap=0.05
         )
-        fig_cate.update_xaxes(title="CATE (Tác động nhân quả)", showgrid=True, gridcolor='#333333')
+        fig_cate.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)", showgrid=True, gridcolor='#333333')
         fig_cate.update_yaxes(title="Số khách hàng", showgrid=True, gridcolor='#333333')
         st.plotly_chart(fig_cate, use_container_width=True)
-        st.caption("Mô hình theo phong cách R-Learner đơn giản hóa dự báo độ nhạy với voucher ở cấp khách hàng.")
-        qini_summary = load_or_build_qini_curve()
-        qini_coef = compute_qini_coef(qini_summary)
-        if pd.notna(qini_coef):
-            st.metric("Hệ số Qini", f"{qini_coef:.3f}", "Xếp hạng tốt hơn ngẫu nhiên" if qini_coef > 0 else "Cần xem xét lại")
-        else:
-            st.caption("Chưa tính được hệ số Qini. Cần chạy lại quy trình xuất kết quả chính sách.")
+        st.caption("Đây là CATE dự báo từ representative model, không phải individual treatment effect tuyệt đối trên production.")
         
     with col_c2:
-        st.markdown("#### Từ CATE đến lợi nhuận kỳ vọng")
-        st.info("""
-        **Chuyển tín hiệu mô hình thành quyết định:**
-        
-        `Lợi nhuận kỳ vọng = [CATE × Lợi nhuận mỗi chuyến] - [Tổng chuyến dự kiến × Chi phí voucher mỗi chuyến]`
-        
-        **Nguyên tắc nhắm chọn:** Chỉ phát voucher cho khách hàng có **lợi nhuận tăng thêm kỳ vọng > 0**. Nếu CATE cao nhưng số chuyến nền quá lớn, chi phí khuyến mãi vẫn có thể lớn hơn phần lợi nhuận tăng thêm.
-        """)
-        
+        st.markdown("#### So sánh mô hình uplift")
+        model_snapshot = load_model_snapshot()
+        model_comparison = load_uplift_model_comparison()
 
-        preds_df['voucher_cost'] = calc_cost(preds_df['avg_fare'], DISCOUNT_PERCENT)
-        preds_df['margin_per_ride'] = preds_df['avg_fare'] * (MARGIN_PERCENT / 100.0)
-        preds_df['expected_value'] = (preds_df['cate_pred'] * preds_df['margin_per_ride']) - (preds_df['pred_rides_treated'] * preds_df['voucher_cost'])
-        
-        fig_scatter = px.scatter(preds_df.sample(min(2000, len(preds_df)), random_state=42), 
-                                 x='cate_pred', y='expected_value', 
-                                 color='expected_value', color_continuous_scale='RdYlGn',
-                                 title="CATE và lợi nhuận kỳ vọng - mẫu 2.000 khách hàng",
-                                 opacity=0.6)
-        fig_scatter.add_hline(y=0, line_dash="dash", line_color="#FF4B4B")
-        fig_scatter.add_vline(x=0, line_dash="dash", line_color="#00CC96")
-        fig_scatter.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#F8FAFC'), coloraxis_showscale=False, height=350)
-        fig_scatter.update_xaxes(title="CATE (số chuyến tăng thêm)")
-        fig_scatter.update_yaxes(title="Lợi nhuận kỳ vọng ($)")
-        st.plotly_chart(fig_scatter, use_container_width=True)
+        def highlight_selected(row):
+            return ['background-color: rgba(0, 229, 255, 0.18); font-weight: 700' if row['Vai trò'] == 'Được chọn' else '' for _ in row]
+
+        st.dataframe(
+            model_comparison.style
+                .format({'Qini Coef': '{:.3f}'})
+                .apply(highlight_selected, axis=1),
+            use_container_width=True,
+            hide_index=True
+        )
+        if model_snapshot:
+            st.success(
+                f"Chọn **{model_snapshot['model_name']}** làm representative model vì Qini cao nhất "
+                f"trên held-out test set {model_snapshot['test_rows']:,} khách hàng."
+            )
+        else:
+            st.success("Chọn **simplified R-Learner-style residual model** vì Qini cao nhất trong các model đã thử.")
+        st.caption("Theo Week 5 report, các Qini coefficients này được so sánh trên cùng held-out test set 4.000 khách hàng và cùng cách tính; dashboard hiện chỉ recompute/render Qini curve cho snapshot R-Learner-style đã khóa.")
+
+    render_model_evaluation()
+
+    st.markdown("---")
+    st.markdown("#### Từ CATE đến giá trị kinh tế")
+    st.info("""
+    **Expected Value = Incremental Margin − Expected Voucher Cost**
+
+    `EV = [CATE × margin_per_ride] - [predicted_rides_treated × voucher_cost_per_ride]`
+
+    **Điểm cần nhớ:** CATE cao không đồng nghĩa Expected Value dương. Nếu số chuyến nền hoặc chi phí voucher lớn, promotion burn vẫn có thể vượt phần margin tăng thêm.
+    """)
+
+    preds_df['voucher_cost'] = calc_cost(preds_df['avg_fare'], DISCOUNT_PERCENT)
+    preds_df['margin_per_ride'] = preds_df['avg_fare'] * (MARGIN_PERCENT / 100.0)
+    preds_df['expected_value'] = (preds_df['cate_pred'] * preds_df['margin_per_ride']) - (preds_df['pred_rides_treated'] * preds_df['voucher_cost'])
+
+    fig_scatter = px.scatter(preds_df.sample(min(2000, len(preds_df)), random_state=42),
+                             x='cate_pred', y='expected_value',
+                             color='expected_value', color_continuous_scale='RdYlGn',
+                             title="CATE dự báo và Expected Value - mẫu 2.000 khách hàng",
+                             opacity=0.6)
+    fig_scatter.add_hline(y=0, line_dash="dash", line_color="#FF4B4B")
+    fig_scatter.add_vline(x=0, line_dash="dash", line_color="#00CC96")
+    fig_scatter.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#F8FAFC'), coloraxis_showscale=False, height=350)
+    fig_scatter.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)")
+    fig_scatter.update_yaxes(title="Expected Value ($)")
+    st.plotly_chart(fig_scatter, use_container_width=True)
+    st.markdown("→ Sang Tab 4: dùng Expected Value để so sánh mass, segment, uplift và profit targeting trong policy simulator.")
 
     with st.expander("Phương pháp kỹ thuật - Ước lượng tác động khác biệt"):
         st.markdown("""
@@ -633,9 +662,6 @@ with tab3:
         
         > **Phiên bản hiện tại chưa dùng cross-fitting, vì vậy được mô tả là mô hình residual đơn giản hóa theo phong cách R-Learner, chưa phải DML đầy đủ.**
         """)
-
-    render_model_evaluation()
-
 # ================= TAB 4: POLICY SIMULATOR =================
 with tab4:
     render_breadcrumb("Policy")
