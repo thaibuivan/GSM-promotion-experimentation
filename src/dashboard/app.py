@@ -26,30 +26,39 @@ st.markdown("""
     }
     .block-container { padding-top: 3.5rem; }
     
-    .stTabs [data-baseweb="tab-list"] {
+    .stTabs [data-baseweb="tab-list"],
+    div[data-testid="stTabs"] div[data-baseweb="tab-list"] {
         gap: 8px;
         border-bottom: 1px solid rgba(148, 163, 184, 0.25);
         margin-bottom: 24px;
     }
-    .stTabs [data-baseweb="tab"] {
-        height: 70px;
-        white-space: nowrap;
+    .stTabs [data-baseweb="tab"],
+    div[data-testid="stTabs"] button[data-baseweb="tab"] {
+        height: 74px !important;
+        min-height: 74px !important;
+        white-space: nowrap !important;
         background-color: transparent !important;
         border-radius: 4px 4px 0px 0px;
-        padding: 18px 22px;
-        font-size: 1.42rem !important;
+        padding: 20px 24px !important;
+        font-size: 1.5rem !important;
         font-weight: 800 !important;
     }
     .stTabs [data-baseweb="tab"] p,
-    .stTabs [data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
-        font-size: 1.42rem !important;
+    .stTabs [data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stTabs"] button[data-baseweb="tab"] p,
+    div[data-testid="stTabs"] button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
+        font-size: 1.5rem !important;
         font-weight: 800 !important;
         line-height: 1.15 !important;
     }
-    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+    .stTabs [data-baseweb="tab"][aria-selected="true"],
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
         color: #00E5FF !important;
         background-color: rgba(0, 229, 255, 0.12) !important;
         border-bottom: 4px solid #00E5FF !important;
+    }
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] p {
+        color: #00E5FF !important;
     }
     
     .roadmap-card {
