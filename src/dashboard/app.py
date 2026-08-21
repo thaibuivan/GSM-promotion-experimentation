@@ -279,6 +279,9 @@ with tab1:
     st.subheader("Phát voucher đại trà có tạo thêm lợi nhuận không?")
     st.markdown("Thay vì chỉ nhìn vào tỷ lệ mở ứng dụng hoặc số chuyến tăng, ta đánh giá trực tiếp **lợi nhuận tăng thêm** khi phát voucher đại trà theo các giả định của môi trường mô phỏng.")
     
+    avg_trips_treat = df_treat['trips_30d'].mean()
+    avg_trips_ctrl = df_ctrl['trips_30d'].mean()
+    incremental_trips_per_user = avg_trips_treat - avg_trips_ctrl
     avg_rev_treat = df_treat['gross_revenue_30d'].mean()
     avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
     incremental_rev_per_user = avg_rev_treat - avg_rev_ctrl
@@ -295,11 +298,12 @@ with tab1:
         f"voucher **{DISCOUNT_PERCENT:.0f}% không cap**."
     )
     
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Tổng chi phí voucher (30 ngày)", f"${cost_per_user * total_users:,.0f}")
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Chuyến xe tăng thêm (30 ngày)", f"{incremental_trips_per_user * total_users:,.0f}")
     c2.metric("Doanh thu tăng thêm (30 ngày)", f"${incremental_rev_per_user * total_users:,.0f}")
-    c3.metric("Lợi nhuận ròng (30 ngày)", f"${total_net_profit:,.0f}")
-    c4.metric("ROI tổng thể", f"{overall_roi:.1f}%")
+    c3.metric("Tổng chi phí voucher (30 ngày)", f"${cost_per_user * total_users:,.0f}")
+    c4.metric("Lợi nhuận ròng (30 ngày)", f"${total_net_profit:,.0f}")
+    c5.metric("ROI tổng thể", f"{overall_roi:.1f}%")
     
     st.error("**Kết luận:** Phát voucher đại trà tạo thêm nhu cầu nhưng lợi nhuận vẫn âm theo các giả định hiện tại. Vì vậy, đây không phải chính sách ứng viên phù hợp.")
 
