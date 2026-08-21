@@ -26,27 +26,24 @@ st.markdown("""
     }
     .block-container { padding-top: 3.5rem; }
     
-    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        margin-bottom: 24px;
+    }
     .stTabs [data-baseweb="tab"] {
-        height: 50px;
+        height: 58px;
         white-space: pre-wrap;
         background-color: transparent;
         border-radius: 4px 4px 0px 0px;
-        padding: 10px 16px;
-        font-size: 1.1rem;
-        font-weight: 600;
+        padding: 14px 18px;
+        font-size: 1.15rem;
+        font-weight: 700;
     }
-    
-    .breadcrumb {
-        font-size: 1.1rem;
-        color: #888;
-        margin-bottom: 20px;
-        padding: 10px 0px;
-        border-bottom: 1px solid #444;
-    }
-    .breadcrumb span.active {
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
         color: #00E5FF;
-        font-weight: bold;
+        background-color: rgba(0, 229, 255, 0.10);
+        border-bottom: 3px solid #00E5FF;
     }
     
     .roadmap-card {
@@ -255,25 +252,6 @@ def standardized_mean_difference(treated, control):
         return 0.0
     return (treated.mean() - control.mean()) / np.sqrt(pooled_variance)
 
-def render_breadcrumb(active_step):
-    steps = [
-        ("Business Problem", "1. Bài toán kinh doanh"),
-        ("Causal Evidence", "2. Bằng chứng nhân quả"),
-        ("User Heterogeneity", "3. Ai nhạy với voucher?"),
-        ("Policy", "4. Mô phỏng chính sách"),
-        ("Robustness", "5. Kiểm tra độ vững")
-    ]
-    html = '<div class="breadcrumb">'
-    for i, (key, label) in enumerate(steps):
-        if key == active_step:
-            html += f'<span class="active">{label}</span>'
-        else:
-            html += f'<span>{label}</span>'
-        if i < len(steps) - 1:
-            html += ' ➔ '
-    html += '</div>'
-    st.markdown(html, unsafe_allow_html=True)
-
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "1. Bài toán kinh doanh",
     "2. Bằng chứng nhân quả",
@@ -284,7 +262,6 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 
 # ================= TAB 1: BUSINESS PROBLEM =================
 with tab1:
-    render_breadcrumb("Business Problem")
     st.subheader("Phát voucher đại trà có tạo thêm lợi nhuận không?")
     st.markdown("Thay vì chỉ nhìn vào tỷ lệ mở ứng dụng hoặc số chuyến tăng, ta đánh giá trực tiếp **lợi nhuận tăng thêm** khi phát voucher đại trà theo các giả định của môi trường mô phỏng.")
     
@@ -368,7 +345,6 @@ with tab1:
 
 # ================= TAB 2: CAUSAL EVIDENCE =================
 with tab2:
-    render_breadcrumb("Causal Evidence")
     
     st.markdown("#### Chất lượng thí nghiệm")
     observed_treatment = len(df_treat)
@@ -571,7 +547,6 @@ with tab2:
 
 # ================= TAB 3: USER HETEROGENEITY =================
 with tab3:
-    render_breadcrumb("User Heterogeneity")
     st.subheader("Ai nhạy với voucher?")
     st.markdown("Phân phối CATE dự báo cho thấy response không đồng đều giữa khách hàng; vì vậy cần model uplift để xếp hạng ai nên được ưu tiên nhận voucher.")
     
@@ -664,7 +639,6 @@ with tab3:
         """)
 # ================= TAB 4: POLICY SIMULATOR =================
 with tab4:
-    render_breadcrumb("Policy")
     st.subheader("Lựa chọn chính sách phát voucher trong giới hạn kinh tế")
     
     st.markdown("""
@@ -783,7 +757,6 @@ with tab4:
 
 # ================= TAB 5: ROBUSTNESS =================
 with tab5:
-    render_breadcrumb("Robustness")
     st.subheader("Kiểm tra độ vững & lộ trình phát triển")
     st.markdown("Tab này kiểm tra framework phản ứng thế nào khi bị stress, rồi nối sang bước kiểm chứng policy ngoài thực tế và roadmap mở rộng sản phẩm.")
     
