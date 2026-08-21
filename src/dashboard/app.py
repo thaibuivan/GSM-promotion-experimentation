@@ -424,6 +424,12 @@ with tab2:
                 "SRM p-value và SMD được tính trực tiếp từ dữ liệu hiện tại."
             )
         )
+        st.info(
+            "**💡 Giải thích nhanh cho Mentor:**\n"
+            "- **FPR (False Positive Rate):** Hệ thống chia nhóm chuẩn phải có tỷ lệ báo động giả ~5%. Nếu quá cao là hệ thống đang có lỗi.\n"
+            "- **SRM p-value:** Nếu < 0.05, số lượng khách 2 nhóm đang bị lệch nghiêm trọng so với tỷ lệ 50/50.\n"
+            "- **Max |SMD|:** Độ lệch đặc điểm khách hàng. |SMD| < 0.1 chứng tỏ 2 nhóm cực kỳ cân bằng."
+        )
     
     st.markdown("---")
     st.subheader("Voucher có thật sự tạo tác động nhân quả và mức tăng có đồng đều không?")
@@ -444,6 +450,11 @@ with tab2:
     c2.metric("ATE đã hiệu chỉnh", f"{adj_ate:.2f} chuyến", help="Ước lượng đã điều chỉnh theo hành vi nền để tăng độ chính xác.")
     c3.metric("Khoảng tin cậy 95%", f"[{ci_low:.2f} , {ci_high:.2f}]", help="Nếu lặp lại thí nghiệm 100 lần, thì 95 lần mức tăng thực tế sẽ rơi vào khoảng này. Khoảng này KHÔNG chứa số 0 chứng tỏ việc tăng chuyến đi là có thật.")
     c4.metric("P-value", f"{p_val:.4f}", "Có ý nghĩa thống kê" if p_val < 0.05 else "Chưa có ý nghĩa thống kê", help="Xác suất mà kết quả tăng trưởng này chỉ là do 'ăn may'. P-value < 0.05 (nhỏ hơn 5%) nghĩa là chắc chắn có tác dụng thực sự.")
+    st.info(
+        "**💡 Giải thích nhanh cho Mentor:**\n"
+        "- **Khoảng tin cậy 95%:** Khoảng này KHÔNG chứa số 0 chứng tỏ việc tăng chuyến đi là có thật, không phải ngẫu nhiên.\n"
+        "- **P-value:** Nhỏ hơn 0.05 (5%) nghĩa là tỷ lệ kết quả này do 'ăn may' là cực kỳ thấp. Chắc chắn voucher có tác dụng."
+    )
 
     with st.expander("Phương pháp kỹ thuật - Ước lượng nhân quả"):
         st.markdown("""
