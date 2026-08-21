@@ -27,37 +27,46 @@ st.markdown("""
     .block-container { padding-top: 3.5rem; }
     
     .stTabs [data-baseweb="tab-list"],
-    div[data-testid="stTabs"] div[data-baseweb="tab-list"] {
+    div[data-testid="stTabs"] div[data-baseweb="tab-list"],
+    div[role="tablist"] {
         gap: 8px;
         border-bottom: 1px solid rgba(148, 163, 184, 0.25);
         margin-bottom: 24px;
     }
     .stTabs [data-baseweb="tab"],
-    div[data-testid="stTabs"] button[data-baseweb="tab"] {
-        height: 74px !important;
-        min-height: 74px !important;
+    div[data-testid="stTabs"] button[data-baseweb="tab"],
+    button[role="tab"],
+    div[role="tab"] {
+        height: 76px !important;
+        min-height: 76px !important;
         white-space: nowrap !important;
         background-color: transparent !important;
         border-radius: 4px 4px 0px 0px;
         padding: 20px 24px !important;
-        font-size: 1.5rem !important;
+        font-size: 24px !important;
         font-weight: 800 !important;
     }
     .stTabs [data-baseweb="tab"] p,
     .stTabs [data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p,
     div[data-testid="stTabs"] button[data-baseweb="tab"] p,
-    div[data-testid="stTabs"] button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
-        font-size: 1.5rem !important;
+    div[data-testid="stTabs"] button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p,
+    button[role="tab"] *,
+    div[role="tab"] * {
+        font-size: 24px !important;
         font-weight: 800 !important;
         line-height: 1.15 !important;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"],
-    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"],
+    button[role="tab"][aria-selected="true"],
+    div[role="tab"][aria-selected="true"] {
         color: #00E5FF !important;
         background-color: rgba(0, 229, 255, 0.12) !important;
         border-bottom: 4px solid #00E5FF !important;
     }
-    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] p {
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] p,
+    button[role="tab"][aria-selected="true"] *,
+    div[role="tab"][aria-selected="true"] * {
         color: #00E5FF !important;
     }
     
