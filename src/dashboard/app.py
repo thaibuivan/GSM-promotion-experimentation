@@ -671,7 +671,7 @@ with tab4:
     <div style='display: flex; justify-content: space-between; align-items: center; background-color: #2E2E2E; padding: 15px; border-radius: 6px; margin-bottom: 20px;'>
         <div style='text-align: center; flex: 1;'><b>TẦNG MÔ HÌNH</b><br><span style='color:#ccc; font-size: 0.9em;'>CATE dự báo</span></div>
         <div style='font-size: 1.5rem; color: #00E5FF;'>➔</div>
-        <div style='text-align: center; flex: 1;'><b>TẦNG KINH TẾ</b><br><span style='color:#ccc; font-size: 0.9em;'>Lợi nhuận tăng thêm - Chi phí voucher</span></div>
+        <div style='text-align: center; flex: 1;'><b>TẦNG KINH TẾ</b><br><span style='color:#ccc; font-size: 0.9em;'>Incremental Margin - Expected Voucher Cost</span></div>
         <div style='font-size: 1.5rem; color: #00E5FF;'>➔</div>
         <div style='text-align: center; flex: 1;'><b>TẦNG CHÍNH SÁCH</b><br><span style='color:#ccc; font-size: 0.9em;'>Phát / Không phát / Ràng buộc ngân sách</span></div>
     </div>
@@ -679,15 +679,17 @@ with tab4:
     
     st.caption("**Đầu ra mô hình chưa phải quyết định cuối cùng; điều kiện kinh tế và ràng buộc chính sách mới chuyển dự báo thành hành động.**")
     st.latex(r"EV_i = CATE_i \times L_i - \widehat{Y_i(1)} \times C_i")
-    st.caption("Trong đó, Lᵢ là lợi nhuận trên mỗi chuyến; Ŷᵢ(1) là tổng số chuyến dự kiến khi phát voucher; Cᵢ là chi phí voucher trên mỗi chuyến.")
+    st.caption("Trong đó, Lᵢ là lợi nhuận trên mỗi chuyến; Ŷᵢ(1) là tổng số chuyến dự kiến khi phát voucher; Cᵢ là chi phí voucher trên mỗi chuyến. Một khách hàng chỉ đáng nhận voucher khi incremental margin kỳ vọng đủ bù promotion burn.")
     
     col_sim_left, col_sim_right = st.columns([1, 3])
     
     with col_sim_left:
         st.markdown("#### Các giả định")
         sim_voucher = st.slider("Mức giảm giá (%)", min_value=5.0, max_value=50.0, value=15.0, step=1.0)
+        st.warning("Uplift/CATE hiện được ước lượng dưới treatment voucher 15%. Thay đổi mức voucher trong simulator chỉ là economic sensitivity analysis; CATE được giữ cố định và không được diễn giải là causal effect đã estimate cho mức voucher mới.")
         sim_margin = st.slider("Biên lợi nhuận (%)", min_value=10.0, max_value=100.0, value=70.0, step=5.0)
-        sim_budget = st.number_input("Ngân sách ($)", min_value=1000, max_value=500000, value=50000, step=5000)
+        sim_budget = st.number_input("Ngân sách cho policy phân bổ ($)", min_value=1000, max_value=500000, value=50000, step=5000)
+        st.caption("Ngân sách chỉ áp dụng cho Budget-Constrained Greedy; các policy còn lại được giữ nguyên để làm benchmark.")
         st.caption("Chi phí voucher mỗi chuyến = mức giảm giá × giá cước; simulator không áp dụng cap trong synthetic sandbox.")
         
     with col_sim_right:
@@ -704,7 +706,7 @@ with tab4:
             target_pct = (n_t / total_pop) * 100 if total_pop > 0 else 0
             
             if n_t == 0: 
-                return {"Chính sách ứng viên": label, "Tỷ lệ nhắm chọn": 0.0, "Chuyến tăng thêm": 0.0, "Chi phí voucher ($)": 0, "Lợi nhuận ($)": 0, "ROI (%)": 0.0}
+                return {"Chính sách so sánh": label, "Tỷ lệ khách hàng được nhận (%)": 0.0, "Chuyến tăng thêm": 0.0, "Chi phí voucher ($)": 0, "Lợi nhuận kỳ vọng ($)": 0, "ROI (%)": 0.0}
             
             pred_inc_rides = targeted['cate_pred'].sum()
             pred_burn = (targeted['pred_rides_treated'] * targeted['voucher_cost']).sum()
@@ -712,49 +714,65 @@ with tab4:
             pred_roi = (pred_profit / pred_burn * 100) if pred_burn > 0 else 0
             
             return {
-                "Chính sách ứng viên": label,
-                "Tỷ lệ nhắm chọn": round(target_pct, 1),
+                "Chính sách so sánh": label,
+                "Tỷ lệ khách hàng được nhận (%)": round(target_pct, 1),
                 "Chuyến tăng thêm": round(pred_inc_rides, 1),
                 "Chi phí voucher ($)": round(pred_burn, 0),
-                "Lợi nhuận ($)": round(pred_profit, 0),
+                "Lợi nhuận kỳ vọng ($)": round(pred_profit, 0),
                 "ROI (%)": round(pred_roi, 1)
             }
         
         sim_results = []
         no_m = pd.Series([False]*len(preds_df), index=preds_df.index)
-        sim_results.append(eval_policy_sim(no_m, "0. Không phát voucher"))
+        sim_results.append(eval_policy_sim(no_m, "0. No Voucher"))
         
         mass_m = pd.Series([True]*len(preds_df), index=preds_df.index)
-        sim_results.append(eval_policy_sim(mass_m, "1. Phát voucher đại trà"))
+        sim_results.append(eval_policy_sim(mass_m, "1. Mass Voucher"))
         
         if 'persona' in preds_df.columns:
             sub_m = preds_df['persona'].str.contains('Suburban', case=False, na=False)
-            sim_results.append(eval_policy_sim(sub_m, "2. Phát theo phân khúc ngoại thành"))
+            sim_results.append(eval_policy_sim(sub_m, "2. Segment Targeting"))
             
         uplift_thresh = preds_df['cate_pred'].quantile(0.7)
         uplift_m = preds_df['cate_pred'] >= uplift_thresh
-        sim_results.append(eval_policy_sim(uplift_m, "3. Phát theo uplift (30% CATE cao nhất)"))
+        sim_results.append(eval_policy_sim(uplift_m, "3. Uplift Targeting"))
         
         prof_m = preds_df['expected_value'] > 0
-        sim_results.append(eval_policy_sim(prof_m, "4. Phát theo lợi nhuận kỳ vọng"))
+        sim_results.append(eval_policy_sim(prof_m, "4. EV/Profit Targeting"))
         
         prof_df_sim = preds_df[preds_df['expected_value'] > 0].copy()
         df_sorted = prof_df_sim.sort_values('expected_value', ascending=False)
         df_sorted['cum_cost'] = (df_sorted['pred_rides_treated'] * df_sorted['voucher_cost']).cumsum()
         budget_m_idx = df_sorted[df_sorted['cum_cost'] <= sim_budget].index
         budget_m = preds_df.index.isin(budget_m_idx)
-        sim_results.append(eval_policy_sim(budget_m, "5. Phân bổ theo ngân sách"))
+        sim_results.append(eval_policy_sim(budget_m, "5. Budget-Constrained Greedy"))
         
         sim_df = pd.DataFrame(sim_results)
         # Handle tooltip column if needed (Streamlit dataframe tooltip isn't native for single cells easily without extra code, we will just use a helper icon or text).
         
         st.dataframe(sim_df.drop(columns=['tooltip'], errors='ignore').style.format({
-            'Tỷ lệ nhắm chọn': '{:.1f}%',
+            'Tỷ lệ khách hàng được nhận (%)': '{:.1f}%',
             'Chuyến tăng thêm': '{:,.1f}',
             'Chi phí voucher ($)': '${:,.0f}',
-            'Lợi nhuận ($)': '${:,.0f}',
+            'Lợi nhuận kỳ vọng ($)': '${:,.0f}',
             'ROI (%)': '{:.1f}%'
-        }).background_gradient(subset=['Lợi nhuận ($)'], cmap='RdYlGn', vmin=-5000, vmax=15000), use_container_width=True, hide_index=True)
+        }).background_gradient(subset=['Lợi nhuận kỳ vọng ($)'], cmap='RdYlGn', vmin=-5000, vmax=15000), use_container_width=True, hide_index=True)
+
+        st.caption("*5. Budget-Constrained Greedy: greedy heuristic chỉ xét khách hàng có EV dương, xếp theo EV từ cao xuống thấp, rồi lấy theo cumulative voucher cost tới ngân sách. Nếu ngân sách lớn hơn tổng chi phí của toàn bộ khách hàng EV dương, kết quả sẽ giống EV/Profit Targeting. Đây không phải nghiệm tối ưu tổ hợp chính xác.*")
+        
+        best_profit = sim_df['Lợi nhuận kỳ vọng ($)'].max()
+        if best_profit > 0:
+            best_policy = sim_df.loc[sim_df['Lợi nhuận kỳ vọng ($)'].idxmax(), 'Chính sách so sánh']
+            st.success(f"**Chiến lược có lợi nhuận kỳ vọng cao nhất trong mô phỏng:** {best_policy}")
+        else:
+            st.error("**Chiến lược có lợi nhuận kỳ vọng cao nhất trong mô phỏng:** 0. No Voucher")
+
+        budget_row = sim_df[sim_df['Chính sách so sánh'] == "5. Budget-Constrained Greedy"].iloc[0]
+        st.info(
+            f"Với ngân sách hiện tại, Budget-Constrained Greedy target "
+            f"{budget_row['Tỷ lệ khách hàng được nhận (%)']:.1f}% khách hàng và tạo "
+            f"${budget_row['Lợi nhuận kỳ vọng ($)']:,.0f} Expected Profit. Đây là scenario result, không phải recommendation thứ hai."
+        )
 
         st.download_button(
             "Tải bảng chính sách (CSV)",
@@ -762,15 +780,6 @@ with tab4:
             file_name="policy_simulation.csv",
             mime="text/csv"
         )
-        
-        st.caption("*5. Phân bổ theo ngân sách: Thuật toán tham lam xếp khách hàng có EV dương theo EV từ cao xuống thấp. Nếu ngân sách lớn hơn tổng chi phí của toàn bộ khách hàng EV dương, kết quả sẽ giống chính sách phát theo lợi nhuận kỳ vọng. Đây không phải nghiệm tối ưu tổ hợp chính xác.*")
-        
-        best_profit = sim_df['Lợi nhuận ($)'].max()
-        if best_profit > 0:
-            best_policy = sim_df.loc[sim_df['Lợi nhuận ($)'].idxmax(), 'Chính sách ứng viên']
-            st.success(f"**Chính sách ứng viên được đề xuất theo các giả định hiện tại:** {best_policy}")
-        else:
-            st.error("**Phương án được đề xuất:** Không phát voucher")
 
 # ================= TAB 5: ROBUSTNESS =================
 with tab5:
