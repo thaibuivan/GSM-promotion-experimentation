@@ -279,8 +279,8 @@ with tab1:
     st.subheader("Phát voucher đại trà có tạo thêm lợi nhuận không?")
     st.markdown("Thay vì chỉ nhìn vào tỷ lệ mở ứng dụng hoặc số chuyến tăng, ta đánh giá trực tiếp **lợi nhuận tăng thêm** khi phát voucher đại trà theo các giả định của môi trường mô phỏng.")
     
-    avg_trips_treat = df_treat['trips_30d'].mean()
-    avg_trips_ctrl = df_ctrl['trips_30d'].mean()
+    avg_trips_treat = df_treat['Y_rand'].mean()
+    avg_trips_ctrl = df_ctrl['Y_rand'].mean()
     incremental_trips_per_user = avg_trips_treat - avg_trips_ctrl
     avg_rev_treat = df_treat['gross_revenue_30d'].mean()
     avg_rev_ctrl = df_ctrl['gross_revenue_30d'].mean()
