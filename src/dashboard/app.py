@@ -32,13 +32,18 @@ st.markdown("""
         margin-bottom: 24px;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 58px;
+        height: 64px;
         white-space: pre-wrap;
         background-color: transparent;
         border-radius: 4px 4px 0px 0px;
-        padding: 14px 18px;
-        font-size: 1.15rem;
+        padding: 16px 20px;
+        font-size: 1.28rem;
         font-weight: 700;
+    }
+    .stTabs [data-baseweb="tab"] p {
+        font-size: 1.28rem;
+        font-weight: 700;
+        line-height: 1.2;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
         color: #00E5FF;
