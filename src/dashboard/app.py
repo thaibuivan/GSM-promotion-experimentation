@@ -361,7 +361,7 @@ with tab1:
 with tab2:
     render_breadcrumb("Causal Evidence")
     
-    st.markdown("#### Cổng kiểm tra chất lượng thí nghiệm")
+    st.markdown("#### Chất lượng thí nghiệm")
     observed_treatment = len(df_treat)
     observed_control = len(df_ctrl)
     total = observed_treatment + observed_control
@@ -396,7 +396,7 @@ with tab2:
     else:
         st.warning("Chưa có artifact kiểm định thí nghiệm; dashboard không tự gán trạng thái ĐẠT.")
 
-    with st.expander("Số liệu kiểm định và nguồn tính"):
+    with st.expander("Chi tiết kiểm định"):
         h1, h2, h3, h4 = st.columns(4)
         h1.metric(
             "Số lần mô phỏng A/A",
@@ -424,6 +424,48 @@ with tab2:
                 "SRM p-value và SMD được tính trực tiếp từ dữ liệu hiện tại."
             )
         )
+        if smd_by_feature:
+            smd_labels = {
+                'age': 'Tuổi',
+                'monthly_rides_history': 'Lịch sử chuyến',
+                'recency_days': 'Số ngày từ lần gần nhất',
+                'avg_fare_per_trip': 'Giá vé trung bình',
+                'is_urban': 'Nội thành'
+            }
+            smd_threshold = health['balance_smd_threshold'] if health is not None else 0.1
+            smd_df = pd.DataFrame([
+                {
+                    'Biến': smd_labels.get(feature, feature),
+                    'SMD': value,
+                    '|SMD|': abs(value)
+                }
+                for feature, value in smd_by_feature.items()
+            ]).sort_values('|SMD|', ascending=False)
+
+            fig_smd = go.Figure(go.Bar(
+                x=smd_df['|SMD|'],
+                y=smd_df['Biến'],
+                orientation='h',
+                marker_color=np.where(smd_df['|SMD|'] < smd_threshold, '#00CC96', '#FF4B4B'),
+                customdata=np.round(smd_df['SMD'], 3),
+                hovertemplate="Biến: %{y}<br>|SMD|: %{x:.3f}<br>SMD: %{customdata:.3f}<extra></extra>"
+            ))
+            fig_smd.add_vline(
+                x=smd_threshold,
+                line_dash="dash",
+                line_color="#F8FAFC",
+                annotation_text=f"Ngưỡng {smd_threshold:.1f}",
+                annotation_position="top right"
+            )
+            fig_smd.update_layout(
+                **chart_layout,
+                height=max(260, 58 * len(smd_df) + 110),
+                title="Cân bằng biến nền theo |SMD|",
+                showlegend=False
+            )
+            fig_smd.update_xaxes(title="|SMD|", range=[0, max(smd_threshold * 1.4, smd_df['|SMD|'].max() * 1.2)])
+            fig_smd.update_yaxes(title="", autorange="reversed")
+            st.plotly_chart(fig_smd, use_container_width=True)
         st.info(
             "**💡 Giải thích nhanh cho Mentor:**\n"
             "- **FPR (False Positive Rate):** Hệ thống chia nhóm chuẩn phải có tỷ lệ báo động giả ~5%. Nếu quá cao là hệ thống đang có lỗi.\n"
@@ -447,8 +489,8 @@ with tab2:
     
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("ATE thô", f"{raw_ate:.2f} chuyến", help="Chênh lệch trung bình đơn thuần giữa nhóm nhận voucher và nhóm đối chứng.")
-    c2.metric("ATE đã hiệu chỉnh", f"{adj_ate:.2f} chuyến", help="Ước lượng đã điều chỉnh theo hành vi nền để tăng độ chính xác.")
-    c3.metric("Khoảng tin cậy 95%", f"[{ci_low:.2f} , {ci_high:.2f}]", help="Nếu lặp lại thí nghiệm 100 lần, thì 95 lần mức tăng thực tế sẽ rơi vào khoảng này. Khoảng này KHÔNG chứa số 0 chứng tỏ việc tăng chuyến đi là có thật.")
+    c2.metric("Adjusted ATE", f"{adj_ate:.2f} chuyến", help="Ước lượng đã điều chỉnh theo hành vi nền để tăng độ chính xác.")
+    c3.metric("CI 95%", f"[{ci_low:.2f} , {ci_high:.2f}]", help="Nếu lặp lại thí nghiệm 100 lần, thì 95 lần mức tăng thực tế sẽ rơi vào khoảng này. Khoảng này KHÔNG chứa số 0 chứng tỏ việc tăng chuyến đi là có thật.")
     c4.metric("P-value", f"{p_val:.4f}", "Có ý nghĩa thống kê" if p_val < 0.05 else "Chưa có ý nghĩa thống kê", help="Xác suất mà kết quả tăng trưởng này chỉ là do 'ăn may'. P-value < 0.05 (nhỏ hơn 5%) nghĩa là chắc chắn có tác dụng thực sự.")
     st.info(
         "**💡 Giải thích nhanh cho Mentor:**\n"
@@ -464,7 +506,7 @@ with tab2:
         > **Việc phân nhóm ngẫu nhiên tạo khả năng nhận diện tác động nhân quả. Điều chỉnh theo đặc trưng nền nhằm tăng độ chính xác, không phải để sửa sai lệch do nhiễu.**
         """)
 
-    st.markdown("#### Hiệu quả kinh tế theo phân khúc")
+    st.markdown("#### Targeting theo phân khúc")
     roi_data = []
     use_synthetic_segment_benchmark = {'Y0', 'Y1', 'avg_fare_per_trip'}.issubset(df.columns)
     for p in df['persona'].unique():
@@ -512,10 +554,11 @@ with tab2:
     st.dataframe(roi_df.style.format(precision=1)
              .background_gradient(subset=['ROI (%)'], cmap='RdYlGn', vmin=-100, vmax=50), 
              use_container_width=True, hide_index=True)
+    st.info("Targeting theo phân khúc cải thiện hiệu quả so với mass voucher, nhưng vẫn chưa đủ để tạo ROI dương.")
     if use_synthetic_segment_benchmark:
         st.caption("Hiệu quả theo phân khúc sử dụng hai kết quả tiềm năng tổng hợp Y0/Y1 làm chuẩn đối chiếu ổn định; không diễn giải đây là ROI thực tế trên môi trường vận hành.")
 
-    st.info("**Kết luận:** Tác động trung bình tồn tại nhưng hiệu quả kinh doanh khác nhau giữa các nhóm. Phát voucher theo phân khúc đơn thuần vẫn chưa tối ưu được lợi nhuận.")
+    st.markdown("→ Cần chuyển từ targeting theo nhóm sang ước lượng tác động ở cấp từng khách hàng.")
 
 # ================= TAB 3: USER HETEROGENEITY =================
 with tab3:
