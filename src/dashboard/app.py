@@ -784,28 +784,28 @@ with tab4:
 # ================= TAB 5: ROBUSTNESS =================
 with tab5:
     render_breadcrumb("Robustness")
-    st.subheader("Cổng kiểm định trước triển khai và lộ trình phát triển")
-    st.markdown("Mọi chính sách ứng viên đều phải vượt qua các kiểm tra độ vững trước khi được đưa vào thử nghiệm thực tế.")
+    st.subheader("Kiểm tra độ vững & lộ trình phát triển")
+    st.markdown("Tab này kiểm tra framework phản ứng thế nào khi bị stress, rồi nối sang bước kiểm chứng policy ngoài thực tế và roadmap mở rộng sản phẩm.")
     
-    st.markdown("#### 1. Các cổng kiểm tra độ vững")
-    g1, g2, g3, g4 = st.columns(4)
-    g1.success("**Tăng quy mô mẫu**\n\nATE duy trì ổn định và khoảng tin cậy hẹp dần khi N tăng từ 10 nghìn lên 50 nghìn và 100 nghìn.")
-    g2.success("**Kiểm tra tác động bằng 0**\n\nKhi tác động thật bằng 0, ước lượng vẫn tập trung quanh 0 và tỷ lệ dương tính giả gần mức sai lầm loại I đã thiết kế trong mô phỏng.")
-    g3.warning("**Mất cân bằng giữa hai nhóm**\n\nVới tỷ lệ phân bổ nhóm nhận voucher/đối chứng là 90/10, ước lượng có thể dao động đáng kể trong một lần chạy; rủi ro chính là độ bất định lớn hơn và lực thống kê thấp hơn.")
-    g4.info("**Bổ sung nhiễu**\n\nNhiễu ngoại sinh làm tín hiệu yếu đi và tăng độ bất định, nhưng về kỳ vọng không tạo sai lệch có hướng một cách hệ thống.")
+    st.markdown("#### 1. Stress tests")
+    g1, g2 = st.columns(2)
+    g1.success("**Sample Size**\n\nATE ổn định, CI hẹp dần khi N tăng.")
+    g2.success("**Null Effect**\n\nEstimate tập trung quanh 0, FPR gần mức thiết kế.")
+    g3, g4 = st.columns(2)
+    g3.warning("**Phân bổ Treatment 90/10**\n\nUncertainty/SE tăng.")
+    g4.info("**Noise Injection**\n\nSignal yếu đi, uncertainty tăng.")
     
-    st.caption("**Các kiểm tra độ vững trên dữ liệu tổng hợp giúp kiểm tra logic đo lường, nhưng chưa chứng minh hệ thống đã đủ vững trên môi trường vận hành thực tế hoặc sẵn sàng tự động triển khai.**")
-    st.caption("Nguồn: `notebooks/week6_stress_test/1_stress_test.ipynb`. Dashboard tóm tắt kết quả đã chạy, không tự chạy lại stress tests khi tải trang.")
-    st.info("**Cổng Champion–Challenger:** Phát theo lợi nhuận kỳ vọng mới là chính sách ứng viên, chưa phải quyết định triển khai cuối cùng. Thử nghiệm thực tế cần so sánh chính sách này với phát theo phân khúc và chỉ mở rộng khi lợi nhuận tăng thêm cao hơn với bằng chứng thống kê.")
+    st.caption("Các stress test này kiểm tra statistical behavior trong synthetic sandbox, chưa chứng minh production robustness; kết quả được tổng hợp từ Week 6 stress-test notebook và không rerun khi dashboard load.")
+    st.info("**Champion–Challenger:** Policy được lựa chọn từ simulator mới chỉ là candidate/challenger. Trước khi rollout cần thử nghiệm trực tiếp với baseline/champion hiện hành và chỉ mở rộng khi incremental profit cải thiện với bằng chứng thống kê.")
     
     with st.expander("Cách diễn giải kiểm tra độ vững"):
         st.markdown("""
         | Kiểm tra | Biến được thay đổi | Hành vi thống kê kỳ vọng |
         |---|---|---|
-        | Quy mô mẫu | N | Khoảng tin cậy hẹp dần |
-        | Tác động bằng 0 | ATE thật | Ước lượng tập trung quanh 0 |
-        | Chia nhóm 90/10 | Tỷ lệ phân bổ treatment | Sai số chuẩn tăng |
-        | Bổ sung nhiễu | Phương sai outcome | Tín hiệu yếu đi |
+        | Sample Size | N | ATE ổn định hơn, khoảng tin cậy hẹp dần |
+        | Null Effect | ATE thật | Ước lượng tập trung quanh 0, FPR gần mức thiết kế |
+        | Treatment Allocation 90/10 | Tỷ lệ phân bổ treatment | Sai số chuẩn và độ bất định tăng |
+        | Noise Injection | Phương sai outcome | Tín hiệu yếu đi, độ bất định tăng |
         
         > **Các phép kiểm tra ở đây xác nhận quy trình có phản ứng đúng như lý thuyết thống kê hay không, chưa khẳng định quy trình đã đủ vững để vận hành thực tế.**
         """)
@@ -852,3 +852,5 @@ with tab5:
         
         > **Đây là lộ trình minh họa cho sự phát triển của khung giải pháp, không phải kiến trúc vận hành thực tế hiện tại của GSM.**
         """)
+
+    st.caption("Từ prototype đến production: kiểm chứng policy ngoài thực tế trước, sau đó mới mở rộng từ WHO sang WHEN và HOW MUCH.")
