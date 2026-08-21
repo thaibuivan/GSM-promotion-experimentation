@@ -32,23 +32,24 @@ st.markdown("""
         margin-bottom: 24px;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 64px;
-        white-space: pre-wrap;
-        background-color: transparent;
+        height: 70px;
+        white-space: nowrap;
+        background-color: transparent !important;
         border-radius: 4px 4px 0px 0px;
-        padding: 16px 20px;
-        font-size: 1.28rem;
-        font-weight: 700;
+        padding: 18px 22px;
+        font-size: 1.42rem !important;
+        font-weight: 800 !important;
     }
-    .stTabs [data-baseweb="tab"] p {
-        font-size: 1.28rem;
-        font-weight: 700;
-        line-height: 1.2;
+    .stTabs [data-baseweb="tab"] p,
+    .stTabs [data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
+        font-size: 1.42rem !important;
+        font-weight: 800 !important;
+        line-height: 1.15 !important;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        color: #00E5FF;
-        background-color: rgba(0, 229, 255, 0.10);
-        border-bottom: 3px solid #00E5FF;
+        color: #00E5FF !important;
+        background-color: rgba(0, 229, 255, 0.12) !important;
+        border-bottom: 4px solid #00E5FF !important;
     }
     
     .roadmap-card {
