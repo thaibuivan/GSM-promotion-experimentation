@@ -101,10 +101,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="executive-title">Khung thử nghiệm khuyến mãi và cá nhân hóa</p>', unsafe_allow_html=True)
-st.markdown("### Mô hình thử nghiệm ở cấp khách hàng cho nhắm chọn nhân quả và đánh giá chính sách")
-st.info("Dự án xây dựng một quy trình xuyên suốt từ bằng chứng nhân quả đến quyết định phát voucher ở cấp khách hàng. Phiên bản hiện tại trả lời KHÁCH HÀNG NÀO nên nhận voucher; hướng phát triển tiếp theo là KHÁCH HÀNG NÀO + KHI NÀO ở cấp phiên, rồi KHÁCH HÀNG NÀO + KHI NÀO + MỨC BAO NHIÊU ở cấp voucher.")
-st.caption("**Phạm vi:** Synthetic sandbox cấp khách hàng trong chu kỳ 30 ngày. Economics mặc định dùng voucher 15% giá mỗi chuyến, không cap; đây không phải chính sách GSM thực tế.")
+st.markdown('<p class="executive-title">Framework hỗ trợ quyết định khuyến mãi dựa trên dữ liệu</p>', unsafe_allow_html=True)
+st.info("Xây dựng quy trình end-to-end từ đo lường tác động voucher, xác định khách hàng có khả năng tạo giá trị tăng thêm, đến mô phỏng chính sách khuyến mãi phù hợp.")
+st.caption("**Phạm vi:** Prototype trên synthetic sandbox nhằm kiểm chứng phương pháp; chưa đại diện cho chính sách vận hành thực tế.")
 
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 data_path = os.path.join(base_path, "data", "processed", "segmented_simulation_data.csv")
