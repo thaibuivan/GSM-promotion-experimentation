@@ -414,10 +414,10 @@ def standardized_mean_difference(treated, control):
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "1. Bài toán kinh doanh",
-    "2. Bằng chứng nhân quả",
-    "3. Ai nhạy với voucher?",
-    "4. Mô phỏng chính sách",
-    "5. Kiểm tra độ vững"
+    "2. Kiểm chứng voucher",
+    "3. Cá nhân hóa tác động",
+    "4. Đánh giá kinh tế",
+    "5. Hỗ trợ quyết định"
 ])
 
 # ================= TAB 1: BUSINESS PROBLEM =================
@@ -569,7 +569,9 @@ with tab1:
 # ================= TAB 2: CAUSAL EVIDENCE =================
 with tab2:
     
-    st.markdown("#### Chất lượng thí nghiệm")
+    st.subheader("Kiểm chứng hiệu quả voucher")
+    st.markdown("Trước khi cá nhân hóa, cần chứng minh mức tăng chuyến đến từ voucher, không phải do hai nhóm khách hàng vốn đã khác nhau.")
+    st.markdown("#### 1. Hai nhóm có so sánh công bằng không?")
     observed_treatment = len(df_treat)
     observed_control = len(df_ctrl)
     total = observed_treatment + observed_control
@@ -696,8 +698,8 @@ with tab2:
         )
     
     st.markdown("---")
-    st.subheader("Voucher có thật sự tạo tác động nhân quả và mức tăng có đồng đều không?")
-    st.markdown("Trước khi cá nhân hóa, ta cần chứng minh voucher thực sự tạo ra lượng cầu tăng thêm mang tính nhân quả.")
+    st.subheader("2. Voucher làm tăng bao nhiêu chuyến?")
+    st.markdown("Sau khi setup thí nghiệm đủ tin cậy, ta ước lượng tác động trung bình của voucher lên số chuyến trong chu kỳ 30 ngày.")
     
     raw_ate = df_treat['Y_rand'].mean() - df_ctrl['Y_rand'].mean()
     
@@ -743,7 +745,7 @@ with tab2:
         > **Việc phân nhóm ngẫu nhiên tạo khả năng nhận diện tác động nhân quả. Điều chỉnh theo đặc trưng nền nhằm tăng độ chính xác, không phải để sửa sai lệch do nhiễu.**
         """)
 
-    st.markdown("#### Targeting theo phân khúc")
+    st.markdown("#### 3. Đọc kết quả theo phân khúc")
     roi_data = []
     use_synthetic_segment_benchmark = {'Y0', 'Y1', 'avg_fare_per_trip'}.issubset(df.columns)
     for p in df['persona'].unique():
@@ -800,7 +802,7 @@ with tab2:
 
 # ================= TAB 3: USER HETEROGENEITY =================
 with tab3:
-    st.subheader("Ai nhạy với voucher?")
+    st.subheader("Cá nhân hóa theo tác động")
     st.markdown("Phân phối CATE dự báo cho thấy response không đồng đều giữa khách hàng; vì vậy cần model uplift để xếp hạng ai nên được ưu tiên nhận voucher.")
     
     col_c1, col_c2 = st.columns(2)
@@ -899,7 +901,7 @@ with tab3:
         """)
 # ================= TAB 4: POLICY SIMULATOR =================
 with tab4:
-    st.subheader("Lựa chọn chính sách phát voucher trong giới hạn kinh tế")
+    st.subheader("Đánh giá chính sách kinh tế")
     
     st.markdown("""
     <div style='display: flex; justify-content: space-between; align-items: center; background-color: #FFFFFF; color: #0F172A; border: 1px solid #D8E2EA; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06); padding: 15px; border-radius: 6px; margin-bottom: 20px;'>
@@ -1017,10 +1019,10 @@ with tab4:
 
 # ================= TAB 5: ROBUSTNESS =================
 with tab5:
-    st.subheader("Kiểm tra độ vững & lộ trình phát triển")
+    st.subheader("Hỗ trợ ra quyết định & minh họa")
     st.markdown("Tab này kiểm tra framework phản ứng thế nào khi bị stress, rồi nối sang bước kiểm chứng policy ngoài thực tế và roadmap mở rộng sản phẩm.")
     
-    st.markdown("#### 1. Stress tests")
+    st.markdown("#### 1. Stress test & robustness")
     g1, g2 = st.columns(2)
     with g1:
         render_status_card("Sample Size", "ATE ổn định, CI hẹp dần khi N tăng.")
@@ -1048,7 +1050,7 @@ with tab5:
         """)
     
     st.markdown("---")
-    st.markdown("#### 2. Lộ trình trưởng thành của hệ thống")
+    st.markdown("#### 2. Lộ trình WHO → WHEN → HOW MUCH")
     
     c1, c2, c3 = st.columns(3)
     with c1:
