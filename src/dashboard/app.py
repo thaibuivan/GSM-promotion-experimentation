@@ -14,8 +14,14 @@ st.set_page_config(page_title="Khung thử nghiệm khuyến mãi", layout="wide
 # Custom CSS
 st.markdown("""
 <style>
+    .stApp {
+        background-color: #F6F8FB;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: #0F172A;
+    }
     .executive-title {
-        color: #F8FAFC;
+        color: #0F172A;
         font-weight: 800;
         font-size: 2.2rem;
         margin-bottom: 0px;
@@ -30,7 +36,7 @@ st.markdown("""
     div[data-testid="stTabs"] div[data-baseweb="tab-list"],
     div[role="tablist"] {
         gap: 8px;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        border-bottom: 1px solid rgba(15, 23, 42, 0.14);
         margin-bottom: 24px;
     }
     .stTabs [data-baseweb="tab"],
@@ -60,42 +66,45 @@ st.markdown("""
     div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"],
     button[role="tab"][aria-selected="true"],
     div[role="tab"][aria-selected="true"] {
-        color: #00E5FF !important;
-        background-color: rgba(0, 229, 255, 0.12) !important;
-        border-bottom: 4px solid #00E5FF !important;
+        color: #0EA5A4 !important;
+        background-color: rgba(14, 165, 164, 0.10) !important;
+        border-bottom: 4px solid #0EA5A4 !important;
     }
     div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] p,
     button[role="tab"][aria-selected="true"] *,
     div[role="tab"][aria-selected="true"] * {
-        color: #00E5FF !important;
+        color: #0EA5A4 !important;
     }
     
     .roadmap-card {
         padding: 20px;
         border-radius: 8px;
-        background-color: #222222;
-        border: 1px solid #444;
+        background-color: #FFFFFF;
+        border: 1px solid #D8E2EA;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
         text-align: center;
         height: 100%;
     }
     .roadmap-title {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #00E5FF;
+        color: #0EA5A4;
         margin-bottom: 5px;
     }
     .roadmap-subtitle {
         font-size: 1rem;
         font-weight: 600;
-        color: #aaa;
+        color: #64748B;
         margin-bottom: 10px;
     }
     
     .flow-card {
         padding: 10px 20px;
         border-radius: 6px;
-        background-color: #2E2E2E;
-        border-left: 4px solid #00E5FF;
+        background-color: #FFFFFF;
+        border: 1px solid #D8E2EA;
+        border-left: 4px solid #0EA5A4;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
         margin-bottom: 15px;
     }
 </style>
@@ -125,8 +134,8 @@ except Exception as e:
     st.stop()
 
 chart_layout = dict(
-    plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-    font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20)
+    plot_bgcolor='rgba(255,255,255,0)', paper_bgcolor='rgba(255,255,255,0)',
+    font=dict(color='#0F172A'), margin=dict(l=20, r=20, t=40, b=20)
 )
 
 config_path = os.path.join(base_path, 'config.json')
@@ -223,11 +232,11 @@ def render_model_evaluation():
             fig_qini = go.Figure()
             fig_qini.add_trace(go.Scatter(
                 x=qini_df['pct_targeted'], y=qini_df['qini_uplift'], mode='lines',
-                name='Mô hình', line=dict(color='#00E5FF', width=3)
+                name='Mô hình', line=dict(color='#0EA5A4', width=3)
             ))
             fig_qini.add_trace(go.Scatter(
                 x=qini_df['pct_targeted'], y=qini_df['random_uplift'], mode='lines',
-                name='Mốc ngẫu nhiên', line=dict(color='rgba(255,255,255,0.3)', dash='dash', width=2)
+                name='Mốc ngẫu nhiên', line=dict(color='rgba(15,23,42,0.30)', dash='dash', width=2)
             ))
             fig_qini.update_layout(
                 **chart_layout, height=350,
@@ -255,7 +264,7 @@ def render_model_evaluation():
             ))
             fig_cal.add_trace(go.Scatter(
                 name='CATE ground truth (synthetic)', x=calib_df['Decile'], y=calib_df['Ground_Truth_CATE'],
-                mode='lines', line=dict(color='rgba(255,255,255,0.4)', dash='dash', width=2)
+                mode='lines', line=dict(color='rgba(15,23,42,0.38)', dash='dash', width=2)
             ))
             fig_cal.update_layout(
                 **chart_layout, height=350,
@@ -358,8 +367,8 @@ with tab1:
             text=f"${effective_burn:,.0f}", textposition='inside'
         ))
         fig_bar.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20),
+            plot_bgcolor='rgba(255,255,255,0)', paper_bgcolor='rgba(255,255,255,0)',
+            font=dict(color='#0F172A'), margin=dict(l=20, r=20, t=40, b=20),
             height=200, barmode='stack',
             legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5))
         fig_bar.update_xaxes(title="Tổng chi phí voucher ($)", showgrid=False)
@@ -461,7 +470,7 @@ with tab2:
             fig_smd.add_vline(
                 x=smd_threshold,
                 line_dash="dash",
-                line_color="#F8FAFC",
+                line_color="#0F172A",
                 annotation_text=f"Ngưỡng {smd_threshold:.1f}",
                 annotation_position="top right"
             )
@@ -581,17 +590,17 @@ with tab3:
         q_high = preds_df['cate_pred'].quantile(0.99)
         fig_cate = px.histogram(preds_df, x='cate_pred', nbins=100, 
                                 title="Phân bố CATE dự báo (số chuyến tăng thêm kỳ vọng)",
-                                color_discrete_sequence=['#00E5FF'], opacity=0.75,
+                                color_discrete_sequence=['#0EA5A4'], opacity=0.75,
                                 marginal="box", range_x=[q_low, q_high])
         fig_cate.add_vline(x=0, line_dash="dash", line_color="#FF4B4B", 
                            annotation_text="CATE=0", annotation_position="top left", annotation_font_color="#FF4B4B")
         fig_cate.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#F8FAFC'), margin=dict(l=20, r=20, t=40, b=20),
+            plot_bgcolor='rgba(255,255,255,0)', paper_bgcolor='rgba(255,255,255,0)',
+            font=dict(color='#0F172A'), margin=dict(l=20, r=20, t=40, b=20),
             bargap=0.05
         )
-        fig_cate.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)", showgrid=True, gridcolor='#333333')
-        fig_cate.update_yaxes(title="Số khách hàng", showgrid=True, gridcolor='#333333')
+        fig_cate.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)", showgrid=True, gridcolor='#E2E8F0')
+        fig_cate.update_yaxes(title="Số khách hàng", showgrid=True, gridcolor='#E2E8F0')
         st.plotly_chart(fig_cate, use_container_width=True)
         st.caption("Đây là CATE dự báo từ representative model, không phải individual treatment effect tuyệt đối trên production.")
         
@@ -601,7 +610,7 @@ with tab3:
         model_comparison = load_uplift_model_comparison()
 
         def highlight_selected(row):
-            return ['background-color: rgba(0, 229, 255, 0.18); font-weight: 700' if row['Vai trò'] == 'Được chọn' else '' for _ in row]
+            return ['background-color: rgba(14, 165, 164, 0.14); font-weight: 700' if row['Vai trò'] == 'Được chọn' else '' for _ in row]
 
         st.dataframe(
             model_comparison.style
@@ -642,7 +651,7 @@ with tab3:
                              opacity=0.6)
     fig_scatter.add_hline(y=0, line_dash="dash", line_color="#FF4B4B")
     fig_scatter.add_vline(x=0, line_dash="dash", line_color="#00CC96")
-    fig_scatter.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#F8FAFC'), coloraxis_showscale=False, height=350)
+    fig_scatter.update_layout(plot_bgcolor='rgba(255,255,255,0)', paper_bgcolor='rgba(255,255,255,0)', font=dict(color='#0F172A'), coloraxis_showscale=False, height=350)
     fig_scatter.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)")
     fig_scatter.update_yaxes(title="Expected Value ($)")
     st.plotly_chart(fig_scatter, use_container_width=True)
@@ -666,12 +675,12 @@ with tab4:
     st.subheader("Lựa chọn chính sách phát voucher trong giới hạn kinh tế")
     
     st.markdown("""
-    <div style='display: flex; justify-content: space-between; align-items: center; background-color: #2E2E2E; padding: 15px; border-radius: 6px; margin-bottom: 20px;'>
-        <div style='text-align: center; flex: 1;'><b>TẦNG MÔ HÌNH</b><br><span style='color:#ccc; font-size: 0.9em;'>CATE dự báo</span></div>
-        <div style='font-size: 1.5rem; color: #00E5FF;'>➔</div>
-        <div style='text-align: center; flex: 1;'><b>TẦNG KINH TẾ</b><br><span style='color:#ccc; font-size: 0.9em;'>Incremental Margin - Expected Voucher Cost</span></div>
-        <div style='font-size: 1.5rem; color: #00E5FF;'>➔</div>
-        <div style='text-align: center; flex: 1;'><b>TẦNG CHÍNH SÁCH</b><br><span style='color:#ccc; font-size: 0.9em;'>Phát / Không phát / Ràng buộc ngân sách</span></div>
+    <div style='display: flex; justify-content: space-between; align-items: center; background-color: #FFFFFF; color: #0F172A; border: 1px solid #D8E2EA; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06); padding: 15px; border-radius: 6px; margin-bottom: 20px;'>
+        <div style='text-align: center; flex: 1;'><b>TẦNG MÔ HÌNH</b><br><span style='color:#64748B; font-size: 0.9em;'>CATE dự báo</span></div>
+        <div style='font-size: 1.5rem; color: #0EA5A4;'>➔</div>
+        <div style='text-align: center; flex: 1;'><b>TẦNG KINH TẾ</b><br><span style='color:#64748B; font-size: 0.9em;'>Incremental Margin - Expected Voucher Cost</span></div>
+        <div style='font-size: 1.5rem; color: #0EA5A4;'>➔</div>
+        <div style='text-align: center; flex: 1;'><b>TẦNG CHÍNH SÁCH</b><br><span style='color:#64748B; font-size: 0.9em;'>Phát / Không phát / Ràng buộc ngân sách</span></div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -816,25 +825,25 @@ with tab5:
         <div class='roadmap-card'>
             <div class='roadmap-title'>HIỆN TẠI</div>
             <div class='roadmap-subtitle'>Cấp khách hàng</div>
-            <div style='color: #fff; font-size: 1.2rem; margin: 10px 0;'>KHÁCH HÀNG NÀO?</div>
+            <div style='color: #0F172A; font-size: 1.2rem; margin: 10px 0;'>KHÁCH HÀNG NÀO?</div>
             <p>Khách hàng nào nên nhận voucher?</p>
         </div>
         """, unsafe_allow_html=True)
     with c2:
         st.markdown("""
         <div class='roadmap-card'>
-            <div class='roadmap-title' style='color:#ccc;'>TIẾP THEO</div>
+            <div class='roadmap-title' style='color:#64748B;'>TIẾP THEO</div>
             <div class='roadmap-subtitle'>Cấp phiên</div>
-            <div style='color: #fff; font-size: 1.2rem; margin: 10px 0;'>KHÁCH HÀNG NÀO + KHI NÀO?</div>
+            <div style='color: #0F172A; font-size: 1.2rem; margin: 10px 0;'>KHÁCH HÀNG NÀO + KHI NÀO?</div>
             <p>Khách hàng nào nên nhận voucher và trong phiên hoặc bối cảnh nào?</p>
         </div>
         """, unsafe_allow_html=True)
     with c3:
         st.markdown("""
         <div class='roadmap-card'>
-            <div class='roadmap-title' style='color:#ccc;'>TƯƠNG LAI</div>
+            <div class='roadmap-title' style='color:#64748B;'>TƯƠNG LAI</div>
             <div class='roadmap-subtitle'>Cá nhân hóa voucher</div>
-            <div style='color: #fff; font-size: 1.2rem; margin: 10px 0;'>KHÁCH HÀNG NÀO + KHI NÀO + MỨC BAO NHIÊU?</div>
+            <div style='color: #0F172A; font-size: 1.2rem; margin: 10px 0;'>KHÁCH HÀNG NÀO + KHI NÀO + MỨC BAO NHIÊU?</div>
             <p>Mức voucher nào tối đa hóa giá trị tăng thêm kỳ vọng?</p>
         </div>
         """, unsafe_allow_html=True)
