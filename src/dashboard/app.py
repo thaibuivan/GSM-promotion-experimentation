@@ -416,8 +416,8 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "1. Bài toán kinh doanh",
     "2. Kiểm chứng voucher",
     "3. Cá nhân hóa tác động",
-    "4. Đánh giá kinh tế",
-    "5. Hỗ trợ quyết định"
+    "4. Kinh tế & quyết định",
+    "5. Kiểm tra pipeline"
 ])
 
 # ================= TAB 1: BUSINESS PROBLEM =================
@@ -901,7 +901,7 @@ with tab3:
         """)
 # ================= TAB 4: POLICY SIMULATOR =================
 with tab4:
-    st.subheader("Đánh giá chính sách kinh tế")
+    st.subheader("Đánh giá kinh tế & ra quyết định chính sách")
     
     st.markdown("""
     <div style='display: flex; justify-content: space-between; align-items: center; background-color: #FFFFFF; color: #0F172A; border: 1px solid #D8E2EA; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06); padding: 15px; border-radius: 6px; margin-bottom: 20px;'>
@@ -1019,7 +1019,7 @@ with tab4:
 
 # ================= TAB 5: ROBUSTNESS =================
 with tab5:
-    st.subheader("Hỗ trợ ra quyết định & minh họa")
+    st.subheader("Kiểm tra độ vững của pipeline")
     st.markdown("Tab này kiểm tra framework phản ứng thế nào khi bị stress, rồi nối sang bước kiểm chứng policy ngoài thực tế và roadmap mở rộng sản phẩm.")
     
     st.markdown("#### 1. Stress test & robustness")
