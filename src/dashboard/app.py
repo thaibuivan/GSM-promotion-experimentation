@@ -45,6 +45,46 @@ st.markdown("""
         font-size: 2rem;
         font-weight: bold;
     }
+    .kpi-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        padding: 16px 18px;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+        min-height: 138px;
+    }
+    .kpi-label {
+        color: #334155;
+        font-size: 0.86rem;
+        font-weight: 750;
+        line-height: 1.25;
+        min-height: 42px;
+    }
+    .kpi-value {
+        color: #0F172A;
+        font-size: 2rem;
+        font-weight: 850;
+        line-height: 1.15;
+        margin: 8px 0 10px;
+    }
+    .kpi-delta {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: normal;
+    }
+    .kpi-delta.positive {
+        background-color: #DCFCE7;
+        color: #15803D;
+    }
+    .kpi-delta.negative {
+        background-color: #FEE2E2;
+        color: #B91C1C;
+    }
     .block-container { padding-top: 3.5rem; }
     
     .stTabs [data-baseweb="tab-list"],
@@ -171,6 +211,18 @@ df_ctrl = df[df['treatment_rand'] == 0]
 def calc_cost(fare, rate_pct):
     raw_cost = fare * (rate_pct / 100.0)
     return raw_cost if VOUCHER_CAP is None else np.minimum(raw_cost, VOUCHER_CAP)
+
+def render_kpi_card(label, value, delta, tone="positive"):
+    st.markdown(
+        f"""
+        <div class="kpi-card">
+            <div class="kpi-label">{label}</div>
+            <div class="kpi-value">{value}</div>
+            <div class="kpi-delta {tone}">{delta}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 def trapezoid_area(y, x):
     if hasattr(np, 'trapezoid'):
@@ -335,15 +387,57 @@ with tab1:
     )
     
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Chuyến xe tăng thêm (30 ngày)", f"{total_incremental_trips:,.0f}", delta=f"+{total_incremental_trips:,.0f} so với không phát")
-    c2.metric("Doanh thu tăng thêm (30 ngày)", f"${total_incremental_revenue:,.0f}", delta=f"+${total_incremental_revenue:,.0f} tăng thêm")
-    c3.metric("Tổng chi phí voucher (30 ngày)", f"${total_voucher_cost:,.0f}", delta=f"+${total_voucher_cost:,.0f} chi phí", delta_color="inverse")
-    c4.metric("Lợi nhuận ròng (30 ngày)", f"${total_net_profit:,.0f}", delta=f"${total_net_profit:,.0f} so với không phát")
-    c5.metric("ROI tổng thể", f"{overall_roi:.1f}%", delta=f"{overall_roi:.1f} điểm so với hòa vốn")
+    with c1:
+        render_kpi_card(
+            "Chuyến xe tăng thêm (30 ngày)",
+            f"{total_incremental_trips:,.0f}",
+            f"↑ {total_incremental_trips:,.0f} so với không phát"
+        )
+    with c2:
+        render_kpi_card(
+            "Doanh thu tăng thêm (30 ngày)",
+            f"${total_incremental_revenue:,.0f}",
+            f"↑ ${total_incremental_revenue:,.0f} tăng thêm"
+        )
+    with c3:
+        render_kpi_card(
+            "Tổng chi phí voucher (30 ngày)",
+            f"${total_voucher_cost:,.0f}",
+            f"↑ ${total_voucher_cost:,.0f} chi phí",
+            "negative"
+        )
+    with c4:
+        net_delta = (
+            f"↓ ${abs(total_net_profit):,.0f} so với không phát"
+            if total_net_profit < 0 else
+            f"↑ ${total_net_profit:,.0f} so với không phát"
+        )
+        render_kpi_card(
+            "Lợi nhuận ròng (30 ngày)",
+            f"${total_net_profit:,.0f}",
+            net_delta,
+            "negative" if total_net_profit < 0 else "positive"
+        )
+    with c5:
+        render_kpi_card(
+            "ROI tổng thể",
+            f"{overall_roi:.1f}%",
+            f"↓ {abs(overall_roi):.1f} điểm dưới hòa vốn" if overall_roi < 0 else f"↑ {overall_roi:.1f} điểm trên hòa vốn",
+            "negative" if overall_roi < 0 else "positive"
+        )
 
     col_chart1, col_chart2 = st.columns(2)
     with col_chart1:
         st.markdown("#### Cơ cấu lợi nhuận trên mỗi khách hàng")
+        waterfall_points = [
+            0,
+            gross_profit_per_user,
+            gross_profit_per_user - cost_per_user,
+            net_profit_per_user
+        ]
+        waterfall_min = min(waterfall_points)
+        waterfall_max = max(waterfall_points)
+        waterfall_padding = max((waterfall_max - waterfall_min) * 0.28, 8)
         fig_waterfall = go.Figure(go.Waterfall(
             name = "20", orientation = "v",
             measure = ["relative", "relative", "total"],
@@ -355,8 +449,12 @@ with tab1:
             increasing = {"marker":{"color":"#00CC96"}},
             totals = {"marker":{"color":"#FF4B4B"}}
         ))
-        fig_waterfall.update_layout(**{**chart_layout, "height": 370, "margin": dict(l=20, r=20, t=40, b=88)})
+        fig_waterfall.update_layout(**{**chart_layout, "height": 390, "margin": dict(l=20, r=20, t=72, b=96)})
         fig_waterfall.update_xaxes(automargin=True)
+        fig_waterfall.update_yaxes(
+            range=[waterfall_min - waterfall_padding, waterfall_max + waterfall_padding],
+            automargin=True
+        )
         st.plotly_chart(fig_waterfall, use_container_width=True)
 
     with col_chart2:
