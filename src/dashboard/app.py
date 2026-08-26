@@ -20,11 +20,26 @@ st.markdown("""
     h1, h2, h3, h4, h5, h6 {
         color: #0F172A;
     }
+    .stMarkdown .executive-title,
     .executive-title {
         color: #0F172A;
         font-weight: 800;
-        font-size: 2.2rem;
-        margin-bottom: 0px;
+        font-size: 2.45rem !important;
+        line-height: 1.18;
+        margin-bottom: 6px;
+    }
+    [data-testid="metric-container"] {
+        background-color: #F9FAFB;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        padding: 16px 18px;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+        min-height: 124px;
+    }
+    [data-testid="metric-container"] label,
+    [data-testid="metric-container"] [data-testid="stMetricLabel"] {
+        color: #334155;
+        font-weight: 700;
     }
     [data-testid="stMetricValue"] {
         font-size: 2rem;
@@ -43,13 +58,13 @@ st.markdown("""
     div[data-testid="stTabs"] button[data-baseweb="tab"],
     button[role="tab"],
     div[role="tab"] {
-        height: 76px !important;
-        min-height: 76px !important;
+        height: 66px !important;
+        min-height: 66px !important;
         white-space: nowrap !important;
         background-color: transparent !important;
         border-radius: 4px 4px 0px 0px;
-        padding: 20px 24px !important;
-        font-size: 24px !important;
+        padding: 16px 22px !important;
+        font-size: 22px !important;
         font-weight: 800 !important;
     }
     .stTabs [data-baseweb="tab"] p,
@@ -58,7 +73,7 @@ st.markdown("""
     div[data-testid="stTabs"] button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p,
     button[role="tab"] *,
     div[role="tab"] * {
-        font-size: 24px !important;
+        font-size: 22px !important;
         font-weight: 800 !important;
         line-height: 1.15 !important;
     }
@@ -308,6 +323,9 @@ with tab1:
     net_profit_per_user = gross_profit_per_user - cost_per_user
     overall_roi = (net_profit_per_user / cost_per_user) * 100 if cost_per_user > 0 else 0
     total_users = len(df)
+    total_incremental_trips = incremental_trips_per_user * total_users
+    total_incremental_revenue = incremental_rev_per_user * total_users
+    total_voucher_cost = cost_per_user * total_users
     total_net_profit = net_profit_per_user * total_users
 
     population_label = f"{total_users:,}".replace(",", ".")
@@ -317,13 +335,11 @@ with tab1:
     )
     
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Chuyến xe tăng thêm (30 ngày)", f"{incremental_trips_per_user * total_users:,.0f}")
-    c2.metric("Doanh thu tăng thêm (30 ngày)", f"${incremental_rev_per_user * total_users:,.0f}")
-    c3.metric("Tổng chi phí voucher (30 ngày)", f"${cost_per_user * total_users:,.0f}")
-    c4.metric("Lợi nhuận ròng (30 ngày)", f"${total_net_profit:,.0f}")
-    c5.metric("ROI tổng thể", f"{overall_roi:.1f}%")
-    
-    st.error("**Kết luận:** Phát voucher đại trà tạo thêm nhu cầu nhưng lợi nhuận vẫn âm theo các giả định hiện tại. Vì vậy, đây không phải chính sách ứng viên phù hợp.")
+    c1.metric("Chuyến xe tăng thêm (30 ngày)", f"{total_incremental_trips:,.0f}", delta=f"+{total_incremental_trips:,.0f} so với không phát")
+    c2.metric("Doanh thu tăng thêm (30 ngày)", f"${total_incremental_revenue:,.0f}", delta=f"+${total_incremental_revenue:,.0f} tăng thêm")
+    c3.metric("Tổng chi phí voucher (30 ngày)", f"${total_voucher_cost:,.0f}", delta=f"+${total_voucher_cost:,.0f} chi phí", delta_color="inverse")
+    c4.metric("Lợi nhuận ròng (30 ngày)", f"${total_net_profit:,.0f}", delta=f"${total_net_profit:,.0f} so với không phát")
+    c5.metric("ROI tổng thể", f"{overall_roi:.1f}%", delta=f"{overall_roi:.1f} điểm so với hòa vốn")
 
     col_chart1, col_chart2 = st.columns(2)
     with col_chart1:
@@ -339,7 +355,8 @@ with tab1:
             increasing = {"marker":{"color":"#00CC96"}},
             totals = {"marker":{"color":"#FF4B4B"}}
         ))
-        fig_waterfall.update_layout(**chart_layout, height=350)
+        fig_waterfall.update_layout(**{**chart_layout, "height": 370, "margin": dict(l=20, r=20, t=40, b=88)})
+        fig_waterfall.update_xaxes(automargin=True)
         st.plotly_chart(fig_waterfall, use_container_width=True)
 
     with col_chart2:
@@ -355,25 +372,30 @@ with tab1:
         effective_burn = avg_burn_inc * total_users
         total_burn = wasted_burn + effective_burn
         
-        fig_bar = go.Figure()
-        fig_bar.add_trace(go.Bar(
-            y=['Ngân sách khuyến mãi'], x=[wasted_burn],
-            name='Chi phí trên chuyến nền', orientation='h', marker_color='#FF4B4B',
-            text=f"${wasted_burn:,.0f}", textposition='inside'
+        fig_burn = go.Figure(go.Pie(
+            labels=['Chi phí trên chuyến nền', 'Chi phí trên chuyến tăng thêm'],
+            values=[wasted_burn, effective_burn],
+            hole=0.58,
+            marker=dict(colors=['#FF4B4B', '#00CC96'], line=dict(color='#FFFFFF', width=2)),
+            textinfo='percent',
+            sort=False,
+            hovertemplate="%{label}<br>$%{value:,.0f}<br>%{percent}<extra></extra>"
         ))
-        fig_bar.add_trace(go.Bar(
-            y=['Ngân sách khuyến mãi'], x=[effective_burn],
-            name='Chi phí trên chuyến tăng thêm', orientation='h', marker_color='#00CC96',
-            text=f"${effective_burn:,.0f}", textposition='inside'
-        ))
-        fig_bar.update_layout(
-            plot_bgcolor='rgba(255,255,255,0)', paper_bgcolor='rgba(255,255,255,0)',
-            font=dict(color='#0F172A'), margin=dict(l=20, r=20, t=40, b=20),
-            height=200, barmode='stack',
-            legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5))
-        fig_bar.update_xaxes(title="Tổng chi phí voucher ($)", showgrid=False)
-        st.plotly_chart(fig_bar, use_container_width=True)
+        fig_burn.update_layout(
+            **{**chart_layout, "height": 370, "margin": dict(l=20, r=20, t=40, b=46)},
+            annotations=[dict(
+                text=f"Tổng burn<br>${total_burn:,.0f}",
+                x=0.5,
+                y=0.5,
+                font=dict(size=16, color='#0F172A'),
+                showarrow=False
+            )],
+            legend=dict(orientation="h", yanchor="bottom", y=-0.02, xanchor="center", x=0.5)
+        )
+        st.plotly_chart(fig_burn, use_container_width=True)
         st.info("Khuyến mãi đại trà tạo thêm chuyến xe, nhưng phần lớn chi phí có thể rơi vào các chuyến nền vốn vẫn có khả năng phát sinh dù không phát voucher.")
+
+    st.error("**Kết luận:** Phát voucher đại trà tạo thêm nhu cầu nhưng lợi nhuận vẫn âm theo các giả định hiện tại. Vì vậy, đây không phải chính sách ứng viên phù hợp.")
 
 # ================= TAB 2: CAUSAL EVIDENCE =================
 with tab2:
