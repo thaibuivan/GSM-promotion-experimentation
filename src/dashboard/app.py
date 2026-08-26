@@ -107,6 +107,34 @@ st.markdown("""
         border-radius: 2px;
         display: inline-block;
     }
+    .status-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        border-left: 5px solid #0EA5A4;
+        border-radius: 8px;
+        padding: 16px 18px;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+        min-height: 116px;
+        margin-bottom: 14px;
+    }
+    .status-card.warning {
+        border-left-color: #F59E0B;
+    }
+    .status-card.info {
+        border-left-color: #3B82F6;
+    }
+    .status-title {
+        color: #0F172A;
+        font-weight: 800;
+        font-size: 1rem;
+        margin-bottom: 8px;
+    }
+    .status-body {
+        color: #475569;
+        font-size: 0.92rem;
+        font-weight: 600;
+        line-height: 1.45;
+    }
     .block-container { padding-top: 3.5rem; }
     
     .stTabs [data-baseweb="tab-list"],
@@ -246,6 +274,17 @@ def render_kpi_card(label, value, delta, tone="positive"):
         unsafe_allow_html=True
     )
 
+def render_status_card(title, body, tone="positive"):
+    st.markdown(
+        f"""
+        <div class="status-card {tone}">
+            <div class="status-title">{title}</div>
+            <div class="status-body">{body}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 def trapezoid_area(y, x):
     if hasattr(np, 'trapezoid'):
         return np.trapezoid(y, x)
@@ -328,11 +367,11 @@ def render_model_evaluation():
                 name='Mốc ngẫu nhiên', line=dict(color='rgba(15,23,42,0.30)', dash='dash', width=2)
             ))
             fig_qini.update_layout(
-                **chart_layout, height=350,
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+                **{**chart_layout, "height": 390, "margin": dict(l=20, r=20, t=52, b=82)},
+                legend=dict(orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5)
             )
-            fig_qini.update_xaxes(title="Tỷ lệ khách hàng được nhắm chọn (%)", dtick=10)
-            fig_qini.update_yaxes(title="Số chuyến tăng thêm tích lũy (Qini)")
+            fig_qini.update_xaxes(title="Tỷ lệ khách hàng được nhắm chọn (%)", dtick=10, automargin=True)
+            fig_qini.update_yaxes(title="Số chuyến tăng thêm tích lũy (Qini)", automargin=True)
             st.plotly_chart(fig_qini, use_container_width=True)
         else:
             st.warning("Chưa có dữ liệu để vẽ đường Qini.")
@@ -356,11 +395,11 @@ def render_model_evaluation():
                 mode='lines', line=dict(color='rgba(15,23,42,0.38)', dash='dash', width=2)
             ))
             fig_cal.update_layout(
-                **chart_layout, height=350,
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+                **{**chart_layout, "height": 390, "margin": dict(l=20, r=20, t=52, b=82)},
+                legend=dict(orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5)
             )
-            fig_cal.update_xaxes(title="Các nhóm thập phân vị (tốt nhất đến kém nhất)")
-            fig_cal.update_yaxes(title="Uplift trung bình")
+            fig_cal.update_xaxes(title="Các nhóm thập phân vị (tốt nhất đến kém nhất)", automargin=True)
+            fig_cal.update_yaxes(title="Uplift trung bình", automargin=True)
             st.plotly_chart(fig_cal, use_container_width=True)
         except (FileNotFoundError, KeyError, pd.errors.EmptyDataError):
             st.warning("Chưa có dữ liệu hiệu chỉnh.")
@@ -547,12 +586,15 @@ with tab2:
     }
     max_smd_feature = max(smd_by_feature, key=lambda col: abs(smd_by_feature[col])) if smd_by_feature else None
     max_abs_smd = abs(smd_by_feature[max_smd_feature]) if max_smd_feature else np.nan
+    alpha = health['alpha'] if health is not None else 0.05
+    balance_threshold = health['balance_smd_threshold'] if health is not None else 0.1
+    fpr_ok = False
+    srm_ok = srm_p_value >= alpha
+    balance_ok = pd.notna(max_abs_smd) and max_abs_smd < balance_threshold
 
     if health is not None:
         fpr = health['false_positive_rate']
         fpr_ok = health['fpr_acceptance_low'] <= fpr <= health['fpr_acceptance_high']
-        srm_ok = srm_p_value >= health['alpha']
-        balance_ok = pd.notna(max_abs_smd) and max_abs_smd < health['balance_smd_threshold']
         health_pass = fpr_ok and srm_ok and balance_ok
         health_message = (
             "Không phát hiện vấn đề đáng kể trong các kiểm tra A/A, SRM và cân bằng biến nền."
@@ -567,22 +609,34 @@ with tab2:
 
     with st.expander("Chi tiết kiểm định"):
         h1, h2, h3, h4 = st.columns(4)
-        h1.metric(
-            "Số lần mô phỏng A/A",
-            f"{health['aa_monte_carlo_runs']:,}" if health is not None else "N/A",
-            help="Số lần chạy thử nghiệm ngẫu nhiên để test xem hệ thống chia nhóm có bị thiên vị (bias) hay không."
-        )
-        h2.metric(
-            "False Positive Rate",
-            f"{health['false_positive_rate']:.2%}" if health is not None else "N/A",
-            help="Tỷ lệ báo động giả. Hệ thống chuẩn phải có FPR xoay quanh 5% (Mức Alpha). Nếu quá cao nghĩa là hệ thống chia nhóm đang bị lỗi và thường xuyên báo kết quả ảo."
-        )
-        h3.metric("SRM p-value hiện tại", f"{srm_p_value:.4f}", help="Kiểm định Sample Ratio Mismatch. Nếu p-value < 0.05, số lượng khách 2 nhóm (Treatment/Control) đang bị lệch nghiêm trọng so với tỷ lệ 50/50, cần dừng thí nghiệm ngay.")
-        h4.metric(
-            "Max |SMD| hiện tại",
-            f"{max_abs_smd:.3f}" if pd.notna(max_abs_smd) else "N/A",
-            help=f"Độ lệch chuẩn hóa lớn nhất (Biến lệch nhất: {max_smd_feature}). Nếu |SMD| < 0.1 chứng tỏ 2 nhóm cực kỳ cân bằng về mặt đặc điểm khách hàng (tuổi, lịch sử đi xe...)." if max_smd_feature else "Không có biến phù hợp"
-        )
+        with h1:
+            render_kpi_card(
+                "Số lần mô phỏng A/A",
+                f"{health['aa_monte_carlo_runs']:,}" if health is not None else "N/A",
+                "Monte Carlo kiểm tra cảnh báo giả"
+            )
+        with h2:
+            fpr_delta = "Gần mức thiết kế ~5%" if health is not None else "Chưa có artifact"
+            render_kpi_card(
+                "False Positive Rate",
+                f"{health['false_positive_rate']:.2%}" if health is not None else "N/A",
+                fpr_delta,
+                "positive" if health is not None and fpr_ok else "negative"
+            )
+        with h3:
+            render_kpi_card(
+                "SRM p-value hiện tại",
+                f"{srm_p_value:.4f}",
+                "Không lệch 50/50" if srm_ok else "Cần xem xét phân bổ",
+                "positive" if srm_ok else "negative"
+            )
+        with h4:
+            render_kpi_card(
+                "Max |SMD| hiện tại",
+                f"{max_abs_smd:.3f}" if pd.notna(max_abs_smd) else "N/A",
+                "Cân bằng biến nền" if balance_ok else "Cần xem lại balance",
+                "positive" if balance_ok else "negative"
+            )
         st.caption(
             f"Phân bổ hiện tại: {observed_treatment:,} nhận voucher / {observed_control:,} đối chứng. "
             + (
@@ -627,8 +681,7 @@ with tab2:
                 annotation_position="top right"
             )
             fig_smd.update_layout(
-                **chart_layout,
-                height=max(260, 58 * len(smd_df) + 110),
+                **{**chart_layout, "height": max(290, 62 * len(smd_df) + 130), "margin": dict(l=20, r=42, t=72, b=52)},
                 title="Cân bằng biến nền theo |SMD|",
                 showlegend=False
             )
@@ -657,10 +710,25 @@ with tab2:
     ci_high = model.conf_int().loc['treatment_rand', 1]
     
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("ATE thô", f"{raw_ate:.2f} chuyến", help="Chênh lệch trung bình đơn thuần giữa nhóm nhận voucher và nhóm đối chứng.")
-    c2.metric("Adjusted ATE", f"{adj_ate:.2f} chuyến", help="Ước lượng đã điều chỉnh theo hành vi nền để tăng độ chính xác.")
-    c3.metric("CI 95%", f"[{ci_low:.2f} , {ci_high:.2f}]", help="Nếu lặp lại thí nghiệm 100 lần, thì 95 lần mức tăng thực tế sẽ rơi vào khoảng này. Khoảng này KHÔNG chứa số 0 chứng tỏ việc tăng chuyến đi là có thật.")
-    c4.metric("P-value", f"{p_val:.4f}", "Có ý nghĩa thống kê" if p_val < 0.05 else "Chưa có ý nghĩa thống kê", help="Xác suất mà kết quả tăng trưởng này chỉ là do 'ăn may'. P-value < 0.05 (nhỏ hơn 5%) nghĩa là chắc chắn có tác dụng thực sự.")
+    with c1:
+        render_kpi_card("ATE thô", f"{raw_ate:.2f} chuyến", "Chênh lệch quan sát")
+    with c2:
+        render_kpi_card("Adjusted ATE", f"{adj_ate:.2f} chuyến", "Đã điều chỉnh hành vi nền")
+    with c3:
+        ci_excludes_zero = ci_low > 0 or ci_high < 0
+        render_kpi_card(
+            "CI 95%",
+            f"[{ci_low:.2f}, {ci_high:.2f}]",
+            "Không chứa 0" if ci_excludes_zero else "Có chứa 0",
+            "positive" if ci_excludes_zero else "negative"
+        )
+    with c4:
+        render_kpi_card(
+            "P-value",
+            f"{p_val:.4f}",
+            "Có ý nghĩa thống kê" if p_val < 0.05 else "Chưa có ý nghĩa thống kê",
+            "positive" if p_val < 0.05 else "negative"
+        )
     st.info(
         "**💡 Giải thích nhanh cho Mentor:**\n"
         "- **Khoảng tin cậy 95%:** Khoảng này KHÔNG chứa số 0 chứng tỏ việc tăng chuyến đi là có thật, không phải ngẫu nhiên.\n"
@@ -748,11 +816,11 @@ with tab3:
                            annotation_text="CATE=0", annotation_position="top left", annotation_font_color="#FF4B4B")
         fig_cate.update_layout(
             plot_bgcolor='rgba(255,255,255,0)', paper_bgcolor='rgba(255,255,255,0)',
-            font=dict(color='#0F172A'), margin=dict(l=20, r=20, t=40, b=20),
+            font=dict(color='#0F172A'), margin=dict(l=20, r=20, t=64, b=68),
             bargap=0.05
         )
-        fig_cate.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)", showgrid=True, gridcolor='#E2E8F0')
-        fig_cate.update_yaxes(title="Số khách hàng", showgrid=True, gridcolor='#E2E8F0')
+        fig_cate.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)", showgrid=True, gridcolor='#E2E8F0', automargin=True)
+        fig_cate.update_yaxes(title="Số khách hàng", showgrid=True, gridcolor='#E2E8F0', automargin=True)
         st.plotly_chart(fig_cate, use_container_width=True)
         st.caption("Đây là CATE dự báo từ representative model, không phải individual treatment effect tuyệt đối trên production.")
         
@@ -803,9 +871,16 @@ with tab3:
                              opacity=0.6)
     fig_scatter.add_hline(y=0, line_dash="dash", line_color="#FF4B4B")
     fig_scatter.add_vline(x=0, line_dash="dash", line_color="#00CC96")
-    fig_scatter.update_layout(plot_bgcolor='rgba(255,255,255,0)', paper_bgcolor='rgba(255,255,255,0)', font=dict(color='#0F172A'), coloraxis_showscale=False, height=350)
-    fig_scatter.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)")
-    fig_scatter.update_yaxes(title="Expected Value ($)")
+    fig_scatter.update_layout(
+        plot_bgcolor='rgba(255,255,255,0)',
+        paper_bgcolor='rgba(255,255,255,0)',
+        font=dict(color='#0F172A'),
+        coloraxis_showscale=False,
+        height=380,
+        margin=dict(l=24, r=24, t=66, b=64)
+    )
+    fig_scatter.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)", automargin=True)
+    fig_scatter.update_yaxes(title="Expected Value ($)", automargin=True)
     st.plotly_chart(fig_scatter, use_container_width=True)
     st.markdown("→ Sang Tab 4: dùng Expected Value để so sánh mass, segment, uplift và profit targeting trong policy simulator.")
 
@@ -947,11 +1022,15 @@ with tab5:
     
     st.markdown("#### 1. Stress tests")
     g1, g2 = st.columns(2)
-    g1.success("**Sample Size**\n\nATE ổn định, CI hẹp dần khi N tăng.")
-    g2.success("**Null Effect**\n\nEstimate tập trung quanh 0, FPR gần mức thiết kế.")
+    with g1:
+        render_status_card("Sample Size", "ATE ổn định, CI hẹp dần khi N tăng.")
+    with g2:
+        render_status_card("Null Effect", "Estimate tập trung quanh 0, FPR gần mức thiết kế.")
     g3, g4 = st.columns(2)
-    g3.warning("**Phân bổ Treatment 90/10**\n\nUncertainty/SE tăng.")
-    g4.info("**Noise Injection**\n\nSignal yếu đi, uncertainty tăng.")
+    with g3:
+        render_status_card("Phân bổ Treatment 90/10", "Uncertainty/SE tăng.", "warning")
+    with g4:
+        render_status_card("Noise Injection", "Signal yếu đi, uncertainty tăng.", "info")
     
     st.caption("Các stress test này kiểm tra statistical behavior trong synthetic sandbox, chưa chứng minh production robustness; kết quả được tổng hợp từ Week 6 stress-test notebook và không rerun khi dashboard load.")
     st.info("**Champion–Challenger:** Policy được lựa chọn từ simulator mới chỉ là candidate/challenger. Trước khi rollout cần thử nghiệm trực tiếp với baseline/champion hiện hành và chỉ mở rộng khi incremental profit cải thiện với bằng chứng thống kê.")
