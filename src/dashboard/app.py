@@ -9,7 +9,7 @@ import statsmodels.api as sm
 from scipy.stats import binomtest
 
 # Page Config
-st.set_page_config(page_title="Khung thử nghiệm khuyến mãi", layout="wide")
+st.set_page_config(page_title="Framework phân bổ khuyến mãi", layout="wide")
 
 # Custom CSS
 st.markdown("""
@@ -27,6 +27,46 @@ st.markdown("""
         font-size: 2.45rem !important;
         line-height: 1.18;
         margin-bottom: 6px;
+    }
+    .app-subtitle {
+        color: #334155;
+        font-size: 1.02rem;
+        font-weight: 650;
+        line-height: 1.55;
+        margin-bottom: 14px;
+    }
+    .scope-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 8px 0 14px;
+    }
+    .scope-badge {
+        background-color: #E0F2FE;
+        border: 1px solid #BAE6FD;
+        color: #075985;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 0.82rem;
+        font-weight: 800;
+    }
+    .soft-callout {
+        background: #FFFFFF;
+        border: 1px solid #D8E2EA;
+        border-left: 5px solid #0EA5A4;
+        border-radius: 8px;
+        padding: 16px 18px;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+        color: #334155;
+        font-weight: 650;
+        line-height: 1.55;
+        margin: 14px 0;
+    }
+    .bridge-line {
+        color: #0F766E;
+        font-weight: 850;
+        font-size: 1rem;
+        margin: 16px 0 6px;
     }
     [data-testid="metric-container"] {
         background-color: #F9FAFB;
@@ -148,13 +188,13 @@ st.markdown("""
     div[data-testid="stTabs"] button[data-baseweb="tab"],
     button[role="tab"],
     div[role="tab"] {
-        height: 66px !important;
-        min-height: 66px !important;
+        height: 64px !important;
+        min-height: 64px !important;
         white-space: nowrap !important;
         background-color: transparent !important;
         border-radius: 4px 4px 0px 0px;
-        padding: 16px 22px !important;
-        font-size: 22px !important;
+        padding: 14px 16px !important;
+        font-size: 18px !important;
         font-weight: 800 !important;
     }
     .stTabs [data-baseweb="tab"] p,
@@ -163,7 +203,7 @@ st.markdown("""
     div[data-testid="stTabs"] button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p,
     button[role="tab"] *,
     div[role="tab"] * {
-        font-size: 22px !important;
+        font-size: 18px !important;
         font-weight: 800 !important;
         line-height: 1.15 !important;
     }
@@ -215,10 +255,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="executive-title">Framework hỗ trợ quyết định khuyến mãi dựa trên dữ liệu</p>', unsafe_allow_html=True)
-st.info("Xây dựng quy trình end-to-end từ đo lường tác động voucher, xác định khách hàng có khả năng tạo giá trị tăng thêm, đến mô phỏng chính sách khuyến mãi phù hợp.")
-st.caption("**Phạm vi:** Prototype trên synthetic sandbox nhằm kiểm chứng phương pháp; chưa đại diện cho chính sách vận hành thực tế.")
-
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 data_path = os.path.join(base_path, "data", "processed", "segmented_simulation_data.csv")
 pred_path = os.path.join(base_path, 'data', 'processed', 'test_predictions.csv')
@@ -254,6 +290,46 @@ except:
     DISCOUNT_PERCENT = 15.0
     MARGIN_PERCENT = 70.0
     VOUCHER_CAP = None
+
+total_customer_label = f"{len(df):,}".replace(",", ".")
+st.markdown(
+    '<p class="executive-title">Framework hỗ trợ quyết định phân bổ khuyến mãi</p>',
+    unsafe_allow_html=True
+)
+st.markdown(
+    """
+    <div class="app-subtitle">
+        Từ kiểm chứng hiệu quả voucher → xác định khách hàng nhạy voucher → đánh giá kinh tế → lựa chọn chính sách phân bổ.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+st.markdown(
+    f"""
+    <div class="scope-badges">
+        <span class="scope-badge">Synthetic sandbox</span>
+        <span class="scope-badge">{total_customer_label} khách hàng</span>
+        <span class="scope-badge">30 ngày</span>
+        <span class="scope-badge">Voucher giả định {DISCOUNT_PERCENT:.0f}%</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+st.caption("**Phạm vi:** Prototype minh họa methodology trên dữ liệu mô phỏng; không đại diện cho hiệu quả hay chính sách GSM thực tế.")
+
+with st.expander("Thuật ngữ sử dụng trong demo"):
+    st.markdown("""
+    - **Nhóm nhận voucher (Treatment):** Nhóm được nhận voucher trong thiết kế thử nghiệm.
+    - **Nhóm đối chứng (Control):** Nhóm không nhận voucher, dùng làm mốc so sánh.
+    - **ATE:** Tác động trung bình của voucher trên population được phân tích.
+    - **CATE:** Tác động kỳ vọng của voucher với các khách hàng có đặc điểm tương tự nhau.
+    - **Uplift:** Phần hành vi tăng thêm do treatment, không phải tổng hành vi dự đoán.
+    - **SRM:** Kiểm tra số lượng Treatment / Control có lệch bất thường so với thiết kế hay không.
+    - **SMD:** Đo mức cân bằng đặc trưng nền giữa Treatment và Control.
+    - **Qini:** Metric đánh giá khả năng xếp hạng uplift, không phải ROI.
+    - **Expected Value:** Giá trị kinh tế kỳ vọng sau khi trừ chi phí voucher.
+    - **Synthetic sandbox:** Dữ liệu mô phỏng dùng để kiểm chứng methodology, không phải dữ liệu production.
+    """)
 
 df_treat = df[df['treatment_rand'] == 1]
 df_ctrl = df[df['treatment_rand'] == 0]
@@ -343,7 +419,7 @@ def load_uplift_model_comparison():
 
 def render_model_evaluation():
     st.markdown("---")
-    st.subheader("Đánh giá sâu model được chọn: Qini và calibration")
+    st.subheader("Đánh giá model đại diện: ranking và độ lớn tác động")
     model_snapshot = load_model_snapshot()
     if model_snapshot:
         st.caption(
@@ -353,7 +429,7 @@ def render_model_evaluation():
 
     col_qini, col_calib = st.columns(2)
     with col_qini:
-        st.markdown("#### Qini curve - ranking uplift")
+        st.markdown("#### Qini: model có xếp đúng người nhạy voucher lên trên không?")
         st.caption("Mô hình có đưa khách hàng phản ứng tốt lên đầu danh sách tốt hơn cách chọn ngẫu nhiên không?")
         qini_df = load_or_build_qini_curve()
         if qini_df is not None and not qini_df.empty:
@@ -377,7 +453,7 @@ def render_model_evaluation():
             st.warning("Chưa có dữ liệu để vẽ đường Qini.")
 
     with col_calib:
-        st.markdown("#### Calibration - độ lớn CATE")
+        st.markdown("#### Calibration: CATE dự báo có gần mức quan sát không?")
         st.caption("CATE dự báo có gần với uplift quan sát theo từng nhóm thập phân vị không?")
         try:
             calib_df = pd.read_csv(os.path.join(base_path, 'data', 'processed', 'uplift_calibration.csv'))
@@ -404,7 +480,7 @@ def render_model_evaluation():
         except (FileNotFoundError, KeyError, pd.errors.EmptyDataError):
             st.warning("Chưa có dữ liệu hiệu chỉnh.")
 
-    st.info("**Qini kiểm tra khả năng ranking; calibration kiểm tra độ lớn CATE. Model có ranking signal hữu ích, nhưng magnitude vẫn cần theo dõi.**")
+    st.info("**Qini kiểm tra khả năng ranking uplift, không phải ROI. Calibration kiểm tra độ lớn CATE. Model có ranking signal hữu ích, nhưng magnitude vẫn cần theo dõi.**")
 
 def standardized_mean_difference(treated, control):
     pooled_variance = (treated.var(ddof=1) + control.var(ddof=1)) / 2.0
@@ -414,16 +490,27 @@ def standardized_mean_difference(treated, control):
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "1. Bài toán kinh doanh",
-    "2. Kiểm chứng voucher",
-    "3. Cá nhân hóa tác động",
-    "4. Kinh tế & quyết định",
-    "5. Kiểm tra pipeline"
+    "2. Kiểm chứng hiệu quả voucher",
+    "3. Khách hàng nhạy voucher",
+    "4. Kinh tế & chính sách phân bổ",
+    "5. Độ vững pipeline"
 ])
 
 # ================= TAB 1: BUSINESS PROBLEM =================
 with tab1:
-    st.subheader("Phát voucher đại trà có tạo thêm lợi nhuận không?")
-    st.markdown("Thay vì chỉ nhìn vào tỷ lệ mở ứng dụng hoặc số chuyến tăng, ta đánh giá trực tiếp **lợi nhuận tăng thêm** khi phát voucher đại trà theo các giả định của môi trường mô phỏng.")
+    st.subheader("Tại sao không nên phát voucher đại trà?")
+    st.markdown("Voucher chỉ tạo giá trị khi nó **thay đổi hành vi** đủ lớn để bù lại chi phí khuyến mãi.")
+    st.markdown("#### Ba câu hỏi quyết định")
+    q1, q2, q3 = st.columns(3)
+    with q1:
+        render_status_card("1. Voucher có tạo thêm chuyến đi không?", "Tránh trả tiền cho nhu cầu vốn đã tồn tại.")
+    with q2:
+        render_status_card("2. Nếu có, nên ưu tiên ai?", "Hiệu quả trung bình chưa cho biết khách hàng nào phản ứng mạnh.")
+    with q3:
+        render_status_card("3. Giá trị tăng thêm có đủ bù chi phí không?", "Tăng phản ứng không đồng nghĩa tăng lợi nhuận.", "warning")
+
+    st.markdown("#### Điều gì xảy ra nếu phát voucher cho tất cả?")
+    st.markdown("Trong synthetic sandbox, phát voucher đại trà có thể tạo thêm hành vi nhưng tổng chi phí voucher vẫn có thể lớn hơn phần margin tăng thêm.")
     
     avg_trips_treat = df_treat['Y_rand'].mean()
     avg_trips_ctrl = df_ctrl['Y_rand'].mean()
@@ -564,14 +651,19 @@ with tab1:
         )
         st.info("Khuyến mãi đại trà tạo thêm chuyến xe, nhưng phần lớn chi phí có thể rơi vào các chuyến nền vốn vẫn có khả năng phát sinh dù không phát voucher.")
 
-    st.error("**Kết luận:** Phát voucher đại trà tạo thêm nhu cầu nhưng lợi nhuận vẫn âm theo các giả định hiện tại. Vì vậy, đây không phải chính sách ứng viên phù hợp.")
+    st.error("**Kết quả mô phỏng:** ROI của chính sách đại trà đang âm. Điều này cho thấy “voucher có tác động” chưa đủ để kết luận “voucher đáng phát”.")
+    st.markdown(
+        '<div class="bridge-line">→ Sang Tab 2: Kiểm chứng hiệu quả voucher</div>',
+        unsafe_allow_html=True
+    )
 
 # ================= TAB 2: CAUSAL EVIDENCE =================
 with tab2:
     
-    st.subheader("Kiểm chứng hiệu quả voucher")
-    st.markdown("Trước khi cá nhân hóa, cần chứng minh mức tăng chuyến đến từ voucher, không phải do hai nhóm khách hàng vốn đã khác nhau.")
-    st.markdown("#### 1. Hai nhóm có so sánh công bằng không?")
+    st.subheader("Voucher có thực sự tạo thêm hành vi không?")
+    st.markdown("So sánh nhóm nhận voucher và nhóm đối chứng trong thiết kế thử nghiệm để tách **tác động của voucher** khỏi khác biệt hành vi vốn có.")
+    st.markdown("#### 1. Trước khi đọc kết quả A/B, thử nghiệm có đáng tin không?")
+    st.markdown("Nếu việc chia nhóm hoặc dữ liệu đầu vào có vấn đề, kết quả A/B phía sau có thể bị hiểu sai. Vì vậy dashboard kiểm tra sức khỏe của experiment trước.")
     observed_treatment = len(df_treat)
     observed_control = len(df_ctrl)
     total = observed_treatment + observed_control
@@ -609,18 +701,18 @@ with tab2:
     else:
         st.warning("Chưa có artifact kiểm định thí nghiệm; dashboard không tự gán trạng thái ĐẠT.")
 
-    with st.expander("Chi tiết kiểm định"):
+    with st.expander("Chi tiết kiểm định: A/A, SRM và SMD"):
         h1, h2, h3, h4 = st.columns(4)
         with h1:
             render_kpi_card(
                 "Số lần mô phỏng A/A",
                 f"{health['aa_monte_carlo_runs']:,}" if health is not None else "N/A",
-                "Monte Carlo kiểm tra cảnh báo giả"
+                "Kiểm tra pipeline có báo động giả quá mức không"
             )
         with h2:
             fpr_delta = "Gần mức thiết kế ~5%" if health is not None else "Chưa có artifact"
             render_kpi_card(
-                "False Positive Rate",
+                "FPR cảnh báo giả",
                 f"{health['false_positive_rate']:.2%}" if health is not None else "N/A",
                 fpr_delta,
                 "positive" if health is not None and fpr_ok else "negative"
@@ -691,15 +783,12 @@ with tab2:
             fig_smd.update_yaxes(title="", autorange="reversed")
             st.plotly_chart(fig_smd, use_container_width=True)
         st.info(
-            "**💡 Giải thích nhanh cho Mentor:**\n"
-            "- **FPR (False Positive Rate):** Hệ thống chia nhóm chuẩn phải có tỷ lệ báo động giả ~5%. Nếu quá cao là hệ thống đang có lỗi.\n"
-            "- **SRM p-value:** Nếu < 0.05, số lượng khách 2 nhóm đang bị lệch nghiêm trọng so với tỷ lệ 50/50.\n"
-            "- **Max |SMD|:** Độ lệch đặc điểm khách hàng. |SMD| < 0.1 chứng tỏ 2 nhóm cực kỳ cân bằng."
+            "**Cách đọc:** A/A kiểm tra cảnh báo giả; SRM kiểm tra tỷ lệ phân nhóm; SMD kiểm tra cân bằng đặc trưng ban đầu. Đây là health check của sandbox, không phải bằng chứng production-ready."
         )
     
     st.markdown("---")
-    st.subheader("2. Voucher làm tăng bao nhiêu chuyến?")
-    st.markdown("Sau khi setup thí nghiệm đủ tin cậy, ta ước lượng tác động trung bình của voucher lên số chuyến trong chu kỳ 30 ngày.")
+    st.subheader("2. Voucher có làm tăng số chuyến trung bình không?")
+    st.markdown("Sau khi experiment health ổn, ta mới so sánh outcome giữa nhóm nhận voucher và nhóm đối chứng.")
     
     raw_ate = df_treat['Y_rand'].mean() - df_ctrl['Y_rand'].mean()
     
@@ -713,9 +802,9 @@ with tab2:
     
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        render_kpi_card("ATE thô", f"{raw_ate:.2f} chuyến", "Chênh lệch quan sát")
+        render_kpi_card("ATE thô", f"{raw_ate:.2f} chuyến/KH", "Chênh lệch quan sát trong 30 ngày")
     with c2:
-        render_kpi_card("Adjusted ATE", f"{adj_ate:.2f} chuyến", "Đã điều chỉnh hành vi nền")
+        render_kpi_card("Adjusted ATE", f"{adj_ate:.2f} chuyến/KH", "Đã điều chỉnh hành vi nền")
     with c3:
         ci_excludes_zero = ci_low > 0 or ci_high < 0
         render_kpi_card(
@@ -732,9 +821,7 @@ with tab2:
             "positive" if p_val < 0.05 else "negative"
         )
     st.info(
-        "**💡 Giải thích nhanh cho Mentor:**\n"
-        "- **Khoảng tin cậy 95%:** Khoảng này KHÔNG chứa số 0 chứng tỏ việc tăng chuyến đi là có thật, không phải ngẫu nhiên.\n"
-        "- **P-value:** Nhỏ hơn 0.05 (5%) nghĩa là tỷ lệ kết quả này do 'ăn may' là cực kỳ thấp. Chắc chắn voucher có tác dụng."
+        "**Cách đọc:** ATE trả lời “voucher có tác dụng trung bình không?”, nhưng chưa trả lời “khách hàng nào phản ứng mạnh và khách hàng nào không?”."
     )
 
     with st.expander("Phương pháp kỹ thuật - Ước lượng nhân quả"):
@@ -745,7 +832,8 @@ with tab2:
         > **Việc phân nhóm ngẫu nhiên tạo khả năng nhận diện tác động nhân quả. Điều chỉnh theo đặc trưng nền nhằm tăng độ chính xác, không phải để sửa sai lệch do nhiễu.**
         """)
 
-    st.markdown("#### 3. Đọc kết quả theo phân khúc")
+    st.markdown("#### 3. Tác động trung bình dương vẫn chưa đủ để ra quyết định")
+    st.markdown("Một số nhóm có ATE dương nhưng ROI vẫn âm. Đây là lý do không nên dùng **response** làm tiêu chí cuối cùng để phát voucher.")
     roi_data = []
     use_synthetic_segment_benchmark = {'Y0', 'Y1', 'avg_fare_per_trip'}.issubset(df.columns)
     for p in df['persona'].unique():
@@ -798,16 +886,20 @@ with tab2:
     if use_synthetic_segment_benchmark:
         st.caption("Hiệu quả theo phân khúc sử dụng hai kết quả tiềm năng tổng hợp Y0/Y1 làm chuẩn đối chiếu ổn định; không diễn giải đây là ROI thực tế trên môi trường vận hành.")
 
-    st.markdown("→ Cần chuyển từ targeting theo nhóm sang ước lượng tác động ở cấp từng khách hàng.")
+    st.markdown(
+        '<div class="bridge-line">→ Sang Tab 3: Xác định khách hàng nhạy voucher</div>',
+        unsafe_allow_html=True
+    )
 
 # ================= TAB 3: USER HETEROGENEITY =================
 with tab3:
-    st.subheader("Cá nhân hóa theo tác động")
-    st.markdown("Phân phối CATE dự báo cho thấy response không đồng đều giữa khách hàng; vì vậy cần model uplift để xếp hạng ai nên được ưu tiên nhận voucher.")
+    st.subheader("Khách hàng nào thực sự tăng thêm hành vi vì voucher?")
+    st.markdown("Thay vì dự đoán ai sẽ đi nhiều, uplift modeling tập trung vào câu hỏi khó hơn: **ai sẽ đi nhiều hơn vì được nhận voucher?**")
+    st.info("**Uplift khác prediction thông thường:** prediction hỏi “khách hàng này có khả năng đặt chuyến không?”, còn uplift hỏi “khách hàng này có đặt thêm chuyến vì voucher không?”.")
     
     col_c1, col_c2 = st.columns(2)
     with col_c1:
-        st.markdown("#### Phân phối CATE dự báo")
+        st.markdown("#### Tác động tăng thêm theo khách hàng (CATE)")
         q_low = preds_df['cate_pred'].quantile(0.01)
         q_high = preds_df['cate_pred'].quantile(0.99)
         fig_cate = px.histogram(preds_df, x='cate_pred', nbins=100, 
@@ -827,7 +919,7 @@ with tab3:
         st.caption("Đây là CATE dự báo từ representative model, không phải individual treatment effect tuyệt đối trên production.")
         
     with col_c2:
-        st.markdown("#### So sánh mô hình uplift")
+        st.markdown("#### Mô hình nào xếp hạng khách hàng theo uplift tốt hơn?")
         model_snapshot = load_model_snapshot()
         model_comparison = load_uplift_model_comparison()
 
@@ -843,17 +935,17 @@ with tab3:
         )
         if model_snapshot:
             st.success(
-                f"Chọn **{model_snapshot['model_name']}** làm representative model vì Qini cao nhất "
+                f"Dùng **{model_snapshot['model_name']}** làm model đại diện vì có ranking signal tốt nhất "
                 f"trên held-out test set {model_snapshot['test_rows']:,} khách hàng."
             )
         else:
-            st.success("Chọn **simplified R-Learner-style residual model** vì Qini cao nhất trong các model đã thử.")
+            st.success("Dùng **simplified R-Learner-style residual model** làm model đại diện vì có Qini cao nhất trong các model đã thử.")
         st.caption("Theo Week 5 report, các Qini coefficients này được so sánh trên cùng held-out test set 4.000 khách hàng và cùng cách tính; dashboard hiện chỉ recompute/render Qini curve cho snapshot R-Learner-style đã khóa.")
 
     render_model_evaluation()
 
     st.markdown("---")
-    st.markdown("#### Từ CATE đến giá trị kinh tế")
+    st.markdown("#### CATE chưa phải quyết định phát voucher")
     st.info("""
     **Expected Value = Incremental Margin − Expected Voucher Cost**
 
@@ -884,7 +976,10 @@ with tab3:
     fig_scatter.update_xaxes(title="CATE dự báo (số chuyến tăng thêm)", automargin=True)
     fig_scatter.update_yaxes(title="Expected Value ($)", automargin=True)
     st.plotly_chart(fig_scatter, use_container_width=True)
-    st.markdown("→ Sang Tab 4: dùng Expected Value để so sánh mass, segment, uplift và profit targeting trong policy simulator.")
+    st.markdown(
+        '<div class="bridge-line">→ Sang Tab 4: Đánh giá kinh tế & chính sách phân bổ</div>',
+        unsafe_allow_html=True
+    )
 
     with st.expander("Phương pháp kỹ thuật - Ước lượng tác động khác biệt"):
         st.markdown("""
@@ -901,7 +996,8 @@ with tab3:
         """)
 # ================= TAB 4: POLICY SIMULATOR =================
 with tab4:
-    st.subheader("Đánh giá kinh tế & ra quyết định chính sách")
+    st.subheader("Từ “ai phản ứng?” sang “ai đáng được nhận voucher?”")
+    st.markdown("Một khách hàng có uplift dương chưa chắc tạo lợi nhuận. Quyết định cần trừ chi phí voucher khỏi phần giá trị tăng thêm.")
     
     st.markdown("""
     <div style='display: flex; justify-content: space-between; align-items: center; background-color: #FFFFFF; color: #0F172A; border: 1px solid #D8E2EA; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06); padding: 15px; border-radius: 6px; margin-bottom: 20px;'>
@@ -922,14 +1018,15 @@ with tab4:
     with col_sim_left:
         st.markdown("#### Các giả định")
         sim_voucher = st.slider("Mức giảm giá (%)", min_value=5.0, max_value=50.0, value=15.0, step=1.0)
-        st.warning("Uplift/CATE hiện được ước lượng dưới treatment voucher 15%. Thay đổi mức voucher trong simulator chỉ là economic sensitivity analysis; CATE được giữ cố định và không được diễn giải là causal effect đã estimate cho mức voucher mới.")
+        st.warning("Uplift/CATE hiện được ước lượng dưới treatment voucher 15%. Thay đổi mức voucher trong simulator chỉ là phân tích độ nhạy kinh tế; CATE được giữ cố định và không được diễn giải là causal effect đã estimate cho mức voucher mới.")
         sim_margin = st.slider("Biên lợi nhuận (%)", min_value=10.0, max_value=100.0, value=70.0, step=5.0)
         sim_budget = st.number_input("Ngân sách cho policy phân bổ ($)", min_value=1000, max_value=500000, value=50000, step=5000)
-        st.caption("Ngân sách chỉ áp dụng cho Budget-Constrained Greedy; các policy còn lại được giữ nguyên để làm benchmark.")
+        st.caption("Ngân sách chỉ áp dụng cho policy **Phân bổ có ràng buộc ngân sách**; các policy còn lại được giữ nguyên để làm benchmark.")
         st.caption("Chi phí voucher mỗi chuyến = mức giảm giá × giá cước; simulator không áp dụng cap trong synthetic sandbox.")
         
     with col_sim_right:
-        st.markdown("#### Bảng so sánh chính sách")
+        st.markdown("#### So sánh chính sách phân bổ")
+        st.markdown("Mỗi policy dùng một tiêu chí khác nhau để quyết định khách hàng nào được nhận voucher. Mục tiêu không phải tạo nhiều response nhất, mà là tạo **giá trị kinh tế tốt nhất trong phạm vi giả định mô phỏng**.")
         preds_df['voucher_cost'] = calc_cost(preds_df['avg_fare'], sim_voucher)
         preds_df['margin_per_ride'] = preds_df['avg_fare'] * (sim_margin / 100.0)
         preds_df['expected_value'] = (preds_df['cate_pred'] * preds_df['margin_per_ride']) - (preds_df['pred_rides_treated'] * preds_df['voucher_cost'])
@@ -960,28 +1057,28 @@ with tab4:
         
         sim_results = []
         no_m = pd.Series([False]*len(preds_df), index=preds_df.index)
-        sim_results.append(eval_policy_sim(no_m, "0. No Voucher"))
+        sim_results.append(eval_policy_sim(no_m, "0. Không phát voucher"))
         
         mass_m = pd.Series([True]*len(preds_df), index=preds_df.index)
-        sim_results.append(eval_policy_sim(mass_m, "1. Mass Voucher"))
+        sim_results.append(eval_policy_sim(mass_m, "1. Phát đại trà"))
         
         if 'persona' in preds_df.columns:
             sub_m = preds_df['persona'].str.contains('Suburban', case=False, na=False)
-            sim_results.append(eval_policy_sim(sub_m, "2. Segment Targeting"))
+            sim_results.append(eval_policy_sim(sub_m, "2. Phân bổ theo nhóm khách hàng"))
             
         uplift_thresh = preds_df['cate_pred'].quantile(0.7)
         uplift_m = preds_df['cate_pred'] >= uplift_thresh
-        sim_results.append(eval_policy_sim(uplift_m, "3. Uplift Targeting"))
+        sim_results.append(eval_policy_sim(uplift_m, "3. Ưu tiên theo uplift"))
         
         prof_m = preds_df['expected_value'] > 0
-        sim_results.append(eval_policy_sim(prof_m, "4. EV/Profit Targeting"))
+        sim_results.append(eval_policy_sim(prof_m, "4. Ưu tiên theo giá trị kinh tế"))
         
         prof_df_sim = preds_df[preds_df['expected_value'] > 0].copy()
         df_sorted = prof_df_sim.sort_values('expected_value', ascending=False)
         df_sorted['cum_cost'] = (df_sorted['pred_rides_treated'] * df_sorted['voucher_cost']).cumsum()
         budget_m_idx = df_sorted[df_sorted['cum_cost'] <= sim_budget].index
         budget_m = preds_df.index.isin(budget_m_idx)
-        sim_results.append(eval_policy_sim(budget_m, "5. Budget-Constrained Greedy"))
+        sim_results.append(eval_policy_sim(budget_m, "5. Phân bổ có ràng buộc ngân sách"))
         
         sim_df = pd.DataFrame(sim_results)
         # Handle tooltip column if needed (Streamlit dataframe tooltip isn't native for single cells easily without extra code, we will just use a helper icon or text).
@@ -994,20 +1091,20 @@ with tab4:
             'ROI (%)': '{:.1f}%'
         }).background_gradient(subset=['Lợi nhuận kỳ vọng ($)'], cmap='RdYlGn', vmin=-5000, vmax=15000), use_container_width=True, hide_index=True)
 
-        st.caption("*5. Budget-Constrained Greedy: greedy heuristic chỉ xét khách hàng có EV dương, xếp theo EV từ cao xuống thấp, rồi lấy theo cumulative voucher cost tới ngân sách. Nếu ngân sách lớn hơn tổng chi phí của toàn bộ khách hàng EV dương, kết quả sẽ giống EV/Profit Targeting. Đây không phải nghiệm tối ưu tổ hợp chính xác.*")
+        st.caption("*5. Phân bổ có ràng buộc ngân sách: greedy heuristic chỉ xét khách hàng có EV dương, xếp theo EV từ cao xuống thấp, rồi lấy theo cumulative voucher cost tới ngân sách. Đây là minh họa decision logic, chưa phải bộ tối ưu ngân sách chính xác ở quy mô production.*")
         
         best_profit = sim_df['Lợi nhuận kỳ vọng ($)'].max()
         if best_profit > 0:
             best_policy = sim_df.loc[sim_df['Lợi nhuận kỳ vọng ($)'].idxmax(), 'Chính sách so sánh']
-            st.success(f"**Chiến lược có lợi nhuận kỳ vọng cao nhất trong mô phỏng:** {best_policy}")
+            st.success(f"**Chính sách có kết quả kỳ vọng tốt nhất trong mô phỏng:** {best_policy}. Đây là candidate policy cho bước pilot, chưa phải khuyến nghị rollout trực tiếp.")
         else:
-            st.error("**Chiến lược có lợi nhuận kỳ vọng cao nhất trong mô phỏng:** 0. No Voucher")
+            st.error("**Chính sách có kết quả kỳ vọng tốt nhất trong mô phỏng:** 0. Không phát voucher. Đây là kết quả trong synthetic sandbox, chưa phải khuyến nghị production.")
 
-        budget_row = sim_df[sim_df['Chính sách so sánh'] == "5. Budget-Constrained Greedy"].iloc[0]
+        budget_row = sim_df[sim_df['Chính sách so sánh'] == "5. Phân bổ có ràng buộc ngân sách"].iloc[0]
         st.info(
-            f"Với ngân sách hiện tại, Budget-Constrained Greedy target "
+            f"Với ngân sách hiện tại, policy phân bổ có ràng buộc ngân sách target "
             f"{budget_row['Tỷ lệ khách hàng được nhận (%)']:.1f}% khách hàng và tạo "
-            f"${budget_row['Lợi nhuận kỳ vọng ($)']:,.0f} Expected Profit. Đây là scenario result, không phải recommendation thứ hai."
+            f"${budget_row['Lợi nhuận kỳ vọng ($)']:,.0f} expected profit. Đây là scenario result, không phải recommendation thứ hai."
         )
 
         st.download_button(
@@ -1017,25 +1114,48 @@ with tab4:
             mime="text/csv"
         )
 
+        st.markdown(
+            '<div class="bridge-line">→ Sang Tab 5: Kiểm tra độ vững của pipeline trước khi pilot</div>',
+            unsafe_allow_html=True
+        )
+
 # ================= TAB 5: ROBUSTNESS =================
 with tab5:
-    st.subheader("Kiểm tra độ vững của pipeline")
-    st.markdown("Tab này kiểm tra framework phản ứng thế nào khi bị stress, rồi nối sang bước kiểm chứng policy ngoài thực tế và roadmap mở rộng sản phẩm.")
+    st.subheader("Kết luận có phụ thuộc vào một giả định hay một lần chạy không?")
+    st.markdown("Kiểm tra xem pipeline còn hợp lý khi thay đổi sample size, tỷ lệ nhóm nhận voucher / nhóm đối chứng hoặc mức noise trong dữ liệu.")
     
-    st.markdown("#### 1. Stress test & robustness")
+    st.markdown("#### 1. Kiểm tra độ vững của kết luận")
     g1, g2 = st.columns(2)
     with g1:
-        render_status_card("Sample Size", "ATE ổn định, CI hẹp dần khi N tăng.")
+        render_status_card("Sample size thay đổi", "ATE ổn định, CI hẹp dần khi N tăng.")
     with g2:
-        render_status_card("Null Effect", "Estimate tập trung quanh 0, FPR gần mức thiết kế.")
+        render_status_card("Null effect: voucher không có tác dụng thật", "Estimate tập trung quanh 0, FPR gần mức thiết kế.")
     g3, g4 = st.columns(2)
     with g3:
-        render_status_card("Phân bổ Treatment 90/10", "Uncertainty/SE tăng.", "warning")
+        render_status_card("Phân bổ Treatment / Control 90/10", "Nhóm nhỏ hơn làm uncertainty và sai số chuẩn tăng.", "warning")
     with g4:
-        render_status_card("Noise Injection", "Signal yếu đi, uncertainty tăng.", "info")
+        render_status_card("Outcome có thêm noise", "Signal yếu đi, uncertainty tăng.", "info")
     
     st.caption("Các stress test này kiểm tra statistical behavior trong synthetic sandbox, chưa chứng minh production robustness; kết quả được tổng hợp từ Week 6 stress-test notebook và không rerun khi dashboard load.")
-    st.info("**Champion–Challenger:** Policy được lựa chọn từ simulator mới chỉ là candidate/challenger. Trước khi rollout cần thử nghiệm trực tiếp với baseline/champion hiện hành và chỉ mở rộng khi incremental profit cải thiện với bằng chứng thống kê.")
+    with st.expander("Dashboard đã và chưa chứng minh điều gì?"):
+        col_done, col_not = st.columns(2)
+        with col_done:
+            st.markdown("""
+            **Đã chứng minh trong sandbox**
+            - Pipeline có thể chạy xuyên suốt từ experiment → uplift → economics → policy.
+            - Có thể kiểm tra logic với treatment effect đã biết trong dữ liệu mô phỏng.
+            - Có thể so sánh nhiều chính sách phân bổ trên cùng một framework.
+            """)
+        with col_not:
+            st.markdown("""
+            **Chưa chứng minh cho production**
+            - ROI thực tế của GSM.
+            - Response thực tế của khách hàng GSM.
+            - Tác động dài hạn dưới marketplace dynamics, cannibalization hoặc supply constraint.
+            - Chính sách nào nên rollout ngay.
+            """)
+
+    st.info("**Chính sách hiện tại vs chính sách thử nghiệm (Champion–Challenger):** Policy có kết quả tốt nhất offline chỉ nên được xem là challenger. Bước tiếp theo là chạy randomized pilot để so sánh với policy hiện tại trong điều kiện thật, rồi scale nếu incremental profit cải thiện với bằng chứng thống kê.")
     
     with st.expander("Cách diễn giải kiểm tra độ vững"):
         st.markdown("""
@@ -1048,9 +1168,17 @@ with tab5:
         
         > **Các phép kiểm tra ở đây xác nhận quy trình có phản ứng đúng như lý thuyết thống kê hay không, chưa khẳng định quy trình đã đủ vững để vận hành thực tế.**
         """)
+
+    with st.expander("Nếu pilot thật, cần theo dõi gì?"):
+        st.markdown("""
+        - **Experiment:** SRM, balance, treatment delivery.
+        - **Model:** drift, uplift ranking, calibration.
+        - **Economics:** voucher burn, incremental margin, EV / ROI.
+        - **Business:** conversion/rides, retention, supply constraints và guardrails vận hành.
+        """)
     
     st.markdown("---")
-    st.markdown("#### 2. Lộ trình WHO → WHEN → HOW MUCH")
+    st.markdown("#### 2. Hướng phát triển từ prototype đến cá nhân hóa khuyến mãi")
     
     c1, c2, c3 = st.columns(3)
     with c1:
