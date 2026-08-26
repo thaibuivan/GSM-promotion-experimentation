@@ -85,6 +85,28 @@ st.markdown("""
         background-color: #FEE2E2;
         color: #B91C1C;
     }
+    .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px 18px;
+        color: #334155;
+        font-size: 0.82rem;
+        font-weight: 650;
+        margin: -18px 0 14px;
+    }
+    .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        display: inline-block;
+    }
     .block-container { padding-top: 3.5rem; }
     
     .stTabs [data-baseweb="tab-list"],
@@ -403,7 +425,7 @@ with tab1:
         render_kpi_card(
             "Tổng chi phí voucher (30 ngày)",
             f"${total_voucher_cost:,.0f}",
-            f"↑ ${total_voucher_cost:,.0f} chi phí",
+            f"Chi phí phát sinh ${total_voucher_cost:,.0f}",
             "negative"
         )
     with c4:
@@ -474,23 +496,33 @@ with tab1:
             labels=['Chi phí trên chuyến nền', 'Chi phí trên chuyến tăng thêm'],
             values=[wasted_burn, effective_burn],
             hole=0.58,
+            domain=dict(y=[0.08, 1.0]),
             marker=dict(colors=['#FF4B4B', '#00CC96'], line=dict(color='#FFFFFF', width=2)),
             textinfo='percent',
             sort=False,
+            showlegend=False,
             hovertemplate="%{label}<br>$%{value:,.0f}<br>%{percent}<extra></extra>"
         ))
         fig_burn.update_layout(
-            **{**chart_layout, "height": 370, "margin": dict(l=20, r=20, t=40, b=46)},
+            **{**chart_layout, "height": 350, "margin": dict(l=20, r=20, t=40, b=20)},
             annotations=[dict(
                 text=f"Tổng burn<br>${total_burn:,.0f}",
                 x=0.5,
-                y=0.5,
+                y=0.54,
                 font=dict(size=16, color='#0F172A'),
                 showarrow=False
-            )],
-            legend=dict(orientation="h", yanchor="bottom", y=-0.02, xanchor="center", x=0.5)
+            )]
         )
         st.plotly_chart(fig_burn, use_container_width=True)
+        st.markdown(
+            f"""
+            <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot" style="background:#FF4B4B;"></span>Chi phí trên chuyến nền: ${wasted_burn:,.0f}</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#00CC96;"></span>Chi phí trên chuyến tăng thêm: ${effective_burn:,.0f}</span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         st.info("Khuyến mãi đại trà tạo thêm chuyến xe, nhưng phần lớn chi phí có thể rơi vào các chuyến nền vốn vẫn có khả năng phát sinh dù không phát voucher.")
 
     st.error("**Kết luận:** Phát voucher đại trà tạo thêm nhu cầu nhưng lợi nhuận vẫn âm theo các giả định hiện tại. Vì vậy, đây không phải chính sách ứng viên phù hợp.")
