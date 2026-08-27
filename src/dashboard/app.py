@@ -135,6 +135,13 @@ st.markdown("""
         font-weight: 650;
         margin: -18px 0 14px;
     }
+    .chart-legend.external {
+        align-items: center;
+        margin: 4px 0 18px;
+    }
+    .chart-legend.external .legend-item {
+        white-space: normal;
+    }
     .legend-item {
         display: inline-flex;
         align-items: center;
@@ -146,6 +153,23 @@ st.markdown("""
         height: 10px;
         border-radius: 2px;
         display: inline-block;
+    }
+    .legend-line {
+        width: 20px;
+        height: 3px;
+        border-radius: 999px;
+        display: inline-block;
+        flex: 0 0 auto;
+    }
+    .legend-line.dashed {
+        height: 2px;
+        background: repeating-linear-gradient(
+            to right,
+            rgba(15, 23, 42, 0.38) 0,
+            rgba(15, 23, 42, 0.38) 7px,
+            transparent 7px,
+            transparent 12px
+        );
     }
     .status-card {
         background-color: #FFFFFF;
@@ -444,11 +468,20 @@ def render_model_evaluation():
             ))
             fig_qini.update_layout(
                 **{**chart_layout, "height": 390, "margin": dict(l=20, r=20, t=52, b=82)},
-                legend=dict(orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5)
+                showlegend=False
             )
             fig_qini.update_xaxes(title="Tỷ lệ khách hàng được nhắm chọn (%)", dtick=10, automargin=True)
             fig_qini.update_yaxes(title="Số chuyến tăng thêm tích lũy (Qini)", automargin=True)
             st.plotly_chart(fig_qini, use_container_width=True)
+            st.markdown(
+                """
+                <div class="chart-legend external">
+                    <span class="legend-item"><span class="legend-line" style="background:#0EA5A4;"></span>Mô hình</span>
+                    <span class="legend-item"><span class="legend-line dashed"></span>Mốc ngẫu nhiên</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
         else:
             st.warning("Chưa có dữ liệu để vẽ đường Qini.")
 
@@ -472,11 +505,21 @@ def render_model_evaluation():
             ))
             fig_cal.update_layout(
                 **{**chart_layout, "height": 390, "margin": dict(l=20, r=20, t=52, b=82)},
-                legend=dict(orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5)
+                showlegend=False
             )
             fig_cal.update_xaxes(title="Các nhóm thập phân vị (tốt nhất đến kém nhất)", automargin=True)
             fig_cal.update_yaxes(title="Uplift trung bình", automargin=True)
             st.plotly_chart(fig_cal, use_container_width=True)
+            st.markdown(
+                """
+                <div class="chart-legend external">
+                    <span class="legend-item"><span class="legend-line" style="background:#FF4B4B;"></span>CATE dự báo</span>
+                    <span class="legend-item"><span class="legend-line" style="background:#00CC96;"></span>Uplift quan sát</span>
+                    <span class="legend-item"><span class="legend-line dashed"></span>CATE ground truth (synthetic)</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
         except (FileNotFoundError, KeyError, pd.errors.EmptyDataError):
             st.warning("Chưa có dữ liệu hiệu chỉnh.")
 
